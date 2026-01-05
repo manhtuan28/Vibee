@@ -1,39 +1,194 @@
 ﻿@page
 @model LoginWith2faModel
 @{
-    ViewData["Title"] = "Two-factor authentication";
+    ViewData["Title"] = "Xác thực 2 yếu tố";
+    Layout = null;
 }
 
-<h1>@ViewData["Title"]</h1>
-<hr />
-<p>Your login is protected with an authenticator app. Enter your authenticator code below.</p>
-<div class="row">
-    <div class="col-md-4">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bảo mật 2 lớp | Vibee</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: Helvetica, Arial, sans-serif;
+            color: #1c1e21;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .vibee-logo {
+            color: #1877f2;
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .security-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+            width: 450px;
+            max-width: 90%;
+            overflow: hidden;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .icon-wrapper {
+            width: 70px;
+            height: 70px;
+            background-color: #e7f3ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+            .icon-wrapper i {
+                font-size: 35px;
+                color: #1877f2;
+            }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1c1e21;
+        }
+
+        .card-subtitle {
+            font-size: 15px;
+            color: #65676b;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .form-control {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccd0d5;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+            .form-control:focus {
+                border-color: #1877f2;
+                box-shadow: 0 0 0 2px #e7f3ff;
+                outline: none;
+            }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin-top: 0;
+        }
+
+        .form-check-label {
+            font-size: 14px;
+            color: #606770;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .btn-verify {
+            background-color: #1877f2;
+            color: white;
+            font-weight: 700;
+            padding: 10px 0;
+            width: 100%;
+            border-radius: 6px;
+            border: none;
+            font-size: 17px;
+            transition: 0.2s;
+        }
+
+            .btn-verify:hover {
+                background-color: #166fe5;
+                color: white;
+            }
+
+        .footer-link {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+            .footer-link a {
+                color: #1877f2;
+                text-decoration: none;
+            }
+
+                .footer-link a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="vibee-logo">vibee</a>
+
+    <div class="security-card">
+        <div class="icon-wrapper">
+            <i class="bi bi-shield-lock-fill"></i>
+        </div>
+
+        <h3 class="card-title">Xác thực 2 yếu tố</h3>
+        <p class="card-subtitle">
+            Tài khoản của bạn được bảo vệ bằng ứng dụng xác thực. Vui lòng nhập mã từ điện thoại của bạn.
+        </p>
+
         <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
             <input asp-for="RememberMe" type="hidden" />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.TwoFactorCode" class="form-control" autocomplete="off" />
-                <label asp-for="Input.TwoFactorCode" class="form-label"></label>
-                <span asp-validation-for="Input.TwoFactorCode" class="text-danger"></span>
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
+
+            <div class="mb-3">
+                <input asp-for="Input.TwoFactorCode" class="form-control" autocomplete="off" placeholder="######" autofocus />
+                <span asp-validation-for="Input.TwoFactorCode" class="text-danger small"></span>
             </div>
-            <div class="checkbox mb-3">
-                <label asp-for="Input.RememberMachine" class="form-label">
-                    <input asp-for="Input.RememberMachine" />
-                    @Html.DisplayNameFor(m => m.Input.RememberMachine)
+
+            <div class="form-check">
+                <input asp-for="Input.RememberMachine" class="form-check-input" />
+                <label asp-for="Input.RememberMachine" class="form-check-label">
+                    Tin cậy thiết bị này trong 30 ngày
                 </label>
             </div>
-            <div>
-                <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-            </div>
-        </form>
-    </div>
-</div>
-<p>
-    Don't have access to your authenticator device? You can
-    <a id="recovery-code-login" asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">log in with a recovery code</a>.
-</p>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+            <button type="submit" class="btn-verify">Xác nhận</button>
+        </form>
+
+        <div class="footer-link">
+            Bạn bị mất thiết bị?
+            <a id="recovery-code-login" asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">Đăng nhập bằng mã khôi phục</a>.
+        </div>
+    </div>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>

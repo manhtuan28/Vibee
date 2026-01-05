@@ -211,6 +211,8 @@
                         <span asp-validation-for="Input.Password" class="text-danger small text-start d-block mb-2"></span>
                     </div>
 
+                    <input type="hidden" asp-for="Input.RememberMe" value="true" />
+
                     <button id="login-submit" type="submit" class="btn-login">Đăng nhập</button>
 
                     <a id="forgot-password" asp-page="./ForgotPassword" class="forgot-link">Quên mật khẩu?</a>
