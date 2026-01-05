@@ -1,6 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
+﻿#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -31,7 +29,7 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
 
         public IActionResult OnGet()
         {
-            return NotFound();
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -39,13 +37,13 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Không tìm thấy người dùng với ID '{_userManager.GetUserId(User)}'.");
             }
 
-            _logger.LogInformation("User with ID '{UserId}' asked for their personal data.", _userManager.GetUserId(User));
+            _logger.LogInformation("Người dùng ID '{UserId}' đã yêu cầu tải dữ liệu cá nhân.", _userManager.GetUserId(User));
 
-            // Only include personal data for download
             var personalData = new Dictionary<string, string>();
+
             var personalDataProps = typeof(ApplicationUser).GetProperties().Where(
                             prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
             foreach (var p in personalDataProps)
@@ -59,10 +57,16 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
                 personalData.Add($"{l.LoginProvider} external login provider key", l.ProviderKey);
             }
 
-            personalData.Add($"Authenticator Key", await _userManager.GetAuthenticatorKeyAsync(user));
+            var authenticatorKey = await _userManager.GetAuthenticatorKeyAsync(user);
+            if (!string.IsNullOrEmpty(authenticatorKey))
+            {
+                personalData.Add("Authenticator Key", authenticatorKey);
+            }
 
-            Response.Headers.TryAdd("Content-Disposition", "attachment; filename=PersonalData.json");
-            return new FileContentResult(JsonSerializer.SerializeToUtf8Bytes(personalData), "application/json");
+            var fileName = $"Vibee-PersonalData-{DateTime.Now:yyyyMMdd}.json";
+            Response.Headers.TryAdd("Content-Disposition", $"attachment; filename={fileName}");
+
+            return new FileContentResult(JsonSerializer.SerializeToUtf8Bytes(personalData, new JsonSerializerOptions { WriteIndented = true }), "application/json");
         }
     }
 }

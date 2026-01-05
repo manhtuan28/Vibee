@@ -1,24 +1,60 @@
 ﻿@page
 @model PersonalDataModel
 @{
-    ViewData["Title"] = "Personal Data";
+    ViewData["Title"] = "Dữ liệu cá nhân";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 }
 
-<h3>@ViewData["Title"]</h3>
+<h4 class="fw-bold mb-4">@ViewData["Title"]</h4>
 
 <div class="row">
-    <div class="col-md-6">
-        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
-        <p>
-            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-        </p>
-        <form id="download-data" asp-page="DownloadPersonalData" method="post">
-            <button class="btn btn-primary" type="submit">Download</button>
-        </form>
-        <p>
-            <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger">Delete</a>
-        </p>
+    <div class="col-md-12">
+        <div class="alert alert-light border shadow-sm mb-4">
+            <i class="bi bi-info-circle-fill text-primary me-2"></i>
+            Tài khoản của bạn chứa các dữ liệu cá nhân mà bạn đã cung cấp cho chúng tôi. Trang này cho phép bạn tải xuống hoặc xóa vĩnh viễn dữ liệu đó.
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-3">
+                                <i class="bi bi-cloud-download-fill fs-4"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">Tải xuống dữ liệu</h5>
+                        </div>
+                        <p class="text-muted small mb-4">
+                            Tải xuống bản sao toàn bộ dữ liệu cá nhân của bạn dưới định dạng JSON để lưu trữ hoặc chuyển sang nền tảng khác.
+                        </p>
+                        <form id="download-data" asp-page="DownloadPersonalData" method="post">
+                            <button class="btn btn-outline-primary fw-bold w-100" type="submit">
+                                Tải xuống ngay
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger me-3">
+                                <i class="bi bi-trash3-fill fs-4"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-danger">Xóa tài khoản</h5>
+                        </div>
+                        <p class="text-muted small mb-4">
+                            Hành động này sẽ xóa vĩnh viễn tài khoản và toàn bộ dữ liệu liên quan. <strong>Không thể khôi phục lại.</strong>
+                        </p>
+                        <a id="delete" asp-page="DeletePersonalData" class="btn btn-outline-danger fw-bold w-100">
+                            Yêu cầu xóa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

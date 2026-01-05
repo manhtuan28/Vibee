@@ -1,27 +1,51 @@
 ﻿@page
 @model GenerateRecoveryCodesModel
 @{
-    ViewData["Title"] = "Generate two-factor authentication (2FA) recovery codes";
+    ViewData["Title"] = "Tạo mã khôi phục mới";
     ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
 }
 
 <partial name="_StatusMessage" for="StatusMessage" />
-<h3>@ViewData["Title"]</h3>
-<div class="alert alert-warning" role="alert">
-    <p>
-        <span class="glyphicon glyphicon-warning-sign"></span>
-        <strong>Put these codes in a safe place.</strong>
-    </p>
-    <p>
-        If you lose your device and don't have the recovery codes you will lose access to your account.
-    </p>
-    <p>
-        Generating new recovery codes does not change the keys used in authenticator apps. If you wish to change the key
-        used in an authenticator app you should <a asp-page="./ResetAuthenticator">reset your authenticator keys.</a>
-    </p>
-</div>
-<div>
-    <form method="post">
-        <button class="btn btn-danger" type="submit">Generate Recovery Codes</button>
-    </form>
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <h4 class="fw-bold mb-4">@ViewData["Title"]</h4>
+
+        <div class="alert alert-warning shadow-sm border-warning" role="alert">
+            <h4 class="alert-heading fw-bold mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Lưu ý quan trọng
+            </h4>
+            <p>
+                <strong>Đặt các mã này ở nơi an toàn.</strong>
+            </p>
+            <p>
+                Nếu bạn mất thiết bị (điện thoại) và không có mã khôi phục, bạn sẽ mất quyền truy cập vào tài khoản Vibee của mình vĩnh viễn.
+            </p>
+            <hr>
+            <p class="mb-0 small">
+                Việc tạo mã mới này không làm thay đổi khóa dùng trong ứng dụng xác thực (Authenticator App). Nếu bạn muốn thay đổi khóa (do đổi điện thoại), hãy dùng tính năng <a asp-page="./ResetAuthenticator" class="fw-bold text-dark text-decoration-underline">Đặt lại ứng dụng xác thực</a>.
+            </p>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <span class="d-inline-block p-3 rounded-circle bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-arrow-repeat fs-1"></i>
+                    </span>
+                </div>
+
+                <h5 class="card-title fw-bold">Tạo bộ mã mới?</h5>
+                <p class="card-text text-muted mb-4">
+                    Hành động này sẽ <strong>vô hiệu hóa</strong> tất cả các mã khôi phục cũ mà bạn từng lưu. Bạn chỉ có thể sử dụng bộ mã mới sau khi bấm nút dưới đây.
+                </p>
+
+                <form method="post">
+                    <button class="btn btn-danger px-4 fw-bold py-2" type="submit">
+                        <i class="bi bi-file-earmark-lock2 me-2"></i> Tạo bộ mã mới
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
