@@ -26,7 +26,7 @@
 
         body {
             background-color: var(--fb-bg);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: SFProDisplay-Regular, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             display: flex;
@@ -38,47 +38,49 @@
         }
 
         .vibee-brand {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 800;
             color: var(--fb-blue);
             margin-bottom: 20px;
             text-align: center;
-            letter-spacing: -1px;
+            letter-spacing: -2px;
             display: block;
         }
 
         @@media (min-width: 992px) {
             .vibee-brand {
-                display: none;
+                display: block;
             }
         }
 
         .register-card {
             background: white;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
             width: 432px;
             overflow: hidden;
+            margin-bottom: 20px;
         }
 
         .card-header {
-            padding: 15px 16px;
+            padding: 10px 16px;
             border-bottom: 1px solid #dadde1;
             background: white;
         }
 
             .card-header h2 {
-                font-size: 32px;
+                font-size: 25px;
                 font-weight: 700;
-                color: #111;
+                color: #1c1e21;
                 margin: 0;
-                line-height: 38px;
+                line-height: 32px;
             }
 
             .card-header p {
                 font-size: 15px;
                 color: #606770;
                 margin: 0;
+                line-height: 24px;
             }
 
         .card-body {
@@ -88,23 +90,20 @@
         .form-control {
             background-color: var(--input-bg);
             border: 1px solid #ccd0d5;
-            border-radius: 6px;
+            border-radius: 5px;
             padding: 11px;
             font-size: 15px;
             color: #1c1e21;
-            margin-bottom: 12px;
-            transition: all 0.2s ease-in-out;
+            margin-bottom: 10px;
+            height: 40px;
         }
 
             .form-control:focus {
                 background-color: #fff;
                 border-color: var(--fb-blue);
-                box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+                box-shadow: 0 0 0 2px #e7f3ff;
                 outline: none;
-            }
-
-            .form-control::placeholder {
-                color: #8d949e;
+                caret-color: var(--fb-blue);
             }
 
         .lbl-small {
@@ -112,19 +111,19 @@
             color: #606770;
             margin-bottom: 5px;
             display: block;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .gender-box {
             border: 1px solid #ccd0d5;
             border-radius: 4px;
-            padding: 8px 10px;
+            padding: 0 10px;
+            height: 36px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background-color: white;
             cursor: pointer;
-            transition: 0.2s;
         }
 
             .gender-box:hover {
@@ -144,19 +143,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s cubic-bezier(.08,.52,.52,1);
+            transition: all 0.2s;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
             .btn-register:hover {
                 background-color: var(--fb-green-hover);
-                transform: scale(1.02);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-            }
-
-            .btn-register:active {
-                transform: scale(0.98);
-                background-color: #2f901c;
             }
 
         .terms-text {
@@ -164,6 +156,7 @@
             color: #777;
             margin-top: 15px;
             line-height: 1.4;
+            text-align: left;
         }
 
             .terms-text a {
@@ -180,7 +173,7 @@
             margin-top: 20px;
             color: var(--fb-blue);
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 600;
             text-decoration: none;
             display: block;
         }
@@ -193,113 +186,115 @@
             cursor: pointer;
             background-color: white;
             border: 1px solid #ccd0d5;
+            height: 36px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            font-size: 15px;
         }
     </style>
 </head>
 <body>
 
-    <div class="vibee-brand">vibee</div>
+    <div class="d-flex flex-column align-items-center">
+        <div class="vibee-brand">vibee</div>
 
-    <div class="register-card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h2>Đăng ký</h2>
-                    <p>Nhanh chóng và dễ dàng.</p>
+        <div class="register-card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2>Tạo tài khoản mới</h2>
+                        <p>Nhanh chóng và dễ dàng.</p>
+                    </div>
                 </div>
-                <a href="/Identity/Account/Login" class="text-secondary fs-4 text-decoration-none px-2">&times;</a>
+            </div>
+
+            <div class="card-body">
+                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center" role="alert"></div>
+
+                    <div class="mb-2">
+                        <input asp-for="Input.FullName" class="form-control" placeholder="Họ và tên" aria-required="true" />
+                        <span asp-validation-for="Input.FullName" class="text-danger small" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="mb-2">
+                        <input asp-for="Input.Email" class="form-control" placeholder="Số di động hoặc email" autocomplete="username" aria-required="true" />
+                        <span asp-validation-for="Input.Email" class="text-danger small" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="mb-2">
+                        <input asp-for="Input.Password" class="form-control" placeholder="Mật khẩu mới" autocomplete="new-password" aria-required="true" />
+                        <span asp-validation-for="Input.Password" class="text-danger small" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="mb-2">
+                        <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" autocomplete="new-password" aria-required="true" />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger small" style="font-size:12px"></span>
+                    </div>
+
+                    <label class="lbl-small mt-2">Ngày sinh <i class="bi bi-question-circle-fill text-secondary"></i></label>
+                    <div class="d-flex gap-2 mb-3">
+                        <select id="dobDay" class="form-select" aria-label="Day">
+                            @for (int i = 1; i <= 31; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                        <select id="dobMonth" class="form-select" aria-label="Month">
+                            <option value="1">Tháng 1</option>
+                            <option value="2">Tháng 2</option>
+                            <option value="3">Tháng 3</option>
+                            <option value="4">Tháng 4</option>
+                            <option value="5">Tháng 5</option>
+                            <option value="6">Tháng 6</option>
+                            <option value="7">Tháng 7</option>
+                            <option value="8">Tháng 8</option>
+                            <option value="9">Tháng 9</option>
+                            <option value="10">Tháng 10</option>
+                            <option value="11">Tháng 11</option>
+                            <option value="12">Tháng 12</option>
+                        </select>
+                        <select id="dobYear" class="form-select" aria-label="Year">
+                            @for (int i = DateTime.Now.Year; i >= 1905; i--)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+
+                    <label class="lbl-small">Giới tính <i class="bi bi-question-circle-fill text-secondary"></i></label>
+                    <div class="d-flex gap-3 mb-3">
+                        <label class="gender-box flex-fill" for="female">
+                            <span class="small fw-bold">Nữ</span>
+                            <input class="form-check-input m-0" type="radio" name="gender" id="female" value="Female">
+                        </label>
+                        <label class="gender-box flex-fill" for="male">
+                            <span class="small fw-bold">Nam</span>
+                            <input class="form-check-input m-0" type="radio" name="gender" id="male" value="Male" checked>
+                        </label>
+                        <label class="gender-box flex-fill" for="custom">
+                            <span class="small fw-bold">Tùy chỉnh</span>
+                            <input class="form-check-input m-0" type="radio" name="gender" id="custom" value="Custom">
+                        </label>
+                    </div>
+
+                    <p class="terms-text">
+                        Những người dùng dịch vụ của chúng tôi có thể đã tải thông tin liên hệ của bạn lên Vibee. <a href="#">Tìm hiểu thêm</a>.
+                        <br><br>
+                        Bằng cách nhấp vào Đăng ký, bạn đồng ý với <a href="#">Điều khoản</a>, <a href="#">Chính sách quyền riêng tư</a> và <a href="#">Chính sách cookie</a> của chúng tôi.
+                    </p>
+
+                    <div class="text-center">
+                        <button id="registerSubmit" type="submit" class="btn-register">Đăng ký</button>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="/Identity/Account/Login" class="login-link">Bạn đã có tài khoản ư?</a>
+                    </div>
+                </form>
             </div>
         </div>
-
-        <div class="card-body">
-            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
-
-                <div class="mb-2">
-                    <input asp-for="Input.FullName" class="form-control" placeholder="Họ và tên" aria-required="true" />
-                    <span asp-validation-for="Input.FullName" class="text-danger small" style="font-size:11px"></span>
-                </div>
-
-                <div class="mb-2">
-                    <input asp-for="Input.Email" class="form-control" placeholder="Số di động hoặc email" autocomplete="username" aria-required="true" />
-                    <span asp-validation-for="Input.Email" class="text-danger small" style="font-size:11px"></span>
-                </div>
-
-                <div class="mb-2">
-                    <input asp-for="Input.Password" class="form-control" placeholder="Mật khẩu mới" autocomplete="new-password" aria-required="true" />
-                    <span asp-validation-for="Input.Password" class="text-danger small" style="font-size:11px"></span>
-                </div>
-
-                <div class="mb-2">
-                    <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" autocomplete="new-password" aria-required="true" />
-                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger small" style="font-size:11px"></span>
-                </div>
-
-                <label class="lbl-small mt-3">Ngày sinh <i class="bi bi-question-circle-fill text-secondary"></i></label>
-                <div class="d-flex gap-2 mb-3">
-                    <select id="dobDay" class="form-select" aria-label="Day">
-                        @for (int i = 1; i <= 31; i++)
-                        {
-                            <option value="@i">@i</option>
-                        }
-                    </select>
-
-                    <select id="dobMonth" class="form-select" aria-label="Month">
-                        <option value="1">Tháng 1</option>
-                        <option value="2">Tháng 2</option>
-                        <option value="3">Tháng 3</option>
-                        <option value="4">Tháng 4</option>
-                        <option value="5">Tháng 5</option>
-                        <option value="6">Tháng 6</option>
-                        <option value="7">Tháng 7</option>
-                        <option value="8">Tháng 8</option>
-                        <option value="9">Tháng 9</option>
-                        <option value="10">Tháng 10</option>
-                        <option value="11">Tháng 11</option>
-                        <option value="12">Tháng 12</option>
-                    </select>
-
-                    <select id="dobYear" class="form-select" aria-label="Year">
-                        @for (int i = DateTime.Now.Year; i >= 1905; i--)
-                        {
-                            <option value="@i">@i</option>
-                        }
-                    </select>
-                </div>
-
-                <label class="lbl-small">Giới tính <i class="bi bi-question-circle-fill text-secondary"></i></label>
-                <div class="d-flex gap-3 mb-3">
-                    <label class="gender-box flex-fill" for="female">
-                        <span class="small">Nữ</span>
-                        <input class="form-check-input m-0" type="radio" name="gender" id="female" value="Female">
-                    </label>
-                    <label class="gender-box flex-fill" for="male">
-                        <span class="small">Nam</span>
-                        <input class="form-check-input m-0" type="radio" name="gender" id="male" value="Male" checked>
-                    </label>
-                    <label class="gender-box flex-fill" for="custom">
-                        <span class="small">Tùy chỉnh</span>
-                        <input class="form-check-input m-0" type="radio" name="gender" id="custom" value="Custom">
-                    </label>
-                </div>
-
-                <p class="terms-text">
-                    Những người dùng dịch vụ của chúng tôi có thể đã tải thông tin liên hệ của bạn lên Vibee. <a href="#">Tìm hiểu thêm</a>.
-                    <br><br>
-                    Bằng cách nhấp vào Đăng ký, bạn đồng ý với <a href="#">Điều khoản</a>, <a href="#">Chính sách quyền riêng tư</a> và <a href="#">Chính sách cookie</a> của chúng tôi.
-                </p>
-
-                <div class="text-center">
-                    <button id="registerSubmit" type="submit" class="btn-register">Đăng ký</button>
-                </div>
-
-                <div class="text-center">
-                    <a href="/Identity/Account/Login" class="login-link">Bạn đã có tài khoản ư?</a>
-                </div>
-            </form>
-        </div>
     </div>
-
 
     <script>
         const daySelect = document.getElementById('dobDay');
@@ -321,7 +316,6 @@
                 if (i === currentDay || (i === daysInMonth && currentDay > daysInMonth)) {
                     option.selected = true;
                 }
-
                 daySelect.appendChild(option);
             }
         }

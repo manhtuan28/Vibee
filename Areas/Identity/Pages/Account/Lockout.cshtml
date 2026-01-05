@@ -1,10 +1,134 @@
 ﻿@page
 @model LockoutModel
 @{
-    ViewData["Title"] = "Locked out";
+    ViewData["Title"] = "Tài khoản bị tạm khóa";
+    Layout = null;
 }
 
-<header>
-    <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">This account has been locked out, please try again later.</p>
-</header>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tài khoản bị khóa | Vibee</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: Helvetica, Arial, sans-serif;
+            color: #1c1e21;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .vibee-logo {
+            color: #1877f2;
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .lockout-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+            width: 500px;
+            max-width: 90%;
+            overflow: hidden;
+            text-align: center;
+            padding: 40px 30px;
+        }
+
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background-color: #fce8e6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+            .icon-wrapper i {
+                font-size: 40px;
+                color: #ea4335;
+            }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1c1e21;
+        }
+
+        .card-text {
+            font-size: 16px;
+            color: #65676b;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        .btn-home {
+            background-color: #1877f2;
+            color: white;
+            font-weight: 600;
+            padding: 0 30px;
+            height: 40px;
+            line-height: 40px;
+            border-radius: 6px;
+            border: none;
+            font-size: 15px;
+            transition: 0.2s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+            .btn-home:hover {
+                background-color: #166fe5;
+                color: white;
+            }
+
+        .security-note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #8a8d91;
+            border-top: 1px solid #dadde1;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="vibee-logo">vibee</a>
+
+    <div class="lockout-card">
+        <div class="icon-wrapper">
+            <i class="bi bi-shield-lock-fill"></i>
+        </div>
+
+        <h3 class="card-title">Tài khoản bị tạm khóa</h3>
+
+        <p class="card-text">
+            Để bảo vệ an toàn cho <strong>Ví Vibee</strong> của bạn, hệ thống đã tạm khóa tài khoản này do phát hiện quá nhiều lần đăng nhập thất bại liên tiếp.
+            <br><br>
+            Vui lòng thử lại sau ít phút hoặc liên hệ với bộ phận hỗ trợ nếu bạn quên mật khẩu.
+        </p>
+
+        <a href="/" class="btn-home">Quay về trang chủ</a>
+
+        <div class="security-note">
+            <i class="bi bi-info-circle me-1"></i> Tính năng bảo mật này giúp ngăn chặn kẻ xấu dò mật khẩu của bạn.
+        </div>
+    </div>
+
+</body>
+</html>

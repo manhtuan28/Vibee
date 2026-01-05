@@ -1,8 +1,128 @@
 ﻿@page
 @model ConfirmEmailModel
 @{
-    ViewData["Title"] = "Confirm email";
+    ViewData["Title"] = "Xác thực Email";
+    Layout = null;
+
+    bool isSuccess = !string.IsNullOrEmpty(Model.StatusMessage) && !Model.StatusMessage.StartsWith("Lỗi");
+    string statusClass = isSuccess ? "text-success" : "text-danger";
+    string iconClass = isSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill";
+    string bgIcon = isSuccess ? "#e7f3ff" : "#fce8e6";
+    string colorIcon = isSuccess ? "#1877f2" : "#dc3545";
+    string displayMessage = Model.StatusMessage?.Replace("Thành công: ", "").Replace("Lỗi: ", "") ?? "Trạng thái không xác định.";
 }
 
-<h1>@ViewData["Title"]</h1>
-<partial name="_StatusMessage" model="Model.StatusMessage" />
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] | Vibee</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: Helvetica, Arial, sans-serif;
+            color: #1c1e21;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .vibee-logo {
+            color: #1877f2;
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+            width: 500px;
+            max-width: 90%;
+            overflow: hidden;
+            text-align: center;
+            padding: 40px 30px;
+        }
+
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+            .icon-wrapper i {
+                font-size: 40px;
+            }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1c1e21;
+        }
+
+        .card-text {
+            font-size: 17px;
+            color: #65676b;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        .btn-action {
+            background-color: #1877f2;
+            color: white;
+            font-weight: 600;
+            padding: 10px 30px;
+            border-radius: 6px;
+            border: none;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+            .btn-action:hover {
+                background-color: #166fe5;
+                color: white;
+            }
+    </style>
+</head>
+<body>
+    <a href="/" class="vibee-logo">vibee</a>
+
+    <div class="status-card">
+        <div class="icon-wrapper" style="background-color: @bgIcon;">
+            <i class="bi @iconClass" style="color: @colorIcon;"></i>
+        </div>
+
+        <h3 class="card-title">@ViewData["Title"]</h3>
+
+        <p class="card-text">
+            @displayMessage
+        </p>
+
+        @if (isSuccess)
+        {
+            <a href="/Identity/Account/Login" class="btn-action">Đăng nhập ngay</a>
+        }
+        else
+        {
+            <a href="/" class="btn-action">Về trang chủ</a>
+        }
+    </div>
+</body>
+</html>
