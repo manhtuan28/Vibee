@@ -1,7 +1,7 @@
 ﻿@page
 @model EmailModel
 @{
-    ViewData["Title"] = "Email & Liên hệ";
+    ViewData["Title"] = "Quản lý Email";
     ViewData["ActivePage"] = ManageNavPages.Email;
 }
 
@@ -9,62 +9,59 @@
 
 <div class="row">
     <div class="col-md-9">
+        <h4 class="fw-bold mb-4">@ViewData["Title"]</h4>
+
         <form id="email-form" method="post">
             <div asp-validation-summary="All" class="text-danger mb-3 small" role="alert"></div>
 
-            <div class="mb-4">
-                <label class="form-label fw-bold text-muted small text-uppercase">Email hiện tại</label>
-
-                @if (Model.IsEmailConfirmed)
-                {
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-success">
-                            <i class="bi bi-check-circle-fill"></i>
-                        </span>
-                        <input asp-for="Email" class="form-control bg-light border-start-0 text-success fw-bold" disabled />
-                        <span class="input-group-text bg-light text-success fw-bold" style="font-size: 0.9rem;">Đã xác thực</span>
-                    </div>
-                    <div class="form-text text-muted small mt-1">
-                        <i class="bi bi-shield-check"></i> Tài khoản của bạn đã được bảo vệ.
-                    </div>
-                }
-                else
-                {
-                    <div class="input-group">
-                        <span class="input-group-text bg-warning bg-opacity-10 border-warning text-warning">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                        </span>
-                        <input asp-for="Email" class="form-control bg-warning bg-opacity-10 border-warning text-dark fw-bold" disabled />
-                    </div>
-
-                    <div class="mt-2">
-                        <p class="text-danger small mb-1">Email này chưa được xác thực. Bạn sẽ không thể khôi phục mật khẩu nếu quên.</p>
-                        <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-warning btn-sm shadow-sm fw-bold text-dark">
-                            <i class="bi bi-send me-1"></i> Gửi lại email xác thực
-                        </button>
-                    </div>
-                }
-            </div>
-
-            <hr class="my-4 text-muted opacity-25">
-
-            <div class="mb-3">
-                <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square me-2"></i>Thay đổi Email</h6>
-                <div class="alert alert-light border shadow-sm small text-muted">
-                    <i class="bi bi-info-circle-fill me-1 text-primary"></i>
-                    Lưu ý: Nếu thay đổi, bạn sẽ cần xác thực lại email mới để tiếp tục sử dụng đầy đủ tính năng của Vibee.
-                </div>
-
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Nhập email mới..." />
-                    <label asp-for="Input.NewEmail" class="text-secondary">Nhập địa chỉ Email mới</label>
-                    <span asp-validation-for="Input.NewEmail" class="text-danger small"></span>
+            <div class="card shadow-sm border-0 mb-4 bg-light">
+                <div class="card-body">
+                    <label class="form-label fw-bold text-uppercase small text-muted">Email hiện tại</label>
+                    @if (Model.IsEmailConfirmed)
+                    {
+                        <div class="input-group">
+                            <input asp-for="Email" class="form-control text-success fw-bold bg-white" disabled />
+                            <span class="input-group-text bg-success text-white fw-bold">
+                                <i class="bi bi-check-circle-fill me-1"></i> Đã xác thực
+                            </span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="input-group">
+                            <input asp-for="Email" class="form-control text-dark fw-bold bg-white" disabled />
+                            <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-warning fw-bold">
+                                <i class="bi bi-send me-1"></i> Gửi lại xác thực
+                            </button>
+                        </div>
+                        <div class="form-text text-danger small mt-1">
+                            <i class="bi bi-exclamation-triangle"></i> Email chưa xác thực. Bạn có thể bị hạn chế tính năng.
+                        </div>
+                    }
                 </div>
             </div>
 
-            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary px-4 fw-bold">
-                <i class="bi bi-arrow-repeat me-2"></i> Cập nhật Email
-            </button>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i> Thay đổi Email
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info small border-0 bg-info bg-opacity-10 text-info-emphasis">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Lưu ý: Sau khi đổi, bạn cần xác thực lại email mới để tiếp tục sử dụng.
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Nhập email mới..." />
+                        <label asp-for="Input.NewEmail" class="text-secondary">Địa chỉ Email mới</label>
+                        <span asp-validation-for="Input.NewEmail" class="text-danger small"></span>
+                    </div>
+
+                    <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary fw-bold px-4">
+                        <i class="bi bi-arrow-repeat me-2"></i> Cập nhật Email
+                    </button>
+                </div>
+            </div>
         </form>
     </div>
 </div>

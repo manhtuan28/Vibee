@@ -1,11 +1,44 @@
 ﻿@page
 @model DownloadPersonalDataModel
 @{
-    ViewData["Title"] = "Download Your Data";
+    ViewData["Title"] = "Tải xuống dữ liệu";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 }
 
-<h3>@ViewData["Title"]</h3>
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <h4 class="fw-bold mb-4">@ViewData["Title"]</h4>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 text-center">
+                <div class="mb-4">
+                    <span class="d-inline-block p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-cloud-download-fill fs-1"></i>
+                    </span>
+                </div>
+
+                <h5 class="card-title fw-bold mb-3">Sao lưu dữ liệu của bạn</h5>
+
+                <p class="card-text text-muted mb-4 text-start px-md-5">
+                    Tại Vibee, chúng tôi tôn trọng quyền sở hữu dữ liệu của bạn. Bạn có thể tải xuống bản sao các thông tin cá nhân mà chúng tôi đang lưu trữ bất cứ lúc nào.
+                    <br><br>
+                    <i class="bi bi-filetype-json me-1 text-success"></i> <strong>Định dạng JSON:</strong> File tải về sẽ ở dạng văn bản (JSON), có thể đọc được bằng hầu hết các trình soạn thảo văn bản hoặc dùng để chuyển dữ liệu sang dịch vụ khác.
+                </p>
+
+                <form method="post">
+                    <button class="btn btn-primary px-4 fw-bold py-2" type="submit">
+                        <i class="bi bi-download me-2"></i> Tải xuống ngay
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4 small shadow-sm border-0 bg-light text-muted">
+            <i class="bi bi-info-circle-fill me-2 text-primary"></i>
+            File này chứa thông tin nhạy cảm (email, số điện thoại, key bảo mật...). Vui lòng lưu trữ cẩn thận và không chia sẻ cho người lạ.
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

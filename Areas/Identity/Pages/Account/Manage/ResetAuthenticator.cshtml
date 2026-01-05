@@ -1,24 +1,50 @@
 ﻿@page
 @model ResetAuthenticatorModel
 @{
-    ViewData["Title"] = "Reset authenticator key";
+    ViewData["Title"] = "Đặt lại khóa xác thực";
     ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
 }
 
 <partial name="_StatusMessage" for="StatusMessage" />
-<h3>@ViewData["Title"]</h3>
-<div class="alert alert-warning" role="alert">
-    <p>
-        <span class="glyphicon glyphicon-warning-sign"></span>
-        <strong>If you reset your authenticator key your authenticator app will not work until you reconfigure it.</strong>
-    </p>
-    <p>
-        This process disables 2FA until you verify your authenticator app.
-        If you do not complete your authenticator app configuration you may lose access to your account.
-    </p>
-</div>
-<div>
-    <form id="reset-authenticator-form" method="post">
-        <button id="reset-authenticator-button" class="btn btn-danger" type="submit">Reset authenticator key</button>
-    </form>
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <h4 class="fw-bold mb-4">@ViewData["Title"]</h4>
+
+        <div class="alert alert-warning shadow-sm border-warning" role="alert">
+            <h4 class="alert-heading fw-bold mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Cảnh báo quan trọng
+            </h4>
+            <p>
+                <strong>Nếu bạn đặt lại khóa xác thực, ứng dụng xác thực hiện tại (Google/Microsoft Authenticator) sẽ KHÔNG còn hoạt động.</strong>
+            </p>
+            <p class="mb-0">
+                Quy trình này sẽ tắt 2FA cho đến khi bạn xác minh lại bằng khóa mới. Nếu bạn không hoàn tất việc cấu hình lại ngay sau đó, bạn có thể mất quyền truy cập vào tài khoản.
+            </p>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <span class="d-inline-block p-3 rounded-circle bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-arrow-counterclockwise fs-1"></i>
+                    </span>
+                </div>
+
+                <h5 class="card-title fw-bold">Bạn có chắc chắn muốn đặt lại?</h5>
+                <p class="card-text text-muted mb-4">
+                    Hành động này thường được dùng khi bạn đổi điện thoại mới hoặc nghi ngờ khóa bảo mật cũ bị lộ.
+                </p>
+
+                <form id="reset-authenticator-form" method="post">
+                    <div class="d-grid gap-2 d-md-block">
+                        <a asp-page="./TwoFactorAuthentication" class="btn btn-light px-4 fw-bold me-md-2">Hủy bỏ</a>
+                        <button id="reset-authenticator-button" class="btn btn-danger px-4 fw-bold" type="submit">
+                            Xác nhận đặt lại
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

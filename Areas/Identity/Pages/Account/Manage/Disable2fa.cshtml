@@ -1,25 +1,47 @@
 ﻿@page
 @model Disable2faModel
 @{
-    ViewData["Title"] = "Disable two-factor authentication (2FA)";
+    ViewData["Title"] = "Tắt xác thực 2 yếu tố (2FA)";
     ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
 }
 
 <partial name="_StatusMessage" for="StatusMessage" />
-<h3>@ViewData["Title"]</h3>
 
-<div class="alert alert-warning" role="alert">
-    <p>
-        <strong>This action only disables 2FA.</strong>
-    </p>
-    <p>
-        Disabling 2FA does not change the keys used in authenticator apps. If you wish to change the key
-        used in an authenticator app you should <a asp-page="./ResetAuthenticator">reset your authenticator keys.</a>
-    </p>
-</div>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h4 class="fw-bold mb-4">@ViewData["Title"]</h4>
 
-<div>
-    <form method="post">
-        <button class="btn btn-danger" type="submit">Disable 2FA</button>
-    </form>
+        <div class="alert alert-warning shadow-sm border-warning" role="alert">
+            <h5 class="alert-heading fw-bold">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Hành động này sẽ giảm bảo mật!
+            </h5>
+            <p class="mb-0">
+                Khi tắt 2FA, tài khoản của bạn sẽ chỉ được bảo vệ bằng mật khẩu. Nếu ai đó biết mật khẩu của bạn, họ có thể truy cập vào Ví Vibee của bạn.
+            </p>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <span class="d-inline-block p-3 rounded-circle bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-shield-slash-fill fs-1"></i>
+                    </span>
+                </div>
+
+                <h5 class="card-title fw-bold">Bạn có chắc chắn muốn tắt?</h5>
+                <p class="card-text text-muted mb-4">
+                    Việc tắt 2FA không làm thay đổi các khóa trong ứng dụng xác thực của bạn. Nếu bạn muốn thay đổi khóa (ví dụ: đổi điện thoại), hãy chọn <a asp-page="./ResetAuthenticator" class="text-decoration-none fw-bold">Đặt lại ứng dụng xác thực</a> thay vì tắt nó.
+                </p>
+
+                <form method="post">
+                    <div class="d-grid gap-2 d-md-block">
+                        <a asp-page="./TwoFactorAuthentication" class="btn btn-light px-4 fw-bold me-md-2">Hủy bỏ</a>
+                        <button class="btn btn-danger px-4 fw-bold" type="submit">
+                            <i class="bi bi-unlock-fill me-2"></i> Xác nhận tắt 2FA
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

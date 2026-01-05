@@ -32,44 +32,19 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
             _emailSender = emailSender;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string Email { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public bool IsEmailConfirmed { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [TempData]
         public string StatusMessage { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "Vui lòng nhập Email mới.")]
+            [EmailAddress(ErrorMessage = "Định dạng Email không hợp lệ.")]
             [Display(Name = "Email mới")]
             public string NewEmail { get; set; }
         }
@@ -92,7 +67,7 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Không tìm thấy người dùng với ID '{_userManager.GetUserId(User)}'.");
             }
 
             await LoadAsync(user);
@@ -104,7 +79,7 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Không tìm thấy người dùng với ID '{_userManager.GetUserId(User)}'.");
             }
 
             if (!ModelState.IsValid)
@@ -126,14 +101,14 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
                     protocol: Request.Scheme);
                 await _emailSender.SendEmailAsync(
                     Input.NewEmail,
-                    "Xác nhận email của bạn",
-                    $"Vui lòng xác nhận tài khoản của bạn bằng cách <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>nhấp vào đây</a>.");
+                    "Xác nhận thay đổi email",
+                    $"Vui lòng xác nhận email mới của bạn bằng cách <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>bấm vào đây</a>.");
 
-                StatusMessage = "Đã gửi liên kết xác nhận để thay đổi email. Vui lòng kiểm tra email của bạn.";
+                StatusMessage = "Đã gửi liên kết xác nhận. Vui lòng kiểm tra hộp thư đến của email mới.";
                 return RedirectToPage();
             }
 
-            StatusMessage = "Địa chỉ email của bạn vẫn không thay đổi.";
+            StatusMessage = "Email mới trùng với email hiện tại, không có thay đổi nào.";
             return RedirectToPage();
         }
 
@@ -142,7 +117,7 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Không tìm thấy người dùng với ID '{_userManager.GetUserId(User)}'.");
             }
 
             if (!ModelState.IsValid)
@@ -162,10 +137,10 @@ namespace Vibee.Areas.Identity.Pages.Account.Manage
                 protocol: Request.Scheme);
             await _emailSender.SendEmailAsync(
                 email,
-                "Xác nhận email của bạn",
-                $"Vui lòng xác nhận tài khoản của bạn bằng cách <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>nhấp vào đây</a>.");
+                "Xác thực email",
+                $"Vui lòng xác thực tài khoản của bạn bằng cách <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>bấm vào đây</a>.");
 
-            StatusMessage = "Đã gửi email xác nhận. Vui lòng kiểm tra email của bạn.";
+            StatusMessage = "Đã gửi email xác thực. Vui lòng kiểm tra hộp thư của bạn.";
             return RedirectToPage();
         }
     }
