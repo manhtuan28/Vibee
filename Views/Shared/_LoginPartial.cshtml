@@ -1,0 +1,99 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Vibee.Models
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var avatarUrl = user?.AvatarUrl ?? "/images/default-avatar.png";
+    var fullName = user?.FullName ?? User.Identity?.Name;
+}
+
+<ul class="navbar-nav align-items-center">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item dropdown">
+            <a class="nav-link p-0" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="@avatarUrl" alt="Avatar" class="rounded-circle border border-1" style="width: 40px; height: 40px; object-fit: cover;">
+
+                <span class="position-absolute bottom-0 end-0 bg-success border border-light rounded-circle" style="width: 10px; height: 10px; margin-right: 2px; margin-bottom: 2px;"></span>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2" aria-labelledby="userDropdown" style="width: 300px; border-radius: 8px;">
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center p-2 rounded hover-bg-gray" asp-area="Identity" asp-page="/Account/Manage/Index">
+                        <img src="@avatarUrl" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold fs-6">@fullName</span>
+                            <small class="text-muted">Xem trang cá nhân của bạn</small>
+                        </div>
+                    </a>
+                </li>
+
+                <li><hr class="dropdown-divider my-2"></li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center p-2 rounded fw-medium" href="#">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                            <i class="bi bi-wallet2 fs-5 text-success"></i>
+                        </div>
+                        <span>Ví Vibee & Thanh toán</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center p-2 rounded fw-medium" asp-area="Identity" asp-page="/Account/Manage/Index">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                            <i class="bi bi-gear-fill fs-5 text-dark"></i>
+                        </div>
+                        <span>Cài đặt & Quyền riêng tư</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center p-2 rounded fw-medium" href="#">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                            <i class="bi bi-question-circle-fill fs-5 text-dark"></i>
+                        </div>
+                        <span>Trợ giúp & Hỗ trợ</span>
+                    </a>
+                </li>
+
+                <li><hr class="dropdown-divider my-2"></li>
+
+                <li>
+                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                        <button type="submit" class="dropdown-item d-flex align-items-center p-2 rounded fw-medium w-100 text-start">
+                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                <i class="bi bi-box-arrow-right fs-5 text-dark"></i>
+                            </div>
+                            <span>Đăng xuất</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="btn btn-link text-decoration-none fw-bold me-2 text-dark" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-primary fw-bold px-3" asp-area="Identity" asp-page="/Account/Register">Đăng ký</a>
+        </li>
+    }
+</ul>
+
+<style>
+    .dropdown-item:hover {
+        background-color: #f0f2f5;
+    }
+
+    .dropdown-item:active {
+        background-color: #e4e6eb;
+        color: inherit;
+    }
+</style>

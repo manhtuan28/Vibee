@@ -1,0 +1,129 @@
+﻿@model Vibee.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Newsfeed";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3 d-none d-md-block">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body text-center">
+                    <img src="@Model.CurrentUser?.AvatarUrl" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover;" alt="Avatar">
+                    <h5 class="card-title fw-bold">@Model.CurrentUser?.FullName</h5>
+                    <p class="text-muted small">@Model.CurrentUser?.Email</p>
+
+                    <div class="bg-light p-2 rounded mt-3">
+                        <small class="text-secondary">Số dư ví Vibee</small>
+                        <h4 class="text-success fw-bold my-1">
+                            0 đ
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-group shadow-sm">
+                <a href="#" class="list-group-item list-group-item-action active"><i class="bi bi-newspaper me-2"></i> Bảng tin</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="bi bi-people me-2"></i> Bạn bè</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="bi bi-chat-dots me-2"></i> Tin nhắn</a>
+                <a href="#" class="list-group-item list-group-item-action"><i class="bi bi-wallet2 me-2"></i> Ví điện tử</a>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <img src="@Model.CurrentUser?.AvatarUrl" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <input type="text" class="form-control rounded-pill bg-light border-0" placeholder="Bạn đang nghĩ gì, @Model.CurrentUser?.UserName?">
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-sm btn-light text-danger"><i class="bi bi-camera-video-fill"></i> Live Video</button>
+                        <button class="btn btn-sm btn-light text-success"><i class="bi bi-images"></i> Ảnh/Video</button>
+                        <button class="btn btn-sm btn-light text-warning"><i class="bi bi-emoji-smile-fill"></i> Cảm xúc</button>
+                    </div>
+                </div>
+            </div>
+
+            @foreach (var post in Model.Posts)
+            {
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-white border-0 d-flex align-items-center">
+                        <img src="@post.User?.AvatarUrl" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <div>
+                            <h6 class="mb-0 fw-bold">
+                                @post.User?.FullName
+                                @if (post.User.IsVerified)
+                                {
+                                    <i class="bi bi-patch-check-fill text-primary small"></i>
+                                }
+                            </h6>
+                            <small class="text-muted">@post.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="card-text">@post.Content</p>
+                        @if (!string.IsNullOrEmpty(post.MediaUrl))
+                        {
+                            <img src="@post.MediaUrl" class="img-fluid rounded mb-2 w-100">
+                        }
+                    </div>
+
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted"><i class="bi bi-hand-thumbs-up-fill text-primary"></i> @post.Likes?.Count</small>
+                            <small class="text-muted">@post.Comments?.Count bình luận</small>
+                        </div>
+                        <hr class="my-1">
+                        <div class="d-flex justify-content-between mt-2">
+                            <button class="btn btn-light flex-grow-1 me-1"><i class="bi bi-hand-thumbs-up"></i> Thích</button>
+                            <button class="btn btn-light flex-grow-1 me-1"><i class="bi bi-chat"></i> Bình luận</button>
+                            <button class="btn btn-light flex-grow-1"><i class="bi bi-share"></i> Chia sẻ</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Posts.Count == 0)
+            {
+                <div class="text-center p-5 text-muted">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p>Chưa có bài viết nào. Hãy là người đầu tiên chia sẻ!</p>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-3 d-none d-md-block">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold text-muted">Được tài trợ</h6>
+                    <hr>
+                    <div class="d-flex mb-2">
+                        <div class="bg-secondary rounded me-2" style="width: 50px; height: 50px;"></div>
+                        <div>
+                            <strong>Hosting giá rẻ</strong>
+                            <br><small class="text-muted">vibee.com</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="fw-bold text-muted">Người liên hệ</h6>
+                    <ul class="list-unstyled mt-3">
+                        <li class="d-flex align-items-center mb-2">
+                            <div class="position-relative">
+                                <img src="/images/default-avatar.png" class="rounded-circle me-2" style="width: 35px; height: 35px;">
+                                <span class="position-absolute bottom-0 end-0 bg-success border border-light rounded-circle" style="width: 10px; height: 10px;"></span>
+                            </div>
+                            <span>Nguyễn Văn A</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

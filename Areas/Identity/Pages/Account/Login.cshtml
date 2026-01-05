@@ -1,0 +1,235 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vibee - Đăng nhập hoặc đăng ký</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: SFProDisplay-Regular, Helvetica, Arial, sans-serif;
+            color: #1c1e21;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding-bottom: 50px;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            padding-top: 50px;
+        }
+
+        .left-col {
+            width: 500px;
+            padding-right: 32px;
+            margin-bottom: 80px;
+        }
+
+        .vibee-logo {
+            color: #1877f2;
+            font-size: 60px;
+            font-weight: 800;
+            letter-spacing: -3px;
+            margin-bottom: 0;
+            margin-left: -5px;
+            line-height: 1;
+        }
+
+        .vibee-slogan {
+            font-size: 26px;
+            line-height: 32px;
+            font-weight: 400;
+            margin-top: 15px;
+        }
+
+        .right-col {
+            width: 396px;
+        }
+
+        .login-card {
+            background-color: #fff;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .form-control {
+            font-size: 17px;
+            padding: 14px 16px;
+            height: 52px;
+            border-radius: 6px;
+            border: 1px solid #dddfe2;
+            margin-bottom: 12px;
+        }
+
+            .form-control:focus {
+                border-color: #1877f2;
+                box-shadow: 0 0 0 2px #e7f3ff;
+                caret-color: #1877f2;
+            }
+
+        .btn-login {
+            background-color: #1877f2;
+            border: none;
+            border-radius: 6px;
+            font-size: 20px;
+            line-height: 48px;
+            padding: 0 16px;
+            width: 100%;
+            color: #fff;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+            .btn-login:hover {
+                background-color: #166fe5;
+            }
+
+        .forgot-link {
+            color: #1877f2;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            margin-top: 16px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+            .forgot-link:hover {
+                text-decoration: underline;
+            }
+
+        .divider {
+            border-bottom: 1px solid #dadde1;
+            margin-bottom: 20px;
+        }
+
+        .btn-create {
+            background-color: #42b72a;
+            border: none;
+            border-radius: 6px;
+            font-size: 17px;
+            line-height: 48px;
+            padding: 0 16px;
+            color: #fff;
+            font-weight: 700;
+            display: inline-block;
+            text-decoration: none;
+            transition: 0.2s;
+            width: auto;
+            min-width: 150px;
+        }
+
+            .btn-create:hover {
+                background-color: #36a420;
+                color: #fff;
+            }
+
+        .create-page-text {
+            font-size: 14px;
+            margin-top: 28px;
+            text-align: center;
+        }
+
+            .create-page-text a {
+                text-decoration: none;
+                color: #1c1e21;
+                font-weight: 600;
+            }
+
+                .create-page-text a:hover {
+                    text-decoration: underline;
+                }
+
+        @@media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 20px;
+            }
+
+            .left-col {
+                width: auto;
+                padding-right: 0;
+                margin-bottom: 40px;
+                text-align: center;
+            }
+
+            .vibee-logo {
+                margin-left: 0;
+            }
+
+            .vibee-slogan {
+                font-size: 18px;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="left-col">
+            <h1 class="vibee-logo">vibee</h1>
+            <h2 class="vibee-slogan">Vibee giúp bạn kết nối và chia sẻ với mọi người trong cuộc sống của bạn.</h2>
+        </div>
+
+        <div class="right-col">
+            <div class="login-card">
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-start" role="alert"></div>
+
+                    <div class="mb-0">
+                        <input asp-for="Input.Email" class="form-control" placeholder="Email hoặc số điện thoại" aria-required="true" />
+                        <span asp-validation-for="Input.Email" class="text-danger small text-start d-block mb-2"></span>
+                    </div>
+
+                    <div class="mb-0">
+                        <input asp-for="Input.Password" class="form-control" placeholder="Mật khẩu" aria-required="true" autocomplete="current-password" />
+                        <span asp-validation-for="Input.Password" class="text-danger small text-start d-block mb-2"></span>
+                    </div>
+
+                    <button id="login-submit" type="submit" class="btn-login">Đăng nhập</button>
+
+                    <a id="forgot-password" asp-page="./ForgotPassword" class="forgot-link">Quên mật khẩu?</a>
+
+                    <div class="divider"></div>
+
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="btn-create">Tạo tài khoản mới</a>
+                </form>
+            </div>
+
+            <div class="create-page-text">
+                <a href="#">Tạo Trang</a> dành cho người nổi tiếng, thương hiệu hoặc doanh nghiệp.
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+</body>
+</html>
