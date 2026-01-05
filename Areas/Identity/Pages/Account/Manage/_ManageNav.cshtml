@@ -1,15 +1,75 @@
-﻿@inject SignInManager<ApplicationUser> SignInManager
+﻿@using Vibee.Models
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
+
+<div class="list-group list-group-flush settings-menu">
+    <h6 class="fw-bold text-muted text-uppercase small mb-3 px-3">Tài khoản</h6>
+
+    <a class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex align-items-center @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">
+        <i class="bi bi-person-circle me-3 fs-5"></i>
+        <span>Thông tin công khai</span>
+    </a>
+
+    <a class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex align-items-center @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">
+        <i class="bi bi-envelope me-3 fs-5"></i>
+        <span>Email & Liên hệ</span>
+    </a>
+
+    <a class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex align-items-center @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">
+        <i class="bi bi-shield-lock me-3 fs-5"></i>
+        <span>Mật khẩu & Bảo mật</span>
+    </a>
+
+    <a class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex align-items-center @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">
+        <i class="bi bi-phone me-3 fs-5"></i>
+        <span>Xác thực 2 yếu tố</span>
+    </a>
+
+    <hr class="my-2">
+    <h6 class="fw-bold text-muted text-uppercase small mb-3 px-3 mt-2">Tài chính</h6>
+
+    <a class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex align-items-center" href="/Wallet">
+        <i class="bi bi-wallet2 me-3 fs-5 text-success"></i>
+        <span class="text-success fw-bold">Ví Vibee</span>
+    </a>
+
+    <hr class="my-2">
+    <h6 class="fw-bold text-muted text-uppercase small mb-3 px-3 mt-2">Khác</h6>
+
     @if (hasExternalLogins)
     {
-        <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
+        <a id="external-login" class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex align-items-center @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">
+            <i class="bi bi-google me-3 fs-5"></i>
+            <span>Liên kết tài khoản</span>
+        </a>
     }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
-</ul>
+
+    <a class="list-group-item list-group-item-action border-0 rounded-3 mb-1 d-flex align-items-center @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">
+        <i class="bi bi-file-earmark-person me-3 fs-5"></i>
+        <span>Dữ liệu cá nhân</span>
+    </a>
+</div>
+
+<style>
+    .settings-menu .list-group-item {
+        color: #65676b;
+        font-weight: 500;
+        padding: 10px 15px;
+    }
+
+        .settings-menu .list-group-item:hover {
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+        .settings-menu .list-group-item.active {
+            background-color: #e7f3ff;
+            color: #1877f2;
+            font-weight: 600;
+        }
+
+            .settings-menu .list-group-item.active i {
+                color: #1877f2;
+            }
+</style>
