@@ -1,4 +1,4 @@
-namespace Vibee.Models
+﻿namespace Vibee.Models
 {
     public class ErrorViewModel
     {
