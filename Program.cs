@@ -50,4 +50,18 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    try
+//    {
+//        await Vibee.Data.DbSeeder.SeedRolesAndAdminAsync(services);
+//    }
+//    catch (Exception ex)
+//    {
+//        var logger = services.GetRequiredService<ILogger<Program>>();
+//        logger.LogError(ex, "Lỗi khi khởi tạo dữ liệu Admin.");
+//    }
+//}
+
 app.Run();
