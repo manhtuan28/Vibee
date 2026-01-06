@@ -1,0 +1,503 @@
+﻿@model Vibee.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = Model.User.FullName;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    /* --- CSS PROFILE HEADER --- */
+    .profile-header-wrapper {
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        padding-bottom: 0;
+    }
+
+    .cover-container {
+        position: relative;
+        height: 350px;
+        background-color: #ced0d4;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        overflow: hidden;
+        max-width: 1095px;
+        margin: 0 auto;
+    }
+
+    .cover-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-info-wrap {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 0 32px;
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 16px;
+        margin-top: -30px;
+    }
+
+    .avatar-view {
+        position: relative;
+        margin-right: 20px;
+        z-index: 2;
+        cursor: pointer;
+    }
+
+    .avatar-img {
+        width: 168px;
+        height: 168px;
+        border-radius: 50%;
+        border: 5px solid #fff;
+        object-fit: cover;
+        background: #fff;
+    }
+
+    .user-details {
+        flex: 1;
+        margin-bottom: 10px;
+        margin-top: 40px;
+        min-width: 300px;
+    }
+
+    .user-name {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0;
+        line-height: 1.2;
+    }
+
+    .user-stats {
+        color: #65676b;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .profile-body {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 16px 32px;
+    }
+
+    .sticky-col {
+        position: sticky;
+        top: 80px;
+    }
+
+    .intro-box {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .intro-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+
+        .intro-item i {
+            font-size: 1.2rem;
+            color: #8c939d;
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+    .post-input-trigger {
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .post-input-trigger:hover {
+            background-color: #e4e6eb;
+        }
+
+    .add-to-post-icons .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+        .add-to-post-icons .btn-icon:hover {
+            background-color: #f0f2f5;
+        }
+
+    .media-remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+        transition: 0.2s;
+        color: #333;
+    }
+
+        .media-remove-btn:hover {
+            background: #fff;
+            transform: scale(1.1);
+            color: #dc3545;
+        }
+
+    .modal-view {
+        display: none;
+    }
+
+        .modal-view.active {
+            display: block;
+        }
+
+    .item-list-row {
+        padding: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: 0.2s;
+    }
+
+        .item-list-row:hover {
+            background-color: #f0f2f5;
+        }
+
+    .emoji-icon {
+        font-size: 1.5rem;
+        width: 40px;
+        text-align: center;
+        margin-right: 10px;
+        background: #f0f2f5;
+        border-radius: 50%;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<div class="profile-header-wrapper">
+    <div class="cover-container">
+        <img id="coverImageDisplay" src="@(Model.User.CoverPhotoUrl ?? "https://timelinecovers.pro/facebook-covers/download/ultra-hd-space-nebula-facebook-cover.jpg")" class="cover-image">
+
+        @if (Model.IsOwner)
+        {
+            <input type="file" id="coverInput" hidden accept="image/*" onchange="uploadCover()">
+            <button class="btn btn-light fw-bold position-absolute bottom-0 end-0 m-4 d-none d-md-block" onclick="document.getElementById('coverInput').click()">
+                <i class="bi bi-camera-fill me-2"></i> Thêm ảnh bìa
+            </button>
+        }
+    </div>
+
+    <div class="profile-info-wrap">
+        <div class="d-flex align-items-end flex-wrap w-100">
+            <div class="avatar-view">
+                <img id="avatarImageDisplay" src="@(Model.User.AvatarUrl ?? "/images/default-avatar.png")" class="avatar-img">
+                @if (Model.IsOwner)
+                {
+                    <input type="file" id="avatarInput" hidden accept="image/*" onchange="uploadAvatar()">
+                    <div class="position-absolute bottom-0 end-0 bg-light border rounded-circle d-flex align-items-center justify-content-center cursor-pointer"
+                         style="width:36px;height:36px;margin:10px 5px;"
+                         onclick="document.getElementById('avatarInput').click()">
+                        <i class="bi bi-camera-fill text-dark"></i>
+                    </div>
+                }
+            </div>
+
+            <div class="user-details">
+                <h1 class="user-name">@Model.User.FullName @if(Model.User.IsVerified){
+                <i class="bi bi-patch-check-fill text-primary fs-4 ms-1"></i>
+                                }
+</h1>
+                @if (!string.IsNullOrEmpty(Model.User.Bio))
+                {
+                    <div class="fw-bold text-muted fs-6">@Model.User.Bio</div>
+                }
+
+                <div class="user-stats mt-2">
+                    <span>@Model.FriendCount bạn bè</span> •
+                    <span>@Model.PhotoCount người theo dõi</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                @if (Model.IsOwner)
+                {
+                    <button class="btn btn-primary fw-bold"><i class="bi bi-plus-lg me-1"></i> Thêm vào tin</button>
+                    <a href="/Profile/Edit" class="btn btn-light bg-secondary-subtle fw-bold"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa trang cá nhân</a>
+                }
+                else
+                {
+                    <button class="btn btn-primary fw-bold"><i class="bi bi-person-plus-fill me-1"></i> Thêm bạn bè</button>
+                    <button class="btn btn-light bg-secondary-subtle fw-bold"><i class="bi bi-messenger me-1"></i> Nhắn tin</button>
+                }
+            </div>
+        </div>
+
+        <div class="w-100 border-top pt-1 mt-3">
+            <div class="d-flex gap-1 fw-bold text-secondary">
+                <div class="p-3 text-primary border-bottom border-3 border-primary cursor-pointer">Bài viết</div>
+                <div class="p-3 cursor-pointer hover-bg-gray rounded">Giới thiệu</div>
+                <div class="p-3 cursor-pointer hover-bg-gray rounded">Bạn bè</div>
+                <div class="p-3 cursor-pointer hover-bg-gray rounded">Ảnh</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="profile-body">
+    <div class="row">
+        <div class="col-lg-5 mb-3">
+            <div class="intro-box sticky-col">
+                <h5 class="fw-bold mb-3">Giới thiệu</h5>
+
+                @if (!string.IsNullOrEmpty(Model.User.Job))
+                {
+                    <div class="intro-item"><i class="bi bi-briefcase-fill"></i><span>Làm việc tại <strong>@Model.User.Job</strong></span></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.User.LiveAt))
+                {
+                    <div class="intro-item"><i class="bi bi-house-door-fill"></i><span>Sống tại <strong>@Model.User.LiveAt</strong></span></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.User.From))
+                {
+                    <div class="intro-item"><i class="bi bi-geo-alt-fill"></i><span>Đến từ <strong>@Model.User.From</strong></span></div>
+                }
+
+                <div class="intro-item"><i class="bi bi-clock-fill"></i><span>Tham gia vào tháng @Model.User.JoinDate.ToString("MM/yyyy")</span></div>
+
+                @if (Model.IsOwner)
+                {
+                    <a href="/Profile/Edit" class="btn btn-light bg-secondary-subtle w-100 fw-bold mt-2">Chỉnh sửa chi tiết</a>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            @if (Model.IsOwner)
+            {
+                <div class="card shadow-sm border-0 mb-3 rounded-4">
+                    <div class="card-body px-3 py-2">
+                        <div class="d-flex align-items-center mb-2 mt-1">
+                            <img src="@(Model.User.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2" width="40" height="40" style="object-fit:cover">
+                            <div class="bg-light rounded-pill px-3 py-2 flex-grow-1 text-muted post-input-trigger user-select-none" onclick="openPostModal()">
+                                @Model.User.FullName ơi, bạn đang nghĩ gì thế?
+                            </div>
+                        </div>
+                        <hr class="my-2 opacity-25">
+                        <div class="d-flex justify-content-around">
+                            <button class="btn btn-sm text-secondary fw-bold rounded-3 flex-grow-1 py-2" onclick="openPostModal()"><i class="bi bi-camera-video-fill text-danger me-2"></i> Live video</button>
+                            <button class="btn btn-sm text-secondary fw-bold rounded-3 flex-grow-1 py-2" onclick="openPostModal()"><i class="bi bi-images text-success me-2"></i> Ảnh/Video</button>
+                            <button class="btn btn-sm text-secondary fw-bold rounded-3 flex-grow-1 py-2" onclick="openPostModal('feeling')"><i class="bi bi-emoji-smile-fill text-warning me-2"></i> Cảm xúc</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div id="profile-feed">
+                @foreach (var post in Model.Posts)
+                {
+                    <div class="card shadow-sm border-0 mb-3 rounded-4" id="post-@post.Id">
+                        <div class="card-header bg-white border-0 d-flex align-items-center pt-3 rounded-top-4">
+                            <img src="@(post.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2" width="40" height="40" style="object-fit:cover">
+                            <div>
+                                <h6 class="mb-0 fw-bold" style="font-size: 0.95rem">
+                                    @post.User?.FullName
+                                    @if (!string.IsNullOrEmpty(post.Emotion))
+                                    {
+                                        <span class="fw-normal"> đang @Html.Raw(post.Emotion)</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(post.LocationName))
+                                    {
+                                        <span class="fw-normal"> tại <strong>@post.LocationName</strong></span>
+                                    }
+                                </h6>
+                                <small class="text-muted" style="font-size: 0.8rem;">
+                                    @post.CreatedAt.ToString("dd/MM/yyyy HH:mm") •
+                                    @if (post.PrivacyLevel == 0)
+                                    {
+                                        <i class="bi bi-globe-americas" title="Công khai"></i>
+                                    }
+                                    else if (post.PrivacyLevel == 1)
+                                    {
+
+                                        <i class="bi bi-people-fill" title="Bạn bè"></i>
+                                    }
+                                    else
+                                    {
+
+                                        <i class="bi bi-lock-fill" title="Chỉ mình tôi"></i>
+                                    }
+                                </small>
+                            </div>
+                            <div class="ms-auto dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-bookmark me-2"></i> Lưu bài viết</a></li>
+                                    @if (Model.IsOwner)
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEditModal(@post.Id)"><i class="bi bi-pencil me-2"></i> Chỉnh sửa bài viết</a></li>
+                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deletePost(@post.Id)"><i class="bi bi-trash me-2"></i> Xóa bài viết</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="post-text mb-2 text-dark">@Html.Raw(post.Content)</div>
+                            @if (post.Medias != null && post.Medias.Any())
+                            {
+                                <div class="row g-1 rounded-3 overflow-hidden">
+                                    @foreach (var media in post.Medias)
+                                    {
+                                        <div class="@(post.Medias.Count == 1 ? "col-12" : "col-6")">
+                                            @if (media.Type == Vibee.Models.MediaType.Video)
+                                            {
+                                                <video src="@media.Url" controls class="w-100 object-fit-cover bg-black" style="height:350px"></video>
+                                            }
+                                            else
+                                            {
+
+                                                <img src="@media.Url" class="w-100 object-fit-cover border" style="height:350px">
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-white border-0 pt-1 pb-2 rounded-bottom-4">
+                            <div class="d-flex justify-content-between gap-1">
+                                <button class="btn btn-light flex-grow-1 text-secondary fw-bold py-2 rounded-3"><i class="bi bi-hand-thumbs-up"></i> Thích</button>
+                                <button class="btn btn-light flex-grow-1 text-secondary fw-bold py-2 rounded-3"><i class="bi bi-chat"></i> Bình luận</button>
+                                <button class="btn btn-light flex-grow-1 text-secondary fw-bold py-2 rounded-3"><i class="bi bi-share"></i> Chia sẻ</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_CreatePostModal")
+@await Html.PartialAsync("_EditPostModal")
+@section Scripts {
+    <script>
+        // --- 1. JS TẠO BÀI (COPY TỪ HOME) ---
+        let uploadedFiles = []; let currentStatus = { emotionHTML: '', locationName: '' };
+        function openPostModal(v='default'){uploadedFiles=[];currentStatus={emotionHTML:'',locationName:''};updateHeaderStatus();clearAllMedia();document.getElementById('createPostForm').reset();setPrivacy(0,'Công khai','bi-globe-americas');new bootstrap.Modal(document.getElementById('createPostModal')).show();switchView(v);}
+        function switchView(v){document.querySelectorAll('.modal-view').forEach(e=>e.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');if(v==='default'){document.getElementById('modalTitle').innerText='Tạo bài viết';document.getElementById('btnBackView').classList.add('d-none');}else{document.getElementById('btnBackView').classList.remove('d-none');}}
+        function setPrivacy(l,t,i){document.getElementById('hiddenPrivacy').value=l;document.getElementById('privacyText').innerText=t;document.getElementById('privacyIcon').className=`bi ${i} me-1`;}
+        function selectFeeling(i,t){currentStatus.emotionHTML=`<span class="fw-normal">${i} ${t}</span>`;document.getElementById('hiddenEmotion').value=currentStatus.emotionHTML;updateHeaderStatus();switchView('default');}
+        function selectLocation(n){currentStatus.locationName=n;document.getElementById('hiddenLocation').value=n;updateHeaderStatus();switchView('default');}
+        function removeStatus(t){if(t==='emotion')currentStatus.emotionHTML='';else currentStatus.locationName='';updateHeaderStatus();}
+        function updateHeaderStatus(){const a=document.getElementById('statusArea');let h='';if(currentStatus.emotionHTML)h+=`${currentStatus.emotionHTML} <i class="bi bi-x-circle-fill text-secondary ms-1 cursor-pointer" onclick="removeStatus('emotion')" style="font-size:12px"></i>`;if(currentStatus.locationName){if(h)h+=' ';h+=`tại <strong>${currentStatus.locationName}</strong> <i class="bi bi-x-circle-fill text-secondary ms-1 cursor-pointer" onclick="removeStatus('location')" style="font-size:12px"></i>`;}a.innerHTML=h;checkInput();}
+        function handleFilesSelect(i){if(i.files)Array.from(i.files).forEach(f=>uploadedFiles.push(f));renderPreview();checkInput();i.value='';}
+        function removeFile(i){uploadedFiles.splice(i,1);renderPreview();checkInput();}
+        function clearAllMedia(){uploadedFiles=[];renderPreview();}
+        function renderPreview(){const c=document.getElementById('modalMediaPreview'),w=document.getElementById('mediaPreviewContainer');c.innerHTML='';if(uploadedFiles.length===0){w.classList.add('d-none');return;}w.classList.remove('d-none');uploadedFiles.forEach((f,i)=>{const r=new FileReader();r.onload=e=>{let m=f.type.startsWith('video')?`<video src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover"></video>`:`<img src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover">`;c.innerHTML+=`<div class="${uploadedFiles.length===1?'col-12':'col-6'} position-relative"><div class="ratio ratio-4x3">${m}</div><div class="media-remove-btn" onclick="removeFile(${i})"><i class="bi bi-x"></i></div></div>`;};r.readAsDataURL(f);});}
+        function checkInput(){const t=document.getElementById('modalPostContent').value.trim().length>0,f=uploadedFiles.length>0,s=currentStatus.emotionHTML!==''||currentStatus.locationName!=='';document.getElementById('btnSubmitPost').classList.toggle('disabled',!(t||f||s));}
+        document.getElementById('modalPostContent').addEventListener('input',checkInput);
+        function submitPostModal(){
+            var b=document.getElementById('btnSubmitPost'),ot=b.innerText;b.innerHTML='<span class="spinner-border spinner-border-sm"></span>';b.classList.add('disabled');
+            var fd=new FormData();fd.append('content',document.getElementById('modalPostContent').value);fd.append('locationName',document.getElementById('hiddenLocation').value);fd.append('emotion',document.getElementById('hiddenEmotion').value);fd.append('privacyLevel',document.getElementById('hiddenPrivacy').value);fd.append('__RequestVerificationToken',document.querySelector('input[name="__RequestVerificationToken"]').value);uploadedFiles.forEach(f=>fd.append('mediaFiles',f));
+            $.ajax({url:'/Posts/CreatePost',type:'POST',data:fd,processData:false,contentType:false,success:r=>{if(r.success)location.reload();else{alert(r.message);b.innerText=ot;b.classList.remove('disabled');}},error:()=>{alert('Lỗi!');b.innerText=ot;b.classList.remove('disabled');}});
+        }
+        // Location Search
+        let dTimer;document.getElementById('searchLocInput').addEventListener('input',e=>{clearTimeout(dTimer);const q=e.target.value.trim(),l=document.getElementById('locationList');if(q.length<2){l.innerHTML='';return;}document.getElementById('locationLoading').classList.remove('d-none');dTimer=setTimeout(()=>{fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`).then(r=>r.json()).then(d=>{document.getElementById('locationLoading').classList.add('d-none');let h='';d.forEach(p=>{let n=p.name||p.address.city||"";h+=`<div class="item-list-row px-3 py-2 border-bottom" onclick="selectLocation('${n}')"><div class="emoji-icon bg-secondary bg-opacity-10"><i class="bi bi-geo-alt-fill text-danger"></i></div><div><div class="fw-bold text-truncate">${n}</div><small class="text-muted">${p.display_name}</small></div></div>`;});l.innerHTML=h;});},500);});
+
+        // --- 2. JS SỬA BÀI (COPY TỪ HOME) ---
+        let editNewFiles=[],removedMediaIds=[];
+        function openEditModal(id){editNewFiles=[];removedMediaIds=[];document.getElementById('editRemovedMediaIds').value='';document.getElementById('newMediaPreview').innerHTML='';document.getElementById('oldMediaPreview').innerHTML='';Swal.showLoading();$.get('/Posts/GetPost?id='+id,res=>{Swal.close();if(res.success){const d=res.data;document.getElementById('editPostId').value=d.id;document.getElementById('editContent').value=d.content;document.getElementById('editHiddenLocation').value=d.locationName||'';document.getElementById('editHiddenEmotion').value=d.emotion||'';let pt=d.privacyLevel==0?'Công khai':(d.privacyLevel==1?'Bạn bè':'Chỉ mình tôi'),pi=d.privacyLevel==0?'bi-globe-americas':(d.privacyLevel==1?'bi-people-fill':'bi-lock-fill');setEditPrivacy(d.privacyLevel,pt,pi);updateEditHeaderStatus(d.emotion,d.locationName);const oc=document.getElementById('oldMediaPreview');if(d.medias&&d.medias.length>0){d.medias.forEach(m=>{let mh=m.type===1?`<video src="${m.url}" class="rounded border w-100 h-100 object-fit-cover"></video>`:`<img src="${m.url}" class="rounded border w-100 h-100 object-fit-cover">`;oc.innerHTML+=`<div class="col-4 position-relative" id="old-media-${m.id}"><div class="ratio ratio-4x3">${mh}</div><div class="media-remove-btn" onclick="removeOldMedia(${m.id})"><i class="bi bi-x"></i></div></div>`;});document.getElementById('editMediaContainer').classList.remove('d-none');}else document.getElementById('editMediaContainer').classList.add('d-none');new bootstrap.Modal(document.getElementById('editPostModal')).show();}});}
+        function setEditPrivacy(l,t,i){document.getElementById('editHiddenPrivacy').value=l;document.getElementById('editPrivacyText').innerText=t;document.getElementById('editPrivacyIcon').className=`bi ${i} me-1`;}
+        function updateEditHeaderStatus(e,l){let h='';if(e)h+=`${e} `;if(l)h+=`tại <strong>${l}</strong>`;document.getElementById('editStatusArea').innerHTML=h;}
+        function clearEditStatus(){document.getElementById('editHiddenLocation').value='';document.getElementById('editHiddenEmotion').value='';updateEditHeaderStatus('','');}
+        function removeOldMedia(id){removedMediaIds.push(id);document.getElementById('editRemovedMediaIds').value=removedMediaIds.join(',');document.getElementById(`old-media-${id}`).remove();}
+        function handleEditFiles(i){if(i.files){Array.from(i.files).forEach(f=>editNewFiles.push(f));renderEditNewPreview();}i.value='';document.getElementById('editMediaContainer').classList.remove('d-none');}
+        function renderEditNewPreview(){const c=document.getElementById('newMediaPreview');c.innerHTML='';editNewFiles.forEach((f,i)=>{const r=new FileReader();r.onload=e=>{let m=f.type.startsWith('video')?`<video src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover"></video>`:`<img src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover">`;c.innerHTML+=`<div class="col-4 position-relative"><div class="ratio ratio-4x3">${m}</div><div class="media-remove-btn" onclick="removeNewEditFile(${i})"><i class="bi bi-x"></i></div></div>`;};r.readAsDataURL(f);});}
+        function removeNewEditFile(i){editNewFiles.splice(i,1);renderEditNewPreview();}
+        function submitEditPost(){var b=document.getElementById('btnSaveEdit');b.innerHTML='<span class="spinner-border spinner-border-sm"></span>';b.classList.add('disabled');var fd=new FormData(document.getElementById('editPostForm'));editNewFiles.forEach(f=>fd.append('newMediaFiles',f));$.ajax({url:'/Posts/Edit',type:'POST',data:fd,processData:false,contentType:false,success:r=>{if(r.success){bootstrap.Modal.getInstance(document.getElementById('editPostModal')).hide();Swal.fire({icon:'success',title:'Đã cập nhật!',showConfirmButton:false,timer:1000}).then(()=>location.reload());}else{Swal.fire('Lỗi',r.message,'error');b.innerHTML='Lưu thay đổi';b.classList.remove('disabled');}},error:()=>{Swal.fire('Lỗi mạng','','error');b.innerHTML='Lưu thay đổi';b.classList.remove('disabled');}});}
+
+        // --- 3. JS XÓA BÀI ---
+        function deletePost(id){Swal.fire({title:'Xóa bài?',text:"Không thể hoàn tác!",icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',confirmButtonText:'Xóa',cancelButtonText:'Hủy'}).then((r)=>{if(r.isConfirmed){Swal.showLoading();$.post('/Posts/Delete',{id:id},res=>{Swal.close();if(res.success){$(`#post-${id}`).fadeOut(500,function(){$(this).remove()});const T=Swal.mixin({toast:true,position:'bottom-start',showConfirmButton:false,timer:3000});T.fire({icon:'success',title:'Đã xóa'});}else Swal.fire('Lỗi!',res.message,'error');});}})}
+
+        function uploadAvatar() {
+            var file = document.getElementById('avatarInput').files[0];
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var img = document.getElementById('avatarImageDisplay');
+            img.style.opacity = '0.5';
+
+            $.ajax({
+                url: '/Profile/UploadAvatar',
+                type: 'POST',
+                data: formData,
+                processData: false, contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        img.src = res.newUrl;
+                        img.style.opacity = '1';
+                        Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh đại diện', showConfirmButton: false, timer: 3000 });
+                    } else {
+                        alert(res.message);
+                        img.style.opacity = '1';
+                    }
+                }
+            });
+        }
+
+        function uploadCover() {
+            var file = document.getElementById('coverInput').files[0];
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var img = document.getElementById('coverImageDisplay');
+            img.style.opacity = '0.5';
+
+            $.ajax({
+                url: '/Profile/UploadCover',
+                type: 'POST',
+                data: formData,
+                processData: false, contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        img.src = res.newUrl;
+                        img.style.opacity = '1';
+                        Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh bìa', showConfirmButton: false, timer: 3000 });
+                    } else {
+                        alert(res.message);
+                        img.style.opacity = '1';
+                    }
+                }
+            });
+        }
+    </script>
+}

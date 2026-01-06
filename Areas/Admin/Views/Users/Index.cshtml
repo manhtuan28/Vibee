@@ -1,0 +1,230 @@
+﻿@model Vibee.Areas.Admin.Controllers.UserListViewModel
+@{
+    ViewData["Title"] = "Quản lý Thành viên";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h5 class="fw-bold text-primary m-0"><i class="bi bi-people-fill me-2"></i> Danh sách thành viên</h5>
+            </div>
+            <div class="col-md-6">
+                <form method="get" class="d-flex">
+                    <input type="text" name="keyword" class="form-control me-2" placeholder="Tìm tên hoặc email..." value="@Model.Keyword">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                    @if (!string.IsNullOrEmpty(Model.Keyword))
+                    {
+                        <a href="/Admin/Users" class="btn btn-outline-secondary ms-2" title="Xóa tìm kiếm"><i class="bi bi-x-lg"></i></a>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Thông tin</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    @if (Model.Users.Any())
+                    {
+                        foreach (var user in Model.Users)
+                        {
+                            <tr id="row_@user.Id">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center cursor-pointer" onclick="showUserDetails('@user.Id')">
+                                        <img src="@user.AvatarUrl" class="rounded-circle border shadow-sm" width="50" height="50" style="object-fit: cover;">
+                                        <div class="ms-3">
+                                            <div class="fw-bold text-dark">@user.FullName</div>
+                                            <div class="small text-muted">@user.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @foreach (var role in user.Roles)
+                                    {
+                                        <span class="badge @(role == "Admin" ? "bg-danger" : "bg-info text-dark")">@role</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span id="status_@user.Id" class="badge @(user.IsLocked ? "bg-warning text-dark" : "bg-success bg-opacity-10 text-success")">
+                                        @(user.IsLocked ? "Đang khóa" : "Hoạt động")
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-light text-primary me-1" onclick="showUserDetails('@user.Id')" title="Xem chi tiết">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+
+                                    <button id="btnLock_@user.Id" class="btn btn-sm @(user.IsLocked ? "btn-success" : "btn-warning") me-1"
+                                            onclick="toggleLock('@user.Id')">
+                                        <i class="bi @(user.IsLocked ? "bi-unlock-fill" : "bi-lock-fill")"></i>
+                                    </button>
+
+                                    @if (!user.Roles.Contains("Admin"))
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('@user.Id')">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4" class="text-center py-5 text-muted">Không tìm thấy dữ liệu.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white d-flex justify-content-center py-3">
+            <nav>
+                <ul class="pagination mb-0">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&keyword=@Model.Keyword">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2"></i> Hồ sơ người dùng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <div id="modalLoading" class="text-center"><div class="spinner-border text-primary"></div></div>
+                <div id="modalContent" style="display:none;">
+                    <img id="mAvatar" src="" class="rounded-circle border border-3 border-white shadow mb-3" width="100" height="100" style="object-fit:cover; margin-top: -60px; background:#fff;">
+                    <h4 id="mName" class="fw-bold mb-0"></h4>
+                    <p id="mEmail" class="text-muted mb-3"></p>
+
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <span id="mRole" class="badge bg-secondary"></span>
+                        <span id="mStatus" class="badge bg-success"></span>
+                    </div>
+
+                    <div class="row text-start bg-light rounded p-3 g-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Ngày tham gia</small>
+                            <span id="mJoinDate" class="fw-bold text-dark"></span>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Số dư Ví</small>
+                            <span id="mBalance" class="fw-bold text-success fs-5"></span>
+                        </div>
+                        <div class="col-12 border-top pt-2">
+                            <small class="text-muted d-block">Giới thiệu (Bio)</small>
+                            <span id="mBio" class="fst-italic text-dark"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function toggleLock(id) {
+            $.post('/Admin/Users/ToggleLock', { id: id }, function (res) {
+                if (res.success) {
+                    const badge = $(`#status_${id}`);
+                    const btn = $(`#btnLock_${id}`);
+
+                    if (res.isLocked) {
+                        badge.removeClass('bg-success bg-opacity-10 text-success').addClass('bg-warning text-dark').text('Đang khóa');
+                        btn.removeClass('btn-warning').addClass('btn-success').html('<i class="bi bi-unlock-fill"></i>');
+                        Swal.fire('Đã khóa!', 'Tài khoản đã bị vô hiệu hóa.', 'success');
+                    } else {
+                        badge.removeClass('bg-warning text-dark').addClass('bg-success bg-opacity-10 text-success').text('Hoạt động');
+                        btn.removeClass('btn-success').addClass('btn-warning').html('<i class="bi bi-lock-fill"></i>');
+                        Swal.fire('Đã mở!', 'Tài khoản đã hoạt động trở lại.', 'success');
+                    }
+                } else {
+                    Swal.fire('Lỗi!', res.message, 'error');
+                }
+            });
+        }
+
+        function deleteUser(id) {
+            Swal.fire({
+                title: 'Bạn chắc chắn chứ?',
+                text: "Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Xóa ngay!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Users/DeleteUser', { id: id }, function (res) {
+                        if (res.success) {
+                            $(`#row_${id}`).fadeOut();
+                            Swal.fire('Đã xóa!', 'User đã bay màu.', 'success');
+                        } else {
+                            Swal.fire('Lỗi!', res.message, 'error');
+                        }
+                    });
+                }
+            })
+        }
+
+        function showUserDetails(id) {
+            var myModal = new bootstrap.Modal(document.getElementById('userModal'));
+            myModal.show();
+
+            $('#modalLoading').show();
+            $('#modalContent').hide();
+
+            $.get('/Admin/Users/GetUserDetails', { id: id }, function (res) {
+                if (res.success) {
+                    const d = res.data;
+                    $('#mAvatar').attr('src', d.avatar);
+                    $('#mName').text(d.fullName);
+                    $('#mEmail').text(d.email);
+                    $('#mJoinDate').text(d.joinDate);
+                    $('#mBalance').text(d.balance);
+                    $('#mRole').text(d.roles);
+                    $('#mBio').text(d.bio);
+
+                    if(d.isLocked){
+                        $('#mStatus').attr('class', 'badge bg-warning text-dark').text('Đang khóa');
+                    } else {
+                        $('#mStatus').attr('class', 'badge bg-success').text('Hoạt động');
+                    }
+
+                    $('#modalLoading').hide();
+                    $('#modalContent').fadeIn();
+                }
+            });
+        }
+    </script>
+}

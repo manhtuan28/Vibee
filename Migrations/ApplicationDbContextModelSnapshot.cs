@@ -183,6 +183,9 @@ namespace Vibee.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("From")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FullName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -190,8 +193,14 @@ namespace Vibee.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Job")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("JoinDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("LiveAt")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -320,6 +329,21 @@ namespace Vibee.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Emotion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("LocationName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("MediaType")
                         .HasColumnType("nvarchar(max)");
 
@@ -329,6 +353,9 @@ namespace Vibee.Migrations
                     b.Property<int>("PrivacyLevel")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
@@ -337,6 +364,31 @@ namespace Vibee.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("Vibee.Models.PostMedia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("PostMedias");
                 });
 
             modelBuilder.Entity("Vibee.Models.Transaction", b =>
@@ -524,6 +576,17 @@ namespace Vibee.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Vibee.Models.PostMedia", b =>
+                {
+                    b.HasOne("Vibee.Models.Post", "Post")
+                        .WithMany("Medias")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+                });
+
             modelBuilder.Entity("Vibee.Models.Transaction", b =>
                 {
                     b.HasOne("Vibee.Models.Wallet", "ReceiverWallet")
@@ -566,6 +629,8 @@ namespace Vibee.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Likes");
+
+                    b.Navigation("Medias");
                 });
 #pragma warning restore 612, 618
         }

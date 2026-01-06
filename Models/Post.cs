@@ -15,6 +15,7 @@ namespace Vibee.Models
         public string? MediaType { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
         public int PrivacyLevel { get; set; } = 0;
 
         public string? UserId { get; set; }
@@ -23,5 +24,12 @@ namespace Vibee.Models
 
         public virtual ICollection<Comment>? Comments { get; set; }
         public virtual ICollection<Like>? Likes { get; set; }
+
+        public string? LocationName { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? IpAddress { get; set; }
+        public string? Emotion { get; set; }
+        public virtual ICollection<PostMedia> Medias { get; set; } = new List<PostMedia>();
     }
 }

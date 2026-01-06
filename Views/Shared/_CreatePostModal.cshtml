@@ -1,0 +1,97 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Vibee.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+<div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg rounded-4 border-0">
+            <div class="modal-header border-bottom-0 text-center position-relative pb-2">
+                <button type="button" class="btn btn-light rounded-circle position-absolute start-0 top-0 m-3 d-none" id="btnBackView" onclick="switchView('default')"><i class="bi bi-arrow-left"></i></button>
+                <h5 class="modal-title w-100 fw-bold fs-5" id="modalTitle">Tạo bài viết</h5>
+                <button type="button" class="btn-close bg-light rounded-circle position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+            </div>
+            <hr class="my-0 opacity-25">
+
+            <div id="view-default" class="modal-view active">
+                <div class="modal-body">
+                    <form id="createPostForm" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="d-flex mb-3">
+                            <img src="@(currentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40" style="object-fit:cover">
+                            <div>
+                                <div class="fw-bold small lh-sm">
+                                    @currentUser?.FullName
+                                    <span id="statusArea"></span>
+                                </div>
+                                <div class="dropdown mt-1">
+                                    <button class="btn btn-light btn-sm rounded px-2 py-0 border d-inline-flex align-items-center" type="button" data-bs-toggle="dropdown" style="font-size: 11px;">
+                                        <i class="bi bi-globe-americas me-1" id="privacyIcon"></i> <span id="privacyText">Công khai</span> <i class="bi bi-caret-down-fill ms-1"></i>
+                                    </button>
+                                    <ul class="dropdown-menu shadow border-0" style="font-size: 0.9rem;">
+                                        <li><button class="dropdown-item px-3 py-2" type="button" onclick="setPrivacy(0, 'Công khai', 'bi-globe-americas')"><div class="fw-bold"><i class="bi bi-globe-americas me-2"></i> Công khai</div></button></li>
+                                        <li><button class="dropdown-item px-3 py-2" type="button" onclick="setPrivacy(1, 'Bạn bè', 'bi-people-fill')"><div class="fw-bold"><i class="bi bi-people-fill me-2"></i> Bạn bè</div></button></li>
+                                        <li><button class="dropdown-item px-3 py-2" type="button" onclick="setPrivacy(2, 'Chỉ mình tôi', 'bi-lock-fill')"><div class="fw-bold"><i class="bi bi-lock-fill me-2"></i> Chỉ mình tôi</div></button></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <textarea name="content" id="modalPostContent" class="form-control border-0 fs-5 px-0" rows="3" placeholder="@currentUser?.FullName ơi, bạn đang nghĩ gì thế?" style="resize: none; box-shadow: none;"></textarea>
+
+                        <div id="mediaPreviewContainer" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                                <span class="small fw-bold text-muted">Ảnh/Video</span>
+                                <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger fw-bold p-0" onclick="clearAllMedia()">Xóa tất cả</button>
+                            </div>
+                            <div id="modalMediaPreview" class="row g-2 mb-2 border rounded p-1 position-relative bg-light"></div>
+                        </div>
+
+                        <div class="add-to-post mt-3">
+                            <span class="fw-bold small ps-2">Thêm vào bài viết</span>
+                            <div class="add-to-post-icons d-flex gap-1">
+                                <input type="file" id="modalFileInput" multiple accept="image/*,video/*" hidden onchange="handleFilesSelect(this)">
+                                <div class="btn-icon text-success" onclick="document.getElementById('modalFileInput').click()"><i class="bi bi-images fs-5"></i></div>
+                                <div class="btn-icon text-danger" onclick="switchView('location')"><i class="bi bi-geo-alt-fill fs-5"></i></div>
+                                <div class="btn-icon text-warning" onclick="switchView('feeling')"><i class="bi bi-emoji-smile-fill fs-5"></i></div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="locationName" id="hiddenLocation">
+                        <input type="hidden" name="emotion" id="hiddenEmotion">
+                        <input type="hidden" name="privacyLevel" id="hiddenPrivacy" value="0">
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" onclick="submitPostModal()" class="btn btn-primary w-100 fw-bold rounded-3 py-2 disabled" id="btnSubmitPost">Đăng</button>
+                </div>
+            </div>
+
+            <div id="view-feeling" class="modal-view">
+                <div class="modal-body pt-2" style="height: 400px; overflow-y: auto;">
+                    <div class="row g-2">
+                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('🙂', 'cảm thấy hạnh phúc')"><span class="emoji-icon">🙂</span> Hạnh phúc</div></div>
+                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('😆', 'cảm thấy vui vẻ')"><span class="emoji-icon">😆</span> Vui vẻ</div></div>
+                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('😍', 'cảm thấy đáng yêu')"><span class="emoji-icon">😍</span> Đáng yêu</div></div>
+                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('😎', 'cảm thấy thật ngầu')"><span class="emoji-icon">😎</span> Thật ngầu</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-location" class="modal-view">
+                <div class="p-3 border-bottom">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-light border-0" placeholder="Tìm kiếm mọi nơi..." id="searchLocInput">
+                    </div>
+                </div>
+                <div class="modal-body p-0" style="height: 350px; overflow-y: auto;">
+                    <div id="locationLoading" class="text-center py-4 d-none"><div class="spinner-border text-primary"></div></div>
+                    <div id="locationList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
