@@ -1,0 +1,80 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>
+@{
+    ViewData["Title"] = "Quản lý Phân quyền";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h4 class="fw-bold mb-4">Quản lý Nhóm quyền (MVC)</h4>
+
+@if (TempData["StatusMessage"] != null)
+{
+    var msg = TempData["StatusMessage"].ToString();
+    var alertType = msg.Contains("Lỗi") ? "danger" : "success";
+    <div class="alert alert-@alertType alert-dismissible fade show" role="alert">
+        @msg
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white fw-bold">Thêm quyền mới</div>
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Roles" asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Tên Role</label>
+                        <input type="text" name="newRoleName" class="form-control" placeholder="Ví dụ: Manager" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Tạo ngay</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Danh sách quyền</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-3">Tên quyền</th>
+                            <th>ID</th>
+                            <th class="text-end pe-3">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var role in Model)
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold text-primary">@role.Name</td>
+                                    <td class="small text-muted">@role.Id</td>
+                                    <td class="text-end pe-3">
+                                        @if (role.Name != "Admin" && role.Name != "User")
+                                        {
+                                            <form asp-area="Admin" asp-controller="Roles" asp-action="Delete" method="post" style="display:inline" onsubmit="return confirm('Xóa quyền này?');">
+                                                <input type="hidden" name="id" value="@role.Id" />
+                                                <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Hệ thống</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="3" class="text-center py-3">Chưa có dữ liệu</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

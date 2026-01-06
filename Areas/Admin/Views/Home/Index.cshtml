@@ -1,0 +1,170 @@
+﻿@model Vibee.Areas.Admin.Controllers.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-0">Tổng quan hệ thống</h3>
+        <p class="text-muted small mb-0">Cập nhật lúc: @DateTime.Now.ToString("HH:mm dd/MM/yyyy")</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+            <div class="card-body position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-uppercase fw-bold text-success small mb-1">Dòng tiền hệ thống</div>
+                        <h4 class="fw-bold mb-0 text-dark">@Model.TotalSystemMoney.ToString("N0") <small class="text-muted fs-6">VND</small></h4>
+                    </div>
+                    <div class="bg-success bg-opacity-10 text-success rounded p-3">
+                        <i class="bi bi-currency-dollar fs-4"></i>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 w-100 bg-success" style="height: 4px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+            <div class="card-body position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-uppercase fw-bold text-primary small mb-1">Tổng thành viên</div>
+                        <h4 class="fw-bold mb-0 text-dark">@Model.TotalUsers.ToString("N0")</h4>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-3">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 w-100 bg-primary" style="height: 4px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+            <div class="card-body position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-uppercase fw-bold text-warning small mb-1">Giao dịch chờ duyệt</div>
+                        <h4 class="fw-bold mb-0 text-dark">@Model.PendingTransactions</h4>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 text-warning rounded p-3">
+                        <i class="bi bi-hourglass-split fs-4"></i>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 w-100 bg-warning" style="height: 4px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+            <div class="card-body position-relative">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-uppercase fw-bold text-info small mb-1">Bài viết chia sẻ</div>
+                        <h4 class="fw-bold mb-0 text-dark">@Model.TotalPosts.ToString("N0")</h4>
+                    </div>
+                    <div class="bg-info bg-opacity-10 text-info rounded p-3">
+                        <i class="bi bi-newspaper fs-4"></i>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 w-100 bg-info" style="height: 4px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Thành viên mới gia nhập</h6>
+                <a href="/Admin/Users" class="btn btn-sm btn-light text-primary fw-bold">Xem tất cả</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Họ và tên</th>
+                            <th>Email</th>
+                            <th>Ngày tham gia</th>
+                            <th class="text-end pe-4">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.NewestUsers)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">@user.FullName</td>
+                                <td class="text-muted">@user.Email</td>
+                                <td class="small">@user.JoinDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end pe-4">
+                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">Mới</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark text-white py-3 fw-bold">
+                <i class="bi bi-hdd-rack-fill me-2"></i> Trạng thái Server
+            </div>
+            <div class="card-body">
+                <div class="mb-4 text-center">
+                    <div class="fw-bold text-dark">@Model.SystemStats.OsDescription</div>
+                    <div class="small text-muted">@Model.SystemStats.FrameworkDescription</div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted"><i class="bi bi-memory me-1"></i> RAM App dùng</span>
+                    <span class="fw-bold text-primary">@Model.SystemStats.MemoryDisplay</span>
+                </div>
+                <div class="progress mb-4" style="height: 6px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 50%"></div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted"><i class="bi bi-hdd me-1"></i> Ổ cứng (Disk C)</span>
+                    <span class="fw-bold text-warning">@Model.SystemStats.DiskUsagePercent%</span>
+                </div>
+                <div class="progress mb-4" style="height: 6px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: @Model.SystemStats.DiskUsagePercent%"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center bg-light rounded p-2 mt-2">
+                    <span class="text-muted small"><i class="bi bi-clock-history me-1"></i> Uptime:</span>
+                    <span class="fw-bold text-success font-monospace">@Model.SystemStats.UptimeDisplay</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 fw-bold border-0">
+                Lối tắt quản trị
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/Admin/Roles/Index" class="list-group-item list-group-item-action d-flex align-items-center py-3 border-0">
+                    <span class="bg-primary bg-opacity-10 text-primary p-2 rounded me-3">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </span>
+                    <div>
+                        <div class="fw-bold text-dark">Phân quyền</div>
+                        <div class="small text-muted">Thêm/Xóa Role hệ thống</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
