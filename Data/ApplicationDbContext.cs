@@ -17,7 +17,7 @@ namespace Vibee.Data
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
-
+        public DbSet<PostMedia> PostMedias { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
