@@ -27,18 +27,23 @@ namespace Vibee.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account", new { area = "Identity" });
 
-            var posts = await _context.Posts
-                .Include(p => p.User)
-                .Include(p => p.Medias)
-                .Include(p => p.Likes)
-                .Include(p => p.Comments)
-                .Where(p =>
-                    p.PrivacyLevel == 0 ||
-                    p.PrivacyLevel == 1 ||
-                    (p.PrivacyLevel == 2 && p.UserId == currentUser.Id)
-                )
-                .OrderByDescending(p => p.CreatedAt)
+            var friendIds = await _context.Friendships
+                .Where(f => (f.SenderId == currentUser.Id || f.ReceiverId == currentUser.Id)
+                             && f.Status == FriendshipStatus.Accepted)
+                .Select(f => f.SenderId == currentUser.Id ? f.ReceiverId : f.SenderId)
                 .ToListAsync();
+
+            var posts = await _context.Posts
+                    .Include(p => p.User).Include(p => p.Medias).Include(p => p.Likes).Include(p => p.Comments)
+                    .Where(p =>
+                        p.PrivacyLevel == 0 ||
+
+                        (p.PrivacyLevel == 2 && p.UserId == currentUser.Id) ||
+
+                        (p.PrivacyLevel == 1 && (p.UserId == currentUser.Id || friendIds.Contains(p.UserId)))
+                    )
+                    .OrderByDescending(p => p.CreatedAt)
+                    .ToListAsync();
 
             var otherUsers = await _context.Users
                 .Where(u => u.Id != currentUser.Id)
@@ -65,6 +70,21 @@ namespace Vibee.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = System.Diagnostics.Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Search(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query)) return RedirectToAction("Index");
+
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            var users = await _context.Users
+                .Where(u => u.FullName.Contains(query) && u.Id != currentUser.Id)
+                .ToListAsync();
+
+            ViewBag.Query = query;
+            return View(users);
         }
     }
 }

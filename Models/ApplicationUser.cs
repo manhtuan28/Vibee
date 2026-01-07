@@ -17,6 +17,8 @@ namespace Vibee.Models
 
         public DateTime JoinDate { get; set; } = DateTime.Now;
         public bool IsVerified { get; set; } = false;
+        [StringLength(30)]
+        public string? UrlHandle { get; set; }
 
         public virtual Wallet? Wallet { get; set; }
         public virtual ICollection<Post>? Posts { get; set; }

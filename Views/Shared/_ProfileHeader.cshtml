@@ -1,0 +1,228 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Vibee.Models
+@model Vibee.ViewModels.ProfileViewModel
+
+<style>
+    .profile-header-wrapper {
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        padding-bottom: 0;
+    }
+
+    .cover-container {
+        position: relative;
+        height: 350px;
+        background-color: #ced0d4;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        overflow: hidden;
+        max-width: 1095px;
+        margin: 0 auto;
+    }
+
+    .cover-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-info-wrap {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 0 32px;
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 16px;
+        margin-top: -30px;
+    }
+
+    .avatar-view {
+        position: relative;
+        margin-right: 20px;
+        z-index: 2;
+    }
+
+    .avatar-img {
+        width: 168px;
+        height: 168px;
+        border-radius: 50%;
+        border: 5px solid #fff;
+        object-fit: cover;
+        background: #fff;
+    }
+
+    .user-details {
+        flex: 1;
+        margin-bottom: 10px;
+        margin-top: 40px;
+        min-width: 300px;
+    }
+
+    .user-name {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0;
+        line-height: 1.2;
+    }
+
+    .user-stats {
+        color: #65676b;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+        .user-stats span:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+</style>
+
+<div class="profile-header-wrapper">
+    <div class="cover-container">
+        <img id="coverImageDisplay" src="@(Model.User.CoverPhotoUrl ?? "https://timelinecovers.pro/facebook-covers/download/ultra-hd-space-nebula-facebook-cover.jpg")" class="cover-image">
+
+        @if (Model.IsOwner)
+        {
+            <input type="file" id="coverInput" hidden accept="image/*" onchange="uploadCover()">
+            <button class="btn btn-light fw-bold position-absolute bottom-0 end-0 m-4 d-none d-md-block" onclick="document.getElementById('coverInput').click()">
+                <i class="bi bi-camera-fill me-2"></i> Thêm ảnh bìa
+            </button>
+        }
+    </div>
+
+    <div class="profile-info-wrap">
+        <div class="d-flex align-items-end flex-wrap w-100">
+            <div class="avatar-view">
+                <img id="avatarImageDisplay" src="@(Model.User.AvatarUrl ?? "/images/default-avatar.png")" class="avatar-img">
+                @if (Model.IsOwner)
+                {
+                    <input type="file" id="avatarInput" hidden accept="image/*" onchange="uploadAvatar()">
+                    <div class="position-absolute bottom-0 end-0 bg-light border rounded-circle d-flex align-items-center justify-content-center cursor-pointer"
+                         style="width:36px;height:36px;margin:10px 5px;" onclick="document.getElementById('avatarInput').click()">
+                        <i class="bi bi-camera-fill text-dark"></i>
+                    </div>
+                }
+            </div>
+
+            <div class="user-details">
+                <h1 class="user-name">
+                    @Model.User.FullName
+                    @if (Model.User.IsVerified)
+                    {
+                        <i class="bi bi-patch-check-fill text-primary fs-4 ms-1" title="Đã xác minh"></i>
+                    }
+                </h1>
+                <div class="user-stats">
+                    <span class="cursor-pointer hover-underline" onclick="location.href='/Profile/Friends/@Model.User.Id'">@Model.FriendCount bạn bè</span> •
+                    <span>@Model.PhotoCount người theo dõi</span>
+                </div>
+
+                @if (Model.Friends != null && Model.Friends.Any())
+                {
+                    <div class="d-flex mt-2">
+                        @{
+                            var index = 0;
+                        }
+                        @foreach (var friend in Model.Friends)
+                        {
+                            <a href="/Profile/@(friend.UrlHandle ?? friend.Id)" title="@friend.FullName">
+                                <img src="@(friend.AvatarUrl ?? "/images/default-avatar.png")"
+                                     class="rounded-circle border border-2 border-white bg-white"
+                                     style="width: 32px; height: 32px; object-fit: cover; @(index > 0 ? "margin-left: -8px;" : "")">
+                            </a>
+                            index++;
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="action-buttons">
+                @if (Model.FriendshipStatus == "Self")
+                {
+                    <button class="btn btn-primary fw-bold"><i class="bi bi-plus-lg me-1"></i> Thêm vào tin</button>
+                    <a href="/Profile/Edit" class="btn btn-light bg-secondary-subtle fw-bold"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa</a>
+                }
+                else if (Model.FriendshipStatus == "Friends")
+                {
+                    <div class="dropdown">
+                        <button class="btn btn-light bg-secondary-subtle fw-bold" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-check-fill me-1"></i> Bạn bè
+                        </button>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li><a class="dropdown-item" href="#">Yêu thích</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="handleFriendAction('Unfriend')">Hủy kết bạn</a></li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-primary fw-bold"><i class="bi bi-messenger me-1"></i> Nhắn tin</button>
+                }
+                else if (Model.FriendshipStatus == "PendingSent")
+                {
+                    <button class="btn btn-primary fw-bold" onclick="handleFriendAction('Cancel')">
+                        <i class="bi bi-person-x-fill me-1"></i> Hủy lời mời
+                    </button>
+                    <button class="btn btn-light bg-secondary-subtle fw-bold"><i class="bi bi-messenger me-1"></i> Nhắn tin</button>
+                }
+                else if (Model.FriendshipStatus == "PendingReceived")
+                {
+                    <button class="btn btn-primary fw-bold" onclick="handleFriendAction('Accept')">
+                        <i class="bi bi-person-plus-fill me-1"></i> Chấp nhận
+                    </button>
+                    <button class="btn btn-light bg-secondary-subtle fw-bold" onclick="handleFriendAction('Unfriend')">
+                        <i class="bi bi-x-lg me-1"></i> Từ chối
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-primary fw-bold" onclick="handleFriendAction('Add')">
+                        <i class="bi bi-person-plus-fill me-1"></i> Thêm bạn bè
+                    </button>
+                    <button class="btn btn-light bg-secondary-subtle fw-bold"><i class="bi bi-messenger me-1"></i> Nhắn tin</button>
+                }
+            </div>
+        </div>
+
+        <div class="w-100 border-top pt-1 mt-3">
+            <div class="d-flex gap-1 fw-bold text-secondary">
+                @{
+                    string action = ViewContext.RouteData.Values["Action"]?.ToString();
+
+                    string profileLink = Model.User.UrlHandle ?? Model.User.Id;
+                }
+
+                <a href="/Profile/@profileLink"
+                   class="text-decoration-none p-3 cursor-pointer rounded @(action == "Index" ? "text-primary border-bottom border-3 border-primary" : "text-secondary hover-bg-gray")">
+                    Bài viết
+                </a>
+
+                <a href="/Profile/About/@profileLink"
+                   class="text-decoration-none p-3 cursor-pointer rounded @(action == "About" ? "text-primary border-bottom border-3 border-primary" : "text-secondary hover-bg-gray")">
+                    Giới thiệu
+                </a>
+
+                <a href="/Profile/Friends/@profileLink"
+                   class="text-decoration-none p-3 cursor-pointer rounded @(action == "Friends" ? "text-primary border-bottom border-3 border-primary" : "text-secondary hover-bg-gray")">
+                    Bạn bè
+                </a>
+
+                <a href="/Profile/Photos/@profileLink"
+                   class="text-decoration-none p-3 cursor-pointer rounded @(action == "Photos" ? "text-primary border-bottom border-3 border-primary" : "text-secondary hover-bg-gray")">
+                    Ảnh
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

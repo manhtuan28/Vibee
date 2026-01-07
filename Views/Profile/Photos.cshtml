@@ -1,0 +1,54 @@
+﻿@model Vibee.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Ảnh"; var photos = ViewBag.PhotosList as List<Vibee.Models.PostMedia>;
+}
+<partial name="_ProfileHeader" model="Model" />
+<div class="container mt-3" style="max-width: 1050px;">
+    <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h4 class="fw-bold mb-4">Ảnh</h4>
+        <div class="row g-2">
+            @if (photos != null && photos.Any())
+            {
+                @foreach (var p in photos)
+                {
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="ratio ratio-1x1"><img src="@p.Url" class="rounded border w-100 h-100 object-fit-cover"></div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted">Chưa có ảnh nào.</div>
+            }
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        function uploadCover() {
+            var file = document.getElementById('coverInput').files[0];
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var img = document.getElementById('coverImageDisplay');
+            img.style.opacity = '0.5';
+
+            $.ajax({
+                url: '/Profile/UploadCover',
+                type: 'POST',
+                data: formData,
+                processData: false, contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        img.src = res.newUrl;
+                        img.style.opacity = '1';
+                        Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh bìa', showConfirmButton: false, timer: 3000 });
+                    } else {
+                        alert(res.message);
+                        img.style.opacity = '1';
+                    }
+                }
+            });
+        }
+    </script>
+}

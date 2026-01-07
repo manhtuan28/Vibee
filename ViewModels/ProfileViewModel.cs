@@ -9,5 +9,7 @@ namespace Vibee.ViewModels
         public List<Post> Posts { get; set; }
         public int FriendCount { get; set; }
         public int PhotoCount { get; set; }
+        public string FriendshipStatus { get; set; }
+        public List<ApplicationUser> Friends { get; set; } = new List<ApplicationUser>();
     }
 }
