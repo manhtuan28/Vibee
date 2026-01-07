@@ -1,0 +1,72 @@
+﻿@model Vibee.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Bạn bè";
+    var friends = ViewBag.FriendsList as List<Vibee.Models.ApplicationUser>;
+}
+
+<partial name="_ProfileHeader" model="Model" />
+
+<div class="container mt-3" style="max-width: 1050px;">
+    <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h4 class="fw-bold mb-4">Bạn bè</h4>
+
+        <div class="row g-3">
+            @if (friends != null && friends.Any())
+            {
+                @foreach (var f in friends)
+                {
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center border rounded-3 p-3">
+                            <a href="/Profile/@(f.UrlHandle ?? f.Id)">
+                                <img src="@(f.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-3 border" width="80" height="80" style="object-fit:cover">
+                            </a>
+
+                            <div class="ms-3 flex-grow-1">
+                                <a href="/Profile/@(f.UrlHandle ?? f.Id)" class="text-decoration-none text-dark fw-bold">
+                                    @f.FullName
+                                </a>
+                                <div class="small text-muted">@f.UrlHandle</div>
+                            </div>
+
+                            <a href="/Profile/@(f.UrlHandle ?? f.Id)" class="btn btn-light bg-secondary-subtle btn-sm fw-bold">Xem</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">Chưa có bạn bè nào.</div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function uploadCover() {
+            var file = document.getElementById('coverInput').files[0];
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var img = document.getElementById('coverImageDisplay');
+            img.style.opacity = '0.5';
+
+            $.ajax({
+                url: '/Profile/UploadCover',
+                type: 'POST',
+                data: formData,
+                processData: false, contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        img.src = res.newUrl;
+                        img.style.opacity = '1';
+                        Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh bìa', showConfirmButton: false, timer: 3000 });
+                    } else {
+                        alert(res.message);
+                        img.style.opacity = '1';
+                    }
+                }
+            });
+        }
+    </script>
+}

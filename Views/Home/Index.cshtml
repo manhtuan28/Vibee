@@ -7,7 +7,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-    /* CSS CŨ GIỮ NGUYÊN */
     body {
         background-color: #f0f2f5;
         overflow-y: scroll;
@@ -186,10 +185,15 @@
             border-top-color: transparent;
             animation: spin 0.8s linear infinite;
         }
+
     @@keyframes spin {
         to {
             transform: rotate(360deg);
         }
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
     }
 </style>
 
@@ -197,11 +201,11 @@
     <div class="row justify-content-center">
         <div class="col-lg-3 d-none d-lg-block">
             <div class="sidebar-sticky custom-scrollbar">
-                <a href="profile" class="left-menu-item mb-2">
+                <a href="/Profile/@(Model.CurrentUser?.UrlHandle ?? Model.CurrentUser?.Id)" class="left-menu-item mb-2">
                     <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-3 border" width="36" height="36" style="object-fit:cover">
                     <span class="fw-bold">@Model.CurrentUser?.FullName</span>
                 </a>
-                <a href="#" class="left-menu-item"><i class="bi bi-people-fill text-primary"></i> Bạn bè</a>
+                <a href="/Profile/Friends" class="left-menu-item"><i class="bi bi-people-fill text-primary"></i> Bạn bè</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-collection-play-fill text-danger"></i> Watch</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-shop text-primary"></i> Marketplace</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-wallet2 text-success"></i> Ví Vibee Pay</a>
@@ -231,19 +235,26 @@
                 {
                     <div class="card shadow-sm border-0 mb-3 rounded-4" id="post-@post.Id">
                         <div class="card-header bg-white border-0 d-flex align-items-center pt-3 rounded-top-4">
-                            <img src="@(post.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2" width="40" height="40" style="object-fit:cover">
+                            <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none">
+                                <img src="@(post.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2" width="40" height="40" style="object-fit:cover">
+                            </a>
+
                             <div>
-                                <h6 class="mb-0 fw-bold" style="font-size: 0.95rem">
-                                    @post.User?.FullName
+                                <h6 class="mb-0 fw-bold">
+                                    <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none text-dark hover-underline">
+                                        @post.User?.FullName
+                                    </a>
+
                                     @if (!string.IsNullOrEmpty(post.Emotion))
                                     {
-                                        <span class="fw-normal"> đang @Html.Raw(post.Emotion)</span>
+                                        <span class="fw-normal text-dark"> đang @Html.Raw(post.Emotion)</span>
                                     }
                                     @if (!string.IsNullOrEmpty(post.LocationName))
                                     {
-                                        <span class="fw-normal"> tại <strong>@post.LocationName</strong></span>
+                                        <span class="fw-normal text-dark"> tại <strong>@post.LocationName</strong></span>
                                     }
                                 </h6>
+
                                 <small class="text-muted" style="font-size: 0.8rem;">
                                     @post.CreatedAt.ToString("dd/MM HH:mm") •
                                     @if (post.PrivacyLevel == 0)
@@ -252,12 +263,10 @@
                                     }
                                     else if (post.PrivacyLevel == 1)
                                     {
-
                                         <i class="bi bi-people-fill" title="Bạn bè"></i>
                                     }
                                     else
                                     {
-
                                         <i class="bi bi-lock-fill" title="Chỉ mình tôi"></i>
                                     }
                                 </small>
@@ -276,6 +285,7 @@
                                 </ul>
                             </div>
                         </div>
+
                         <div class="card-body py-2">
                             <div class="post-text mb-2 text-dark">@Html.Raw(post.Content)</div>
                             @if (post.Medias != null && post.Medias.Any())
@@ -290,7 +300,6 @@
                                             }
                                             else
                                             {
-
                                                 <img src="@media.Url" class="w-100 object-fit-cover border" style="height:350px">
                                             }
                                         </div>
@@ -315,178 +324,21 @@
                 <h6 class="text-muted fw-bold small mt-3">Người liên hệ</h6>
                 @foreach (var friend in Model.OnlineFriends)
                 {
-                    <div class="contact-item">
+                    <a href="/Profile/@(friend.UrlHandle ?? friend.Id)" class="contact-item text-decoration-none">
                         <div class="position-relative me-3">
                             <img src="@(friend.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle border" width="36" height="36" style="object-fit:cover">
                             <div class="online-dot"></div>
                         </div>
                         <span class="fw-semibold text-dark small">@friend.FullName</span>
-                    </div>
+                    </a>
                 }
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg rounded-4 border-0">
-
-            <div class="modal-header border-bottom-0 text-center position-relative pb-2">
-                <button type="button" class="btn btn-light rounded-circle position-absolute start-0 top-0 m-3 d-none" id="btnBackView" onclick="switchView('default')"><i class="bi bi-arrow-left"></i></button>
-                <h5 class="modal-title w-100 fw-bold fs-5" id="modalTitle">Tạo bài viết</h5>
-                <button type="button" class="btn-close bg-light rounded-circle position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
-            </div>
-            <hr class="my-0 opacity-25">
-
-            <div id="view-default" class="modal-view active">
-                <div class="modal-body">
-                    <form id="createPostForm" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
-                        <div class="d-flex mb-3">
-                            <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40">
-                            <div>
-                                <div class="fw-bold small lh-sm">
-                                    @Model.CurrentUser?.FullName
-                                    <span id="statusArea"></span>
-                                </div>
-
-                                <div class="dropdown mt-1">
-                                    <button class="btn btn-light btn-sm rounded px-2 py-0 border d-inline-flex align-items-center" type="button" data-bs-toggle="dropdown" style="font-size: 11px;">
-                                        <i class="bi bi-globe-americas me-1" id="privacyIcon"></i> <span id="privacyText">Công khai</span> <i class="bi bi-caret-down-fill ms-1"></i>
-                                    </button>
-                                    <ul class="dropdown-menu shadow border-0" style="font-size: 0.9rem;">
-                                        <li><button class="dropdown-item px-3 py-2" type="button" onclick="setPrivacy(0, 'Công khai', 'bi-globe-americas')"><div class="fw-bold"><i class="bi bi-globe-americas me-2"></i> Công khai</div><small class="text-muted ms-4">Bất kỳ ai ở trên hoặc ngoài Vibee</small></button></li>
-                                        <li><button class="dropdown-item px-3 py-2" type="button" onclick="setPrivacy(1, 'Bạn bè', 'bi-people-fill')"><div class="fw-bold"><i class="bi bi-people-fill me-2"></i> Bạn bè</div><small class="text-muted ms-4">Bạn bè của bạn trên Vibee</small></button></li>
-                                        <li><button class="dropdown-item px-3 py-2" type="button" onclick="setPrivacy(2, 'Chỉ mình tôi', 'bi-lock-fill')"><div class="fw-bold"><i class="bi bi-lock-fill me-2"></i> Chỉ mình tôi</div><small class="text-muted ms-4">Chỉ có mình bạn xem được</small></button></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <textarea name="content" id="modalPostContent" class="form-control border-0 fs-5 px-0" rows="3" placeholder="@Model.CurrentUser?.FullName ơi, bạn đang nghĩ gì thế?" style="resize: none; box-shadow: none;"></textarea>
-
-                        <div id="mediaPreviewContainer" class="d-none">
-                            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-                                <span class="small fw-bold text-muted">Ảnh/Video đã chọn</span>
-                                <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger fw-bold p-0" onclick="clearAllMedia()">Xóa tất cả</button>
-                            </div>
-                            <div id="modalMediaPreview" class="row g-2 mb-2 border rounded p-1 position-relative bg-light">
-                            </div>
-                        </div>
-
-                        <div class="add-to-post mt-3">
-                            <span class="fw-bold small ps-2">Thêm vào bài viết</span>
-                            <div class="add-to-post-icons d-flex gap-1">
-                                <input type="file" id="modalFileInput" multiple accept="image/*,video/*" hidden onchange="handleFilesSelect(this)">
-                                <div class="btn-icon text-success" title="Ảnh/Video" onclick="document.getElementById('modalFileInput').click()"><i class="bi bi-images fs-5"></i></div>
-                                <div class="btn-icon text-danger" title="Check-in" onclick="switchView('location')"><i class="bi bi-geo-alt-fill fs-5"></i></div>
-                                <div class="btn-icon text-warning" title="Cảm xúc" onclick="switchView('feeling')"><i class="bi bi-emoji-smile-fill fs-5"></i></div>
-                            </div>
-                        </div>
-
-                        <input type="hidden" name="locationName" id="hiddenLocation">
-                        <input type="hidden" name="emotion" id="hiddenEmotion">
-                        <input type="hidden" name="privacyLevel" id="hiddenPrivacy" value="0">
-                    </form>
-                </div>
-                <div class="modal-footer border-top-0 pt-0">
-                    <button type="button" onclick="submitPostModal()" class="btn btn-primary w-100 fw-bold rounded-3 py-2 disabled" id="btnSubmitPost">Đăng</button>
-                </div>
-            </div>
-
-            <div id="view-feeling" class="modal-view">
-                <div class="modal-body pt-2" style="height: 400px; overflow-y: auto;">
-                    <div class="row g-2">
-                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('🙂', 'cảm thấy hạnh phúc')"><span class="emoji-icon">🙂</span> Hạnh phúc</div></div>
-                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('😆', 'cảm thấy vui vẻ')"><span class="emoji-icon">😆</span> Vui vẻ</div></div>
-                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('😍', 'cảm thấy đáng yêu')"><span class="emoji-icon">😍</span> Đáng yêu</div></div>
-                        <div class="col-6"><div class="item-list-row" onclick="selectFeeling('😎', 'cảm thấy thật ngầu')"><span class="emoji-icon">😎</span> Thật ngầu</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-location" class="modal-view">
-                <div class="p-3 border-bottom">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control bg-light border-0" placeholder="Tìm kiếm mọi nơi..." id="searchLocInput">
-                    </div>
-                </div>
-                <div class="modal-body p-0" style="height: 350px; overflow-y: auto;">
-                    <div id="locationLoading" class="text-center py-4 d-none"><div class="spinner-border text-primary"></div></div>
-                    <div id="locationList"></div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="editPostModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg rounded-4 border-0">
-            <div class="modal-header border-bottom-0 text-center position-relative pb-2">
-                <h5 class="modal-title w-100 fw-bold fs-5">Chỉnh sửa bài viết</h5>
-                <button type="button" class="btn-close bg-light rounded-circle position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
-            </div>
-            <hr class="my-0 opacity-25">
-
-            <div class="modal-body">
-                <form id="editPostForm" enctype="multipart/form-data">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" id="editPostId">
-
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40">
-                        <div>
-                            <div class="fw-bold small lh-sm">
-                                @Model.CurrentUser?.FullName
-                                <span id="editStatusArea"></span>
-                            </div>
-
-                            <div class="dropdown mt-1">
-                                <button class="btn btn-light btn-sm rounded px-2 py-0 border d-inline-flex align-items-center" type="button" data-bs-toggle="dropdown" style="font-size: 11px;">
-                                    <i class="bi bi-globe-americas me-1" id="editPrivacyIcon"></i> <span id="editPrivacyText">Công khai</span> <i class="bi bi-caret-down-fill ms-1"></i>
-                                </button>
-                                <ul class="dropdown-menu shadow border-0" style="font-size: 0.9rem;">
-                                    <li><button class="dropdown-item px-3 py-2" type="button" onclick="setEditPrivacy(0, 'Công khai', 'bi-globe-americas')"><div class="fw-bold"><i class="bi bi-globe-americas me-2"></i> Công khai</div></button></li>
-                                    <li><button class="dropdown-item px-3 py-2" type="button" onclick="setEditPrivacy(1, 'Bạn bè', 'bi-people-fill')"><div class="fw-bold"><i class="bi bi-people-fill me-2"></i> Bạn bè</div></button></li>
-                                    <li><button class="dropdown-item px-3 py-2" type="button" onclick="setEditPrivacy(2, 'Chỉ mình tôi', 'bi-lock-fill')"><div class="fw-bold"><i class="bi bi-lock-fill me-2"></i> Chỉ mình tôi</div></button></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <textarea name="content" id="editContent" class="form-control border-0 fs-5 px-0" rows="3" style="resize: none; box-shadow: none;"></textarea>
-
-                    <div id="editMediaContainer" class="border rounded p-1 bg-light mt-2">
-                        <div id="oldMediaPreview" class="row g-2"></div>
-                        <div id="newMediaPreview" class="row g-2 mt-2"></div>
-                    </div>
-
-                    <div class="add-to-post mt-3">
-                        <span class="fw-bold small ps-2">Thêm vào bài viết</span>
-                        <div class="add-to-post-icons d-flex gap-1">
-                            <input type="file" id="editFileInput" multiple accept="image/*,video/*" hidden onchange="handleEditFiles(this)">
-
-                            <div class="btn-icon text-success" onclick="document.getElementById('editFileInput').click()" title="Thêm ảnh/video"><i class="bi bi-images fs-5"></i></div>
-                            <div class="btn-icon text-danger" onclick="clearEditStatus()" title="Gỡ địa điểm/cảm xúc"><i class="bi bi-x-circle fs-5"></i></div>
-                        </div>
-                    </div>
-
-                    <input type="hidden" name="locationName" id="editHiddenLocation">
-                    <input type="hidden" name="emotion" id="editHiddenEmotion">
-                    <input type="hidden" name="privacyLevel" id="editHiddenPrivacy">
-                    <input type="hidden" name="removedMediaIds" id="editRemovedMediaIds">
-                </form>
-            </div>
-            <div class="modal-footer border-top-0 pt-0">
-                <button type="button" onclick="submitEditPost()" class="btn btn-primary w-100 fw-bold rounded-3 py-2" id="btnSaveEdit">Lưu thay đổi</button>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_CreatePostModal" />
+<partial name="_EditPostModal" />
 
 @section Scripts {
     <script>
@@ -502,7 +354,6 @@
             clearAllMedia();
             document.getElementById('createPostForm').reset();
             setPrivacy(0, 'Công khai', 'bi-globe-americas');
-
             var myModal = new bootstrap.Modal(document.getElementById('createPostModal'));
             myModal.show();
             switchView(view);
@@ -515,71 +366,37 @@
         }
 
         function deletePost(id) {
-                    Swal.fire({
-                        title: 'Xóa bài viết?',
-                        text: "Bạn sẽ không thể khôi phục lại bài viết này!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#dc3545',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Xóa luôn',
-                        cancelButtonText: 'Hủy',
-                        background: '#fff',
-                        borderRadius: '12px'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.showLoading();
-
-                            $.post('/Posts/Delete', { id: id }, function(res) {
-                                Swal.close();
-                                if(res.success) {
-                                    $(`#post-${id}`).fadeOut(500, function() {
-                                        $(this).remove();
-                                    });
-
-                                    const Toast = Swal.mixin({
-                                        toast: true, position: 'bottom-start', showConfirmButton: false, timer: 3000, timerProgressBar: true
-                                    });
-                                    Toast.fire({ icon: 'success', title: 'Đã xóa bài viết' });
-                                } else {
-                                    Swal.fire('Lỗi!', res.message, 'error');
-                                }
-                            }).fail(function() {
-                                Swal.fire('Lỗi mạng!', 'Không thể kết nối đến server.', 'error');
-                            });
-                        }
-                    })
+            Swal.fire({
+                title: 'Xóa bài viết?', text: "Không thể hoàn tác!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+                    $.post('/Posts/Delete', { id: id }, function(res) {
+                        Swal.close();
+                        if(res.success) {
+                            $(`#post-${id}`).fadeOut(500, function() { $(this).remove(); });
+                            Swal.mixin({ toast: true, position: 'bottom-start', showConfirmButton: false, timer: 3000 }).fire({ icon: 'success', title: 'Đã xóa' });
+                        } else { Swal.fire('Lỗi!', res.message, 'error'); }
+                    });
                 }
+            })
+        }
 
         function switchView(viewName) {
             document.querySelectorAll('.modal-view').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + viewName).classList.add('active');
             const title = document.getElementById('modalTitle');
             const btnBack = document.getElementById('btnBackView');
-
             if (viewName === 'default') { title.innerText = 'Tạo bài viết'; btnBack.classList.add('d-none'); }
             else if (viewName === 'feeling') { title.innerText = 'Cảm xúc'; btnBack.classList.remove('d-none'); }
             else if (viewName === 'location') { title.innerText = 'Tìm kiếm vị trí'; btnBack.classList.remove('d-none'); document.getElementById('searchLocInput').focus(); }
         }
 
-        function selectFeeling(icon, text) {
-            currentStatus.emotionHTML = `<span class="fw-normal">${icon} ${text}</span>`;
-            document.getElementById('hiddenEmotion').value = currentStatus.emotionHTML;
-            updateHeaderStatus(); switchView('default');
-        }
-        function selectLocation(locName) {
-            currentStatus.locationName = locName;
-            document.getElementById('hiddenLocation').value = locName;
-            updateHeaderStatus(); switchView('default');
-        }
-        function removeStatus(type) {
-            if (type === 'emotion') { currentStatus.emotionHTML = ''; document.getElementById('hiddenEmotion').value = ''; }
-            else if (type === 'location') { currentStatus.locationName = ''; document.getElementById('hiddenLocation').value = ''; }
-            updateHeaderStatus();
-        }
+        function selectFeeling(icon, text) { currentStatus.emotionHTML = `<span class="fw-normal">${icon} ${text}</span>`; document.getElementById('hiddenEmotion').value = currentStatus.emotionHTML; updateHeaderStatus(); switchView('default'); }
+        function selectLocation(locName) { currentStatus.locationName = locName; document.getElementById('hiddenLocation').value = locName; updateHeaderStatus(); switchView('default'); }
+        function removeStatus(type) { if (type === 'emotion') { currentStatus.emotionHTML = ''; document.getElementById('hiddenEmotion').value = ''; } else if (type === 'location') { currentStatus.locationName = ''; document.getElementById('hiddenLocation').value = ''; } updateHeaderStatus(); }
         function updateHeaderStatus() {
-            const area = document.getElementById('statusArea');
-            let html = '';
+            const area = document.getElementById('statusArea'); let html = '';
             if (currentStatus.emotionHTML) html += `${currentStatus.emotionHTML} <i class="bi bi-x-circle-fill text-secondary ms-1 cursor-pointer" onclick="removeStatus('emotion')" style="font-size:12px"></i>`;
             if (currentStatus.locationName) { if (html) html += ' '; html += `tại <strong>${currentStatus.locationName}</strong> <i class="bi bi-x-circle-fill text-secondary ms-1 cursor-pointer" onclick="removeStatus('location')" style="font-size:12px"></i>`; }
             area.innerHTML = html; checkInput();
@@ -595,10 +412,7 @@
                 .then(res => res.json()).then(data => {
                     document.getElementById('locationLoading').classList.add('d-none');
                     let html = '';
-                    data.forEach(p => {
-                        let name = p.name || p.address.city || "";
-                        html += `<div class="item-list-row px-3 py-2 border-bottom" onclick="selectLocation('${name}')"><div class="emoji-icon bg-secondary bg-opacity-10"><i class="bi bi-geo-alt-fill text-danger"></i></div><div><div class="fw-bold text-truncate">${name}</div><small class="text-muted">${p.display_name}</small></div></div>`;
-                    });
+                    data.forEach(p => { let name = p.name || p.address.city || ""; html += `<div class="item-list-row px-3 py-2 border-bottom" onclick="selectLocation('${name}')"><div class="emoji-icon bg-secondary bg-opacity-10"><i class="bi bi-geo-alt-fill text-danger"></i></div><div><div class="fw-bold text-truncate">${name}</div><small class="text-muted">${p.display_name}</small></div></div>`; });
                     list.innerHTML = html;
                 });
             }, 500);
@@ -632,192 +446,77 @@
         contentInput.addEventListener('input', checkInput);
 
         function submitPostModal() {
-                    var btn = document.getElementById('btnSubmitPost');
-                    var originalText = btn.innerText;
-
-                    btn.classList.add('btn-loading');
-
-                    var fd = new FormData();
-                    fd.append('content', document.getElementById('modalPostContent').value);
-                    fd.append('locationName', document.getElementById('hiddenLocation').value);
-                    fd.append('emotion', document.getElementById('hiddenEmotion').value);
-                    fd.append('privacyLevel', document.getElementById('hiddenPrivacy').value);
-                    fd.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
-                    uploadedFiles.forEach(f => fd.append('mediaFiles', f));
-
-                    setTimeout(() => {
-                        $.ajax({
-                            url: '/Posts/CreatePost', type: 'POST', data: fd, processData: false, contentType: false,
-                            success: function(res) {
-                                if(res.success) {
-                                    var myModalEl = document.getElementById('createPostModal');
-                                    var modal = bootstrap.Modal.getInstance(myModalEl);
-                                    modal.hide();
-
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Đã đăng!',
-                                        text: 'Bài viết của bạn đã được chia sẻ.',
-                                        showConfirmButton: false,
-                                        timer: 1000
-                                    }).then(() => {
-                                        location.reload();
-                                    });
-                                } else {
-                                    Swal.fire('Lỗi', res.message, 'error');
-                                    btn.classList.remove('btn-loading');
-                                }
-                            },
-                            error: function() {
-                                Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
-                                btn.classList.remove('btn-loading');
-                            }
-                        });
-                    }, 800);
-                }
+            var btn = document.getElementById('btnSubmitPost'); btn.classList.add('btn-loading');
+            var fd = new FormData(document.getElementById('createPostForm'));
+            uploadedFiles.forEach(f => fd.append('mediaFiles', f));
+            setTimeout(() => {
+                $.ajax({
+                    url: '/Posts/CreatePost', type: 'POST', data: fd, processData: false, contentType: false,
+                    success: function(res) {
+                        if(res.success) {
+                            var modal = bootstrap.Modal.getInstance(document.getElementById('createPostModal')); modal.hide();
+                            Swal.fire({ icon: 'success', title: 'Đã đăng!', showConfirmButton: false, timer: 1000 }).then(() => location.reload());
+                        } else { Swal.fire('Lỗi', res.message, 'error'); btn.classList.remove('btn-loading'); }
+                    },
+                    error: function() { Swal.fire('Lỗi', 'Không thể kết nối', 'error'); btn.classList.remove('btn-loading'); }
+                });
+            }, 800);
+        }
 
         function openEditModal(id) {
-            editNewFiles = [];
-            removedMediaIds = [];
-            document.getElementById('editRemovedMediaIds').value = '';
-            document.getElementById('newMediaPreview').innerHTML = '';
-            document.getElementById('oldMediaPreview').innerHTML = '';
-
+            editNewFiles = []; removedMediaIds = []; document.getElementById('editRemovedMediaIds').value = '';
+            document.getElementById('newMediaPreview').innerHTML = ''; document.getElementById('oldMediaPreview').innerHTML = '';
             Swal.showLoading();
-
             $.get('/Posts/GetPost?id=' + id, function(res) {
                 Swal.close();
                 if(res.success) {
                     const data = res.data;
-
                     document.getElementById('editPostId').value = data.id;
                     document.getElementById('editContent').value = data.content;
                     document.getElementById('editHiddenLocation').value = data.locationName || '';
                     document.getElementById('editHiddenEmotion').value = data.emotion || '';
-
                     let privText = data.privacyLevel == 0 ? 'Công khai' : (data.privacyLevel == 1 ? 'Bạn bè' : 'Chỉ mình tôi');
                     let privIcon = data.privacyLevel == 0 ? 'bi-globe-americas' : (data.privacyLevel == 1 ? 'bi-people-fill' : 'bi-lock-fill');
                     setEditPrivacy(data.privacyLevel, privText, privIcon);
-
                     updateEditHeaderStatus(data.emotion, data.locationName);
-
                     const oldContainer = document.getElementById('oldMediaPreview');
                     if(data.medias && data.medias.length > 0) {
                         data.medias.forEach(m => {
-                            let mediaHtml = m.type === 1
-                                ? `<video src="${m.url}" class="rounded border w-100 h-100 object-fit-cover"></video>`
-                                : `<img src="${m.url}" class="rounded border w-100 h-100 object-fit-cover">`;
-
-                            oldContainer.innerHTML += `
-                                <div class="col-4 position-relative" id="old-media-${m.id}">
-                                    <div class="ratio ratio-4x3">${mediaHtml}</div>
-                                    <div class="media-remove-btn" onclick="removeOldMedia(${m.id})"><i class="bi bi-x"></i></div>
-                                </div>`;
+                            let mediaHtml = m.type === 1 ? `<video src="${m.url}" class="rounded border w-100 h-100 object-fit-cover"></video>` : `<img src="${m.url}" class="rounded border w-100 h-100 object-fit-cover">`;
+                            oldContainer.innerHTML += `<div class="col-4 position-relative" id="old-media-${m.id}"><div class="ratio ratio-4x3">${mediaHtml}</div><div class="media-remove-btn" onclick="removeOldMedia(${m.id})"><i class="bi bi-x"></i></div></div>`;
                         });
                         document.getElementById('editMediaContainer').classList.remove('d-none');
-                    } else {
-                         document.getElementById('editMediaContainer').classList.add('d-none');
-                    }
-
-                    var myModal = new bootstrap.Modal(document.getElementById('editPostModal'));
-                    myModal.show();
+                    } else { document.getElementById('editMediaContainer').classList.add('d-none'); }
+                    new bootstrap.Modal(document.getElementById('editPostModal')).show();
                 }
-            }).fail(function() {
-                Swal.fire('Lỗi', 'Không thể tải bài viết', 'error');
             });
         }
 
-        function setEditPrivacy(level, text, icon) {
-            document.getElementById('editHiddenPrivacy').value = level;
-            document.getElementById('editPrivacyText').innerText = text;
-            document.getElementById('editPrivacyIcon').className = `bi ${icon} me-1`;
-        }
-
-        function updateEditHeaderStatus(emo, loc) {
-            let html = '';
-            if(emo) html += `${emo} `;
-            if(loc) html += `tại <strong>${loc}</strong>`;
-            document.getElementById('editStatusArea').innerHTML = html;
-        }
-
-        function clearEditStatus() {
-            document.getElementById('editHiddenLocation').value = '';
-            document.getElementById('editHiddenEmotion').value = '';
-            updateEditHeaderStatus('', '');
-        }
-
-        function removeOldMedia(id) {
-            removedMediaIds.push(id);
-            document.getElementById('editRemovedMediaIds').value = removedMediaIds.join(',');
-            document.getElementById(`old-media-${id}`).remove();
-        }
-
-        function handleEditFiles(input) {
-            if (input.files) {
-                Array.from(input.files).forEach(f => editNewFiles.push(f));
-                renderEditNewPreview();
-            }
-            input.value = '';
-            document.getElementById('editMediaContainer').classList.remove('d-none');
-        }
-
+        function setEditPrivacy(l, t, i) { document.getElementById('editHiddenPrivacy').value = l; document.getElementById('editPrivacyText').innerText = t; document.getElementById('editPrivacyIcon').className = `bi ${i} me-1`; }
+        function updateEditHeaderStatus(e, l) { let h = ''; if(e) h += `${e} `; if(l) h += `tại <strong>${l}</strong>`; document.getElementById('editStatusArea').innerHTML = h; }
+        function clearEditStatus() { document.getElementById('editHiddenLocation').value = ''; document.getElementById('editHiddenEmotion').value = ''; updateEditHeaderStatus('', ''); }
+        function removeOldMedia(id) { removedMediaIds.push(id); document.getElementById('editRemovedMediaIds').value = removedMediaIds.join(','); document.getElementById(`old-media-${id}`).remove(); }
+        function handleEditFiles(input) { if (input.files) { Array.from(input.files).forEach(f => editNewFiles.push(f)); renderEditNewPreview(); } input.value = ''; document.getElementById('editMediaContainer').classList.remove('d-none'); }
         function renderEditNewPreview() {
-            const container = document.getElementById('newMediaPreview');
-            container.innerHTML = '';
+            const container = document.getElementById('newMediaPreview'); container.innerHTML = '';
             editNewFiles.forEach((f, i) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    let mediaHtml = f.type.startsWith('video')
-                        ? `<video src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover"></video>`
-                        : `<img src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover">`;
-
-                    container.innerHTML += `
-                        <div class="col-4 position-relative">
-                            <div class="ratio ratio-4x3">${mediaHtml}</div>
-                            <div class="media-remove-btn" onclick="removeNewEditFile(${i})"><i class="bi bi-x"></i></div>
-                        </div>`;
+                    let mediaHtml = f.type.startsWith('video') ? `<video src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover"></video>` : `<img src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover">`;
+                    container.innerHTML += `<div class="col-4 position-relative"><div class="ratio ratio-4x3">${mediaHtml}</div><div class="media-remove-btn" onclick="removeNewEditFile(${i})"><i class="bi bi-x"></i></div></div>`;
                 }
                 reader.readAsDataURL(f);
             });
         }
-
-        function removeNewEditFile(index) {
-            editNewFiles.splice(index, 1);
-            renderEditNewPreview();
-        }
-
+        function removeNewEditFile(i) { editNewFiles.splice(i, 1); renderEditNewPreview(); }
         function submitEditPost() {
-            var btn = document.getElementById('btnSaveEdit');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
-            btn.classList.add('disabled');
-
-            var fd = new FormData(document.getElementById('editPostForm'));
-            editNewFiles.forEach(f => fd.append('newMediaFiles', f));
-
+            var btn = document.getElementById('btnSaveEdit'); btn.classList.add('btn-loading');
+            var fd = new FormData(document.getElementById('editPostForm')); editNewFiles.forEach(f => fd.append('newMediaFiles', f));
             $.ajax({
-                url: '/Posts/Edit',
-                type: 'POST',
-                data: fd,
-                processData: false, contentType: false,
+                url: '/Posts/Edit', type: 'POST', data: fd, processData: false, contentType: false,
                 success: function(res) {
-                    if(res.success) {
-                        var myModalEl = document.getElementById('editPostModal');
-                        var modal = bootstrap.Modal.getInstance(myModalEl);
-                        modal.hide();
-
-                        Swal.fire({
-                            icon: 'success', title: 'Đã cập nhật!', showConfirmButton: false, timer: 1000
-                        }).then(() => location.reload());
-                    } else {
-                        Swal.fire('Lỗi', res.message, 'error');
-                        btn.innerHTML = 'Lưu thay đổi';
-                        btn.classList.remove('disabled');
-                    }
-                },
-                error: function() {
-                    Swal.fire('Lỗi kết nối', '', 'error');
-                    btn.innerHTML = 'Lưu thay đổi';
-                    btn.classList.remove('disabled');
+                    if(res.success) { bootstrap.Modal.getInstance(document.getElementById('editPostModal')).hide(); Swal.fire({ icon: 'success', title: 'Đã cập nhật!', showConfirmButton: false, timer: 1000 }).then(() => location.reload()); }
+                    else { Swal.fire('Lỗi', res.message, 'error'); btn.classList.remove('disabled'); btn.classList.remove('btn-loading'); }
                 }
             });
         }

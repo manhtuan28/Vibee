@@ -34,11 +34,20 @@ namespace Vibee.Data
                 .HasForeignKey(f => f.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<Friendship>()
-                .HasOne(f => f.Receiver)
-                .WithMany(u => u.ReceivedFriendRequests)
-                .HasForeignKey(f => f.ReceiverId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Friendship>(entity =>
+            {
+                entity.HasKey(f => new { f.SenderId, f.ReceiverId });
+
+                entity.HasOne(f => f.Sender)
+                    .WithMany(u => u.SentFriendRequests)
+                    .HasForeignKey(f => f.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(f => f.Receiver)
+                    .WithMany(u => u.ReceivedFriendRequests)
+                    .HasForeignKey(f => f.ReceiverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             builder.Entity<Transaction>()
                 .HasOne(t => t.SenderWallet)
