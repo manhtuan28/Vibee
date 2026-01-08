@@ -26,6 +26,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 builder.Services.AddScoped<Vibee.Services.FileService>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -35,6 +36,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.MapHub<Vibee.Hubs.NotificationHub>("/notificationHub");
 app.UseStatusCodePagesWithReExecute("/Home/ErrorStatus/{0}");
 
 app.UseHttpsRedirection();
