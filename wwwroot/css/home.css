@@ -1,0 +1,514 @@
+﻿:root {
+    --fb-bg: #f0f2f5;
+    --fb-white: #ffffff;
+    --fb-text: #050505;
+    --fb-text-sec: #65676b;
+    --fb-hover: #e4e6eb;
+    --fb-blue: #1877f2;
+    --fb-green: #42b72a;
+    --fb-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    background-color: var(--fb-bg);
+    color: var(--fb-text);
+    font-family: Segoe UI, Helvetica, Arial, sans-serif;
+    overflow-y: scroll;
+}
+
+/* --- SCROLLBAR --- */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #bcc0c4;
+    border-radius: 4px;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: #a0a0a0;
+}
+
+/* --- SIDEBAR --- */
+.sidebar-sticky {
+    position: sticky;
+    top: 76px;
+    height: calc(100vh - 90px);
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.left-menu-item, .contact-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--fb-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+    .left-menu-item:hover, .contact-item:hover {
+        background-color: var(--fb-hover);
+        color: inherit;
+    }
+
+.online-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background-color: #31a24c;
+    border: 2px solid #fff;
+    border-radius: 50%;
+}
+
+/* --- CARD & POST --- */
+.fb-card {
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--fb-shadow);
+    margin-bottom: 16px;
+    width: 100%;
+    /* Không dùng overflow: hidden để tránh cắt popup cảm xúc */
+}
+
+.post-input-trigger {
+    background-color: #f0f2f5;
+    border-radius: 20px;
+    padding: 10px 15px;
+    cursor: pointer;
+    color: #65676b;
+    transition: 0.2s;
+}
+
+    .post-input-trigger:hover {
+        background-color: #e4e6eb;
+    }
+
+/* --- POST ACTIONS (LAYOUT CHIA ĐỀU 3 CỘT) --- */
+.post-actions {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+    margin: 0 12px;
+    border-top: 1px solid #ced0d4;
+}
+
+    /* Chọn tất cả con trực tiếp (Wrapper và 2 nút Button) để chia đều */
+    .post-actions > .reaction-wrapper,
+    .post-actions > .btn-action {
+        flex: 1 1 0px; /* Chia đều không gian tuyệt đối */
+        width: 0; /* Fallback */
+        min-width: 0; /* Tránh vỡ layout mobile */
+    }
+
+.btn-action {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #606770;
+    font-weight: 600;
+    width: 100%; /* Bung full chiều rộng của cha */
+    padding: 6px 0;
+    font-size: 0.95rem;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .btn-action:hover {
+        background-color: #f2f2f2;
+    }
+
+/* Màu nút Active */
+.btn-like-active {
+    color: var(--fb-blue) !important;
+}
+
+.btn-love-active {
+    color: #f63459 !important;
+}
+
+.btn-haha-active, .btn-wow-active, .btn-sad-active {
+    color: #f7b125 !important;
+}
+
+.btn-angry-active {
+    color: #e4605a !important;
+}
+
+/* --- REACTION BOX & HOVER FIX --- */
+.reaction-wrapper {
+    position: relative;
+    display: flex; /* Để nút Thích bên trong bung full */
+}
+
+.reaction-box {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 6px;
+    border-radius: 50px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    gap: 8px;
+}
+
+    /* Cầu nối vô hình giúp chuột đi qua không bị mất hover */
+    .reaction-box::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        height: 20px;
+        background: transparent;
+    }
+
+    .reaction-wrapper:hover .reaction-box,
+    .reaction-box:hover {
+        display: flex;
+        animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+.emoji-btn {
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+    .emoji-btn:hover {
+        transform: scale(1.3) translateY(-3px);
+    }
+
+@keyframes popUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* --- STACKED ICONS (Stats Area) --- */
+.reaction-stack {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-right: 6px;
+}
+
+.reaction-icon-img {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #fff; /* Viền trắng cắt nhau */
+    position: relative;
+    box-sizing: content-box;
+    background: white;
+}
+
+/* Icon sau đè lên icon trước */
+.reaction-stack .reaction-icon-img:not(:first-child) {
+    margin-left: -4px;
+    z-index: 1;
+}
+
+/* Icon đầu tiên nằm trên cùng */
+.reaction-stack .reaction-icon-img:first-child {
+    z-index: 2;
+}
+
+/* --- MODAL --- */
+.fb-modal-content {
+    border-radius: 12px;
+    box-shadow: 0 12px 28px 0 rgba(0, 0, 0, 0.2), 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.fb-modal-header {
+    border-bottom: 1px solid #e5e5e5;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.fb-modal-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: 0;
+    color: #050505;
+}
+
+.fb-btn-close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    background: #e4e6eb;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #606770;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+    .fb-btn-close:hover {
+        background-color: #d8dadf;
+    }
+
+.fb-user-info {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    margin-top: 16px;
+    margin-bottom: 10px;
+}
+
+.fb-privacy-selector {
+    background: #e4e6eb;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    cursor: pointer;
+}
+
+.fb-textarea {
+    border: none;
+    width: 100%;
+    resize: none;
+    outline: none;
+    font-size: 1.5rem;
+    padding: 0 16px;
+    min-height: 100px;
+}
+
+    .fb-textarea::placeholder {
+        color: #90949c;
+    }
+
+.add-to-post {
+    margin: 16px;
+    border: 1px solid #ced0d4;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.add-option {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 1.5rem;
+}
+
+    .add-option:hover {
+        background-color: #f2f2f2;
+    }
+
+.fb-submit-btn {
+    margin: 0 16px 16px 16px;
+    background-color: var(--fb-blue);
+    color: white;
+    width: calc(100% - 32px);
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 8px 0;
+    border: none;
+    transition: 0.2s;
+}
+
+    .fb-submit-btn:hover {
+        background-color: #166fe5;
+    }
+
+    .fb-submit-btn.disabled {
+        background-color: #e4e6eb;
+        color: #bcc0c4;
+        cursor: not-allowed;
+    }
+
+/* --- COMMENT --- */
+.comment-bubble {
+    background-color: #f0f2f5;
+    border-radius: 18px;
+    padding: 8px 12px;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.comment-input {
+    background-color: #f0f2f5 !important;
+    border-radius: 18px !important;
+    border: none !important;
+    resize: none;
+}
+
+    .comment-input:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+.media-remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+    .media-remove-btn:hover {
+        background: #fff;
+        color: red;
+    }
+
+/* Các class hỗ trợ khác */
+.modal-view {
+    display: none;
+}
+
+    .modal-view.active {
+        display: block;
+    }
+
+.item-list-row {
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+
+    .item-list-row:hover {
+        background-color: #f0f2f5;
+    }
+
+.btn-loading {
+    pointer-events: none;
+    color: transparent !important;
+}
+
+    .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 1.2rem;
+        height: 1.2rem;
+        top: 50%;
+        left: 50%;
+        margin: -0.6rem;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.8s linear infinite;
+    }
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.hover-underline:hover {
+    text-decoration: underline !important;
+}
+
+.comment-item {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.reply-list {
+    padding-left: 40px;
+    border-left: 2px solid #f0f2f5;
+    margin-top: 4px;
+}
+
+.comment-actions {
+    margin-left: 12px;
+    font-size: 0.75rem;
+    color: #65676b;
+    display: flex;
+    gap: 10px;
+}
+
+.comment-action-btn {
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    color: #65676b;
+}
+
+    .comment-action-btn:hover {
+        text-decoration: underline;
+    }
+
+.text-delete {
+    color: #dc3545;
+}
+
+.btn-load-more-comments {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: #65676b;
+    padding: 5px 0;
+    font-size: 0.9rem;
+}
+
+    .btn-load-more-comments:hover {
+        text-decoration: underline;
+    }
+
+.reply-input-box {
+    margin-top: 5px;
+    margin-left: 40px;
+}

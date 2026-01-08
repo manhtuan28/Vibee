@@ -18,5 +18,10 @@ namespace Vibee.Models
         public string? UserId { get; set; }
         [ForeignKey("UserId")]
         public virtual ApplicationUser? User { get; set; }
+
+        public int? ParentCommentId { get; set; }
+        [ForeignKey("ParentCommentId")]
+        public virtual Comment? ParentComment { get; set; }
+        public virtual ICollection<Comment> Replies { get; set; } = new List<Comment>();
     }
 }

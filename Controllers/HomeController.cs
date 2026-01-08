@@ -35,13 +35,18 @@ namespace Vibee.Controllers
 
             var posts = await _context.Posts
                     .Include(p => p.User).Include(p => p.Medias).Include(p => p.Likes).Include(p => p.Comments)
+                    .Include(p => p.SharedPost)
+                        .ThenInclude(sp => sp.User)
+                    .Include(p => p.SharedPost)
+                        .ThenInclude(sp => sp.Medias)
                     .Where(p =>
-                        p.PrivacyLevel == 0 ||
+                                p.PrivacyLevel != 2
 
-                        (p.PrivacyLevel == 2 && p.UserId == currentUser.Id) ||
-
-                        (p.PrivacyLevel == 1 && (p.UserId == currentUser.Id || friendIds.Contains(p.UserId)))
-                    )
+                                && (
+                                    p.PrivacyLevel == 0 ||
+                                    (p.PrivacyLevel == 1 && (p.UserId == currentUser.Id || friendIds.Contains(p.UserId)))
+                                )
+                            )
                     .OrderByDescending(p => p.CreatedAt)
                     .ToListAsync();
 
@@ -50,11 +55,19 @@ namespace Vibee.Controllers
                 .Take(10)
                 .ToListAsync();
 
+            var onlineFriends = await _context.Friendships
+                .Where(f => (f.SenderId == currentUser.Id || f.ReceiverId == currentUser.Id)
+                            && f.Status == FriendshipStatus.Accepted)
+                .Include(f => f.Sender)
+                .Include(f => f.Receiver)
+                .Select(f => f.SenderId == currentUser.Id ? f.Receiver : f.Sender)
+                .ToListAsync();
+
             var model = new HomeViewModel
             {
                 CurrentUser = currentUser,
                 Posts = posts,
-                OnlineFriends = otherUsers,
+                OnlineFriends = onlineFriends,
                 SuggestFriends = otherUsers.Take(3).ToList()
             };
 

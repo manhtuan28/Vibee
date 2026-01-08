@@ -22,14 +22,23 @@ namespace Vibee.Models
         [ForeignKey("UserId")]
         public virtual ApplicationUser? User { get; set; }
 
-        public virtual ICollection<Comment>? Comments { get; set; }
-        public virtual ICollection<Like>? Likes { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
 
         public string? LocationName { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public string? IpAddress { get; set; }
         public string? Emotion { get; set; }
+
         public virtual ICollection<PostMedia> Medias { get; set; } = new List<PostMedia>();
+
+
+        public int? SharedPostId { get; set; }
+        [ForeignKey("SharedPostId")]
+        public virtual Post? SharedPost { get; set; }
+
+        [InverseProperty("SharedPost")]
+        public virtual ICollection<Post> Shares { get; set; } = new List<Post>();
     }
 }
