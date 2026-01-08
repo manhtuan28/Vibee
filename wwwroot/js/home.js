@@ -499,3 +499,46 @@ function deleteComment(commentId) {
         }
     });
 }
+
+$(document).ready(function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hlPostId = urlParams.get('postId');
+    const hlCommentId = urlParams.get('commentId');
+
+    if (hlPostId) {
+        const postElement = document.getElementById(`post-${hlPostId}`);
+        if (postElement) {
+            postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            if (hlCommentId) {
+                let commentBox = $(`#comment-box-${hlPostId}`);
+                if (commentBox.hasClass('d-none')) {
+                    toggleComment(hlPostId);
+                }
+
+                let attempts = 0;
+                let interval = setInterval(() => {
+                    attempts++;
+                    let cmtElement = document.getElementById(`cmt-${hlCommentId}`);
+
+                    if (cmtElement) {
+                        clearInterval(interval);
+                        doHighlight(cmtElement);
+                    } else if (attempts >= 10) {
+                        clearInterval(interval);
+                    }
+                }, 500);
+            }
+        }
+    }
+});
+
+function doHighlight(element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    $(element).addClass('highlight-comment');
+
+    setTimeout(() => {
+        $(element).removeClass('highlight-comment');
+    }, 3000);
+}

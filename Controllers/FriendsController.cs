@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Vibee.Data;
 using Vibee.Models;
 using Vibee.ViewModels;
+using Vibee.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Vibee.Controllers
 {
@@ -13,11 +15,40 @@ namespace Vibee.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public FriendsController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _context = context;
+        }
+
+        private async Task CreateNotification(string receiverId, string senderId, string content, string link, int type)
+        {
+            if (receiverId == senderId) return;
+
+            var noti = new Notification
+            {
+                ReceiverId = receiverId,
+                SenderId = senderId,
+                Content = content,
+                Link = link,
+                Type = type,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Add(noti);
+            await _context.SaveChangesAsync();
+
+            var sender = await _context.Users.FindAsync(senderId);
+
+            await _hubContext.Clients.User(receiverId).SendAsync("ReceiveNotification", new
+            {
+                avatar = sender.AvatarUrl ?? "/images/default-avatar.png",
+                content = $"<strong>{sender.FullName}</strong> {content}",
+                link = link,
+                time = "Vừa xong"
+            });
         }
 
         [HttpGet]
@@ -65,6 +96,7 @@ namespace Vibee.Controllers
         [HttpPost]
         public async Task<IActionResult> AddFriend(string targetId)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
             var sender = await _userManager.GetUserAsync(User);
             if (sender.Id == targetId) return Json(new { success = false, message = "Không thể kết bạn với chính mình" });
 
@@ -84,6 +116,7 @@ namespace Vibee.Controllers
 
             _context.Friendships.Add(friendship);
             await _context.SaveChangesAsync();
+            await CreateNotification(targetId, currentUser.Id, "đã gửi cho bạn lời mời kết bạn.", "/Friends", 4);
 
             return Json(new { success = true });
         }

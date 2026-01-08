@@ -12,6 +12,7 @@
     <title>@ViewData["Title"] - Vibee Social</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -195,17 +196,45 @@
                         </a>
                     }
 
-                    <div class="d-none d-md-flex gap-2">
+                    <div class="d-none d-md-flex gap-2 align-items-center">
                         <a href="#" class="btn-circle" title="Menu">
                             <i class="bi bi-grid-3x3-gap-fill"></i>
                         </a>
+
                         <a href="#" class="btn-circle" title="Tin nhắn">
                             <i class="bi bi-chat-dots-fill"></i>
                         </a>
-                        <a href="#" class="btn-circle" title="Thông báo">
-                            <i class="bi bi-bell-fill"></i>
-                        </a>
+
+                            <div class="dropdown">
+                                <a href="#" class="btn-circle position-relative" id="notiDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                    <i class="bi bi-bell-fill"></i>
+                                    <span id="noti-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">0</span>
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-end noti-dropdown-menu" aria-labelledby="notiDropdownBtn">
+                                    <div class="noti-header">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h4 class="fw-bold mb-0">Thông báo</h4>
+                                            <button class="btn btn-sm btn-link text-decoration-none" onclick="markAllRead()" style="font-size: 0.85rem;">Đánh dấu tất cả đã đọc</button>
+                                        </div>
+                                        <div class="noti-tabs d-flex gap-2">
+                                            <button class="btn-tab active" onclick="switchTab('all')">Tất cả</button>
+                                            <button class="btn-tab" onclick="switchTab('unread')">Chưa đọc</button>
+                                        </div>
+                                    </div>
+
+                                <div id="noti-list" style="max-height: 400px; overflow-y: auto;">
+                                        <div class="text-center p-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div></div>
+                                    </div>
+
+                                    <div class="p-2 border-top text-center d-none" id="noti-footer">
+                                        <button class="btn btn-light w-100 fw-bold text-primary" onclick="loadMoreNotis()">Xem các thông báo trước đó</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
                     <div class="ms-2">
                         <partial name="_LoginPartial" />
@@ -224,10 +253,173 @@
             @RenderBody()
         </main>
     </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        let notiConfig = {
+            filter: 'all',
+            skip: 0,
+            take: 5,
+            isLoading: false
+        };
+
+        $(document).ready(function () {
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (data) {
+                let badge = $('#noti-badge');
+                let count = parseInt(badge.text() || 0) + 1;
+                updateBadge(count);
+
+                const Toast = Swal.mixin({
+                    toast: true, position: 'bottom-start', showConfirmButton: false,
+                    timer: 5000, timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                });
+
+                Toast.fire({
+                    icon: 'info',
+                    html: `<div class="d-flex align-items-center gap-2">
+                            <img src="${data.avatar}" class="rounded-circle" width="30" height="30">
+                            <div class="small text-start">${data.content}</div>
+                           </div>`
+                });
+
+                let list = $('#noti-list');
+                if (list.is(':visible')) {
+                    list.find('.text-muted.p-4').remove();
+
+                    let newItem = `
+                    <a href="${data.link}" class="noti-item unread" onclick="handleClickNoti(event, ${data.id}, '${data.link}')">
+                        <img src="${data.avatar}" class="noti-avatar">
+                        <div class="flex-grow-1 ms-2">
+                            <div class="noti-content" style="font-size: 0.9rem; line-height: 1.3;">
+                                ${data.content}
+                            </div>
+                            <div class="noti-time mt-1 text-primary fw-bold">Vừa xong</div>
+                        </div>
+                        <div class="noti-dot"></div>
+                    </a>`;
+
+                    list.prepend(newItem);
+                }
+            });
+
+            connection.start().catch(function (err) {
+                console.error(err.toString());
+            });
+
+            $('#notiDropdownBtn').on('show.bs.dropdown', function () {
+                notiConfig.skip = 0;
+                $('#noti-list').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+                $('#noti-footer').addClass('d-none');
+
+                loadNotifications(true);
+            });
+        });
+
+        function loadNotifications(isReset = false) {
+            if (notiConfig.isLoading) return;
+            notiConfig.isLoading = true;
+
+            $.get(`/Notification/GetNotifications?filter=${notiConfig.filter}&skip=${notiConfig.skip}&take=${notiConfig.take}`, function (res) {
+                notiConfig.isLoading = false;
+
+                let html = '';
+                if (isReset && res.data.length === 0) {
+                    html = '<div class="text-center p-4 text-muted">Không có thông báo nào.</div>';
+                } else {
+                    res.data.forEach(n => {
+                        let unreadClass = n.isRead ? 'read' : 'unread';
+                        let timeClass = n.isRead ? 'text-muted' : 'text-primary fw-bold';
+                        let dotHtml = n.isRead ? '' : '<div class="noti-dot"></div>';
+
+                    html += `
+                    <a href="${n.link}" class="noti-item ${unreadClass}" onclick="handleClickNoti(event, ${n.id}, '${n.link}')">
+                        <img src="${n.avatar}" class="noti-avatar">
+                        <div class="flex-grow-1 ms-2">
+                            <div class="noti-content" style="font-size: 0.9rem; line-height: 1.3;">
+                                <strong>${n.senderName}</strong> ${n.actionText}
+                            </div>
+                            <div class="noti-time mt-1 ${timeClass}">${n.time}</div>
+                        </div>
+                        ${dotHtml}
+                    </a>`;
+                    });
+                }
+
+                if (isReset) $('#noti-list').html(html);
+                else $('#noti-list').append(html);
+
+                notiConfig.skip += res.data.length;
+                if (notiConfig.skip < res.total) {
+                    $('#noti-footer').removeClass('d-none');
+                } else {
+                    $('#noti-footer').addClass('d-none');
+                }
+
+                updateBadge(res.unreadCount);
+            }).fail(function() {
+                notiConfig.isLoading = false;
+                if (isReset) $('#noti-list').html('<div class="text-center p-4 text-danger">Lỗi tải dữ liệu.</div>');
+            });
+        }
+
+        function switchTab(type) {
+            if(notiConfig.filter === type) return;
+
+            notiConfig.filter = type;
+            notiConfig.skip = 0;
+
+            $('.noti-tabs .btn-tab').removeClass('active');
+            $(`.noti-tabs .btn-tab[onclick="switchTab('${type}')"]`).addClass('active');
+
+            $('#noti-list').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
+            $('#noti-footer').addClass('d-none');
+            loadNotifications(true);
+        }
+
+        function loadMoreNotis() {
+            loadNotifications(false);
+        }
+
+        function markAllRead() {
+            $.post('/Notification/MarkAllRead', function(res) {
+                if(res.success) {
+                    $('.noti-item').removeClass('unread').addClass('read');
+                    $('.noti-item .noti-time').removeClass('text-primary fw-bold').addClass('text-muted');
+                    $('.noti-dot').remove();
+                    updateBadge(0);
+                }
+            });
+        }
+
+        function handleClickNoti(e, id, link) {
+            e.preventDefault();
+
+            $.post('/Notification/MarkRead', { id: id }, function () {
+                window.location.href = link;
+            });
+        }
+
+        function updateBadge(count) {
+            let badge = $('#noti-badge');
+            if (count > 0) {
+                badge.text(count).removeClass('d-none');
+            } else {
+                badge.addClass('d-none');
+            }
+        }
+    </script>
 </body>
 </html>

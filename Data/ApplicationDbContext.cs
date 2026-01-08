@@ -18,6 +18,7 @@ namespace Vibee.Data
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<PostMedia> PostMedias { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -32,7 +33,8 @@ namespace Vibee.Data
                     .HasOne(c => c.ParentComment)
                     .WithMany(c => c.Replies)
                     .HasForeignKey(c => c.ParentCommentId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
+
 
             builder.Entity<Friendship>()
                 .HasKey(k => new { k.SenderId, k.ReceiverId });

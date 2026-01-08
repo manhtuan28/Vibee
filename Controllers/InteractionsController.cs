@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Vibee.Data;
+using Vibee.Hubs;
 using Vibee.Models;
 
 namespace Vibee.Controllers
@@ -12,48 +15,101 @@ namespace Vibee.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public InteractionsController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public InteractionsController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IHubContext<NotificationHub> hubContext)
         {
             _userManager = userManager;
             _context = context;
+            _hubContext = hubContext;
+        }
+
+        private async Task CreateNotification(string receiverId, string senderId, string content, string link, int type)
+        {
+            if (receiverId == senderId) return;
+
+            var noti = new Notification
+            {
+                ReceiverId = receiverId,
+                SenderId = senderId,
+                Content = content,
+                Link = link,
+                Type = type,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            };
+            _context.Notifications.Add(noti);
+            await _context.SaveChangesAsync();
+
+            var sender = await _context.Users.FindAsync(senderId);
+            await _hubContext.Clients.User(receiverId).SendAsync("ReceiveNotification", new
+            {
+                id = noti.Id,
+                avatar = sender.AvatarUrl ?? "/images/default-avatar.png",
+                content = $"<strong>{sender.FullName}</strong> {content}",
+                link = link,
+                time = "Vừa xong",
+                isRead = false
+            });
         }
 
         [HttpPost]
         public async Task<IActionResult> React(int postId, string type)
         {
             var user = await _userManager.GetUserAsync(User);
+            var existing = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == user.Id);
 
-            var existing = await _context.Likes
-                .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == user.Id);
+            string action = "";
 
             if (existing != null)
             {
                 if (existing.Type == type)
                 {
                     _context.Likes.Remove(existing);
-                    await _context.SaveChangesAsync();
-                    return Json(new { success = true, action = "removed" });
+                    action = "removed";
                 }
                 else
                 {
                     existing.Type = type;
-                    await _context.SaveChangesAsync();
-                    return Json(new { success = true, action = "updated" });
+                    action = "updated";
+                }
+            }
+            else
+            {
+                _context.Likes.Add(new Like { PostId = postId, UserId = user.Id, Type = type });
+                action = "added";
+            }
+
+            await _context.SaveChangesAsync();
+
+            if (action == "added")
+            {
+                var post = await _context.Posts.FindAsync(postId);
+                if (post != null)
+                {
+                    string link = $"/Profile/{post.UserId}#post-{postId}";
+
+                    await CreateNotification(
+                        receiverId: post.UserId,
+                        senderId: user.Id,
+                        content: "đã bày tỏ cảm xúc về bài viết của bạn.",
+                        link: link,
+                        type: 1
+                    );
                 }
             }
 
-            var like = new Like { PostId = postId, UserId = user.Id, Type = type };
-            _context.Likes.Add(like);
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, action = "added" });
+            return Json(new { success = true, action = action });
         }
 
         [HttpPost]
         public async Task<IActionResult> Comment(int postId, string content, int? parentId = null)
         {
             if (string.IsNullOrWhiteSpace(content)) return Json(new { success = false });
+
             var user = await _userManager.GetUserAsync(User);
+            var post = await _context.Posts.FindAsync(postId);
+            if (post == null) return Json(new { success = false });
 
             var comment = new Comment
             {
@@ -65,7 +121,25 @@ namespace Vibee.Controllers
             };
 
             _context.Comments.Add(comment);
+
             await _context.SaveChangesAsync();
+            string link = $"/Profile/{post.UserId}?postId={postId}&commentId={comment.Id}";
+
+            if (parentId != null)
+            {
+                var parentComment = await _context.Comments.FindAsync(parentId);
+                if (parentComment != null)
+                {
+                    await CreateNotification(parentComment.UserId, user.Id, "đã trả lời bình luận của bạn.", link, 2);
+                }
+            }
+            else
+            {
+                if (post.UserId != user.Id)
+                {
+                    await CreateNotification(post.UserId, user.Id, "đã bình luận về bài viết của bạn.", link, 2);
+                }
+            }
 
             return Json(new
             {
@@ -87,8 +161,9 @@ namespace Vibee.Controllers
             var user = await _userManager.GetUserAsync(User);
             var originalPost = await _context.Posts.FindAsync(postId);
             if (originalPost == null) return Json(new { success = false });
-
             int realOriginalId = originalPost.SharedPostId ?? originalPost.Id;
+
+            await CreateNotification(originalPost.UserId, user.Id, "đã chia sẻ bài viết của bạn.", $"/Profile/{user.Id}", 3);
 
             var newPost = new Post
             {
