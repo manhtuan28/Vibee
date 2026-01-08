@@ -167,9 +167,9 @@
                             </a>
                         </li>
                         <li class="nav-item mx-1">
-                            <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" && ViewContext.RouteData.Values["Action"]?.ToString() == "Friends" ? "active" : "")"
-                               href="/Profile/Friends" title="Bạn bè">
-                                <i class="bi bi-people-fill"></i>
+                            <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Friends" ? "active" : "")"
+                               asp-controller="Friends" asp-action="Index" title="Bảng tin">
+                                <i b-ro4cbi3m9j="" class="bi bi-people-fill"></i>
                             </a>
                         </li>
                         <li class="nav-item mx-1">

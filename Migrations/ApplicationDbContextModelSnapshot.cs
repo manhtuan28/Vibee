@@ -267,6 +267,9 @@ namespace Vibee.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("int");
+
                     b.Property<int>("PostId")
                         .HasColumnType("int");
 
@@ -274,6 +277,8 @@ namespace Vibee.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentCommentId");
 
                     b.HasIndex("PostId");
 
@@ -305,15 +310,27 @@ namespace Vibee.Migrations
 
             modelBuilder.Entity("Vibee.Models.Like", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("PostId")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "PostId");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Likes");
                 });
@@ -357,6 +374,9 @@ namespace Vibee.Migrations
                     b.Property<int>("PrivacyLevel")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SharedPostId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -364,6 +384,8 @@ namespace Vibee.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SharedPostId");
 
                     b.HasIndex("UserId");
 
@@ -518,6 +540,11 @@ namespace Vibee.Migrations
 
             modelBuilder.Entity("Vibee.Models.Comment", b =>
                 {
+                    b.HasOne("Vibee.Models.Comment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Vibee.Models.Post", "Post")
                         .WithMany("Comments")
                         .HasForeignKey("PostId")
@@ -527,6 +554,8 @@ namespace Vibee.Migrations
                     b.HasOne("Vibee.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("ParentComment");
 
                     b.Navigation("Post");
 
@@ -562,9 +591,7 @@ namespace Vibee.Migrations
 
                     b.HasOne("Vibee.Models.ApplicationUser", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Post");
 
@@ -573,9 +600,15 @@ namespace Vibee.Migrations
 
             modelBuilder.Entity("Vibee.Models.Post", b =>
                 {
+                    b.HasOne("Vibee.Models.Post", "SharedPost")
+                        .WithMany("Shares")
+                        .HasForeignKey("SharedPostId");
+
                     b.HasOne("Vibee.Models.ApplicationUser", "User")
                         .WithMany("Posts")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("SharedPost");
 
                     b.Navigation("User");
                 });
@@ -628,6 +661,11 @@ namespace Vibee.Migrations
                     b.Navigation("Wallet");
                 });
 
+            modelBuilder.Entity("Vibee.Models.Comment", b =>
+                {
+                    b.Navigation("Replies");
+                });
+
             modelBuilder.Entity("Vibee.Models.Post", b =>
                 {
                     b.Navigation("Comments");
@@ -635,6 +673,8 @@ namespace Vibee.Migrations
                     b.Navigation("Likes");
 
                     b.Navigation("Medias");
+
+                    b.Navigation("Shares");
                 });
 #pragma warning restore 612, 618
         }

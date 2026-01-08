@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions; // Cần thêm cái này để validate Regex
+using System.Text.RegularExpressions;
 using Vibee.Data;
 using Vibee.Models;
 using Vibee.Services;
@@ -24,6 +24,7 @@ namespace Vibee.Controllers
         private async Task<ProfileViewModel> LoadProfileBase(string idOrHandle, string currentUserId)
         {
             ApplicationUser targetUser = null;
+            var currentUser = await _userManager.GetUserAsync(User);
 
             if (!string.IsNullOrEmpty(idOrHandle))
             {
@@ -70,6 +71,7 @@ namespace Vibee.Controllers
             return new ProfileViewModel
             {
                 User = targetUser,
+                CurrentUser = currentUser,
                 IsOwner = currentUserId == targetUserId,
                 FriendshipStatus = status,
                 FriendCount = friendCount,
@@ -86,25 +88,46 @@ namespace Vibee.Controllers
             var model = await LoadProfileBase(id, currentUser.Id);
             if (model == null) return NotFound();
 
-            string targetUserId = model.User.Id;
+            var targetUser = await _context.Users
+                            .FirstOrDefaultAsync(u => u.Id == id || u.UrlHandle == id);
+
+            if (targetUser == null) return NotFound();
+
+            bool isOwner = currentUser != null && targetUser.Id == currentUser.Id;
 
             var query = _context.Posts
-                .Where(p => p.UserId == targetUserId)
-                .Include(p => p.User).Include(p => p.Medias).Include(p => p.Likes).Include(p => p.Comments)
+                            .Include(p => p.User)
+                            .Include(p => p.Likes)
+                            .Include(p => p.Comments)
+                            .Include(p => p.Medias)
+                            .Include(p => p.SharedPost).ThenInclude(sp => sp.User)
+                            .Include(p => p.SharedPost).ThenInclude(sp => sp.Medias)
+                            .Where(p => p.UserId == targetUser.Id);
+
+            if (!isOwner)
+            {
+                bool isFriend = false;
+                if (currentUser != null)
+                {
+                    isFriend = await _context.Friendships.AnyAsync(f =>
+                       (f.SenderId == currentUser.Id && f.ReceiverId == targetUser.Id && f.Status == FriendshipStatus.Accepted) ||
+                       (f.ReceiverId == currentUser.Id && f.SenderId == targetUser.Id && f.Status == FriendshipStatus.Accepted)
+                   );
+                }
+
+                if (isFriend)
+                {
+                    query = query.Where(p => p.PrivacyLevel != 2);
+                }
+                else
+                {
+                    query = query.Where(p => p.PrivacyLevel == 0);
+                }
+            }
+
+            model.Posts = await query
                 .OrderByDescending(p => p.CreatedAt)
-                .AsQueryable();
-
-            if (model.IsOwner) {}
-            else if (model.FriendshipStatus == "Friends")
-            {
-                query = query.Where(p => p.PrivacyLevel == 0 || p.PrivacyLevel == 1);
-            }
-            else
-            {
-                query = query.Where(p => p.PrivacyLevel == 0);
-            }
-
-            model.Posts = await query.ToListAsync();
+                .ToListAsync();
 
             ViewBag.SidebarFriends = model.Friends;
 
@@ -237,5 +260,6 @@ namespace Vibee.Controllers
             }
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }
+
     }
 }

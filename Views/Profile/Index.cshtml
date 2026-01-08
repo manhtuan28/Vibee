@@ -3,6 +3,10 @@
     ViewData["Title"] = Model.User.FullName;
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="~/css/home.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <partial name="_ProfileHeader" model="Model" />
 
 <div class="profile-body" style="max-width: 1050px; margin: 0 auto; padding: 16px 32px;">
@@ -36,12 +40,17 @@
         <div class="col-lg-7">
             @if (Model.IsOwner)
             {
-                <div class="card shadow-sm border-0 mb-3 rounded-4">
-                    <div class="card-body px-3 py-2">
-                        <div class="d-flex align-items-center mb-2 mt-1">
-                            <img src="@(Model.User.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2" width="40" height="40" style="object-fit:cover">
-                            <div class="bg-light rounded-pill px-3 py-2 flex-grow-1 text-muted post-input-trigger user-select-none" onclick="openPostModal()">@Model.User.FullName ơi, bạn đang nghĩ gì thế?</div>
+                <div class="fb-card p-3 mb-3">
+                    <div class="d-flex align-items-center mb-2 mt-1">
+                        <img src="@(Model.User.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40" style="object-fit:cover">
+                        <div class="bg-light rounded-pill px-3 py-2 flex-grow-1 text-muted post-input-trigger user-select-none" onclick="openPostModal()">
+                            @Model.User.FullName ơi, bạn đang nghĩ gì thế?
                         </div>
+                    </div>
+                    <hr class="my-2 opacity-15">
+                    <div class="d-flex justify-content-between">
+                        <button class="btn-action" onclick="openPostModal()"><i class="bi bi-images text-success" style="font-size:1.5rem"></i> Ảnh/Video</button>
+                        <button class="btn-action" onclick="openPostModal('feeling')"><i class="bi bi-emoji-smile-fill text-warning" style="font-size:1.5rem"></i> Cảm xúc</button>
                     </div>
                 </div>
             }
@@ -49,21 +58,30 @@
             <div id="profile-feed">
                 @foreach (var post in Model.Posts)
                 {
-                    <div class="card shadow-sm border-0 mb-3 rounded-4" id="post-@post.Id">
-                        <div class="card-header bg-white border-0 d-flex align-items-center pt-3 rounded-top-4">
-                            <img src="@(post.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2" width="40" height="40" style="object-fit:cover">
-                            <div>
-                                <h6 class="mb-0 fw-bold">
-                                    @post.User?.FullName
-                                    @if (!string.IsNullOrEmpty(post.Emotion))
+                    <div class="fb-card" id="post-@post.Id">
+                        <div class="p-3 d-flex align-items-start">
+                            <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none">
+                                <img src="@(post.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40" style="object-fit:cover">
+                            </a>
+                            <div class="flex-grow-1">
+                                <div class="mb-0 fw-bold" style="font-size: 0.95rem;">
+                                    <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none text-dark hover-underline">@post.User?.FullName</a>
+                                    @if (post.SharedPost != null)
                                     {
-                                        <span class="fw-normal"> đang @Html.Raw(post.Emotion)</span>
+                                        <span class="fw-normal text-secondary"> đã chia sẻ một bài viết</span>
                                     }
-                                    @if (!string.IsNullOrEmpty(post.LocationName))
+                                    else
                                     {
-                                        <span class="fw-normal"> tại <strong>@post.LocationName</strong></span>
+                                        @if (!string.IsNullOrEmpty(post.Emotion))
+                                        {
+                                            <span class="fw-normal text-dark"> đang @Html.Raw(post.Emotion)</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(post.LocationName))
+                                        {
+                                            <span class="fw-normal text-dark"> tại <strong>@post.LocationName</strong></span>
+                                        }
                                     }
-                                </h6>
+                                </div>
                                 <small class="text-muted" style="font-size: 0.8rem;">
                                     @post.CreatedAt.ToString("dd/MM/yyyy HH:mm") •
                                     @if (post.PrivacyLevel == 0)
@@ -82,38 +100,160 @@
                                     }
                                 </small>
                             </div>
-                        </div>
-                        <div class="card-body py-2">
-                            <div class="post-text mb-2 text-dark">@Html.Raw(post.Content)</div>
-                            @if (post.Medias != null && post.Medias.Any())
+
+                            @if (Model.IsOwner || post.UserId == Model.CurrentUser?.Id)
                             {
-                                <div class="row g-1 rounded-3 overflow-hidden">
+                                <div class="dropdown">
+                                    <button class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:36px; height:36px" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEditModal(@post.Id)"><i class="bi bi-pencil me-2"></i> Chỉnh sửa</a></li>
+                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deletePost(@post.Id)"><i class="bi bi-trash me-2"></i> Xóa</a></li>
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="px-3 pb-2 text-dark" style="font-size:0.95rem">@Html.Raw(post.Content)</div>
+
+                        @if (post.SharedPost != null)
+                        {
+                            var original = post.SharedPost;
+                            <div class="mx-3 mb-3 border rounded-3 overflow-hidden">
+                                <div class="p-2 bg-light d-flex align-items-center border-bottom bg-opacity-10">
+                                    <a href="/Profile/@(original.User?.UrlHandle ?? original.UserId)">
+                                        <img src="@(original.User?.AvatarUrl ?? "/images/default-avatar.png")" width="32" height="32" class="rounded-circle me-2 border object-fit-cover">
+                                    </a>
+                                    <div class="lh-1">
+                                        <a href="/Profile/@(original.User?.UrlHandle ?? original.UserId)" class="fw-bold text-dark text-decoration-none hover-underline small">@original.User?.FullName</a>
+                                        <div class="text-muted" style="font-size: 0.7rem;">@original.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                </div>
+                                <div class="p-2 small text-dark">@Html.Raw(original.Content)</div>
+                                @if (original.Medias != null && original.Medias.Any())
+                                {
+                                    <div class="overflow-hidden border-top bg-black">
+                                        <div class="row g-1">
+                                            @foreach (var media in original.Medias)
+                                            {
+                                                <div class="@(original.Medias.Count == 1 ? "col-12" : "col-6")">
+                                                    @if (media.Type == Vibee.Models.MediaType.Video)
+                                                    {
+                                                        <video src="@media.Url" controls class="w-100 object-fit-cover" style="height:300px; display:block"></video>
+                                                    }
+                                                    else
+                                                    {
+
+                                                        <img src="@media.Url" class="w-100 object-fit-cover" style="height:300px; display:block">
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else if (post.Medias != null && post.Medias.Any())
+                        {
+                            <div class="overflow-hidden border-top border-bottom bg-black">
+                                <div class="row g-1">
                                     @foreach (var media in post.Medias)
                                     {
                                         <div class="@(post.Medias.Count == 1 ? "col-12" : "col-6")">
                                             @if (media.Type == Vibee.Models.MediaType.Video)
                                             {
-                                                <video src="@media.Url" controls class="w-100 object-fit-cover bg-black" style="height:350px"></video>
+                                                <video src="@media.Url" controls class="w-100 object-fit-cover" style="height:400px; display:block"></video>
                                             }
                                             else
                                             {
 
-                                                <img src="@media.Url" class="w-100 object-fit-cover border" style="height:350px">
+                                                <img src="@media.Url" class="w-100 object-fit-cover" style="height:400px; display:block">
                                             }
                                         </div>
                                     }
                                 </div>
+                            </div>
+                        }
+                        <div class="d-flex align-items-center justify-content-between px-3 py-2 text-muted small">
+                            <div class="d-flex align-items-center" id="count-react-@post.Id">
+                                @if (post.Likes != null && post.Likes.Any())
+                                {
+                                    var topReactions = post.Likes.GroupBy(l => l.Type).OrderByDescending(g => g.Count()).Take(2).Select(g => g.Key).ToList();
+                                    var icons = new Dictionary<string, string> {
+                                                        { "Like",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#1877F2'/><path d='M8.5 4h1a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-1s1 2.5-1.5 3c-1.8.4-1.5-1.5-2.5-2H4V5h1.1c.9 0 1.9-2 3.4-1z' fill='#fff'/></svg>" },
+                                                        { "Love",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F3425F'/><path d='M8 12.5s-4.5-2.5-4.5-5.5c0-1.5 1-2.5 2.5-2.5 1 0 2 .5 2 1.5 0-1 1-1.5 2-1.5 1.5 0 2.5 1 2.5 2.5C12.5 10 8 12.5 8 12.5z' fill='#fff'/></svg>" },
+                                                        { "Haha",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><path d='M4.5 9.5a3.5 3.5 0 0 0 7 0c0-.5-.5-1-1-1h-5c-.5 0-1 .5-1 1z' fill='#4B3212'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/><path d='M4.5 9.5a3.5 3.5 0 0 0 7 0' fill='none' stroke='#4B3212' stroke-width='0.5'/></svg>" },
+                                                        { "Wow",   @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><ellipse cx='8' cy='10' rx='2' ry='3' fill='#4B3212'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/></svg>" },
+                                                        { "Sad",   @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><path d='M5.5 10.5c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#4B3212' stroke-width='1'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/><circle cx='8' cy='6' r='0.5' fill='#4B3212'/></svg>" },
+                                                        { "Angry", @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#E4605A'/><path d='M5.5 10c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#fff' stroke-width='1'/><path d='M5 5.5l1.5 1m3 0l1.5-1' stroke='#4B0000' stroke-width='1' stroke-linecap='round'/><circle cx='6' cy='7' r='0.8' fill='#4B0000'/><circle cx='10' cy='7' r='0.8' fill='#4B0000'/></svg>" }
+                                                        };
+                                    <div class="reaction-stack">
+                                        @foreach (var type in topReactions)
+                                        {
+                                            if (icons.ContainsKey(type))
+                                            {
+                                                <div class="reaction-icon-img">@Html.Raw(icons[type])</div>
+                                            }
+                                        }
+                                    </div>
+                                    <span class="hover-underline cursor-pointer text-muted small" data-count="@post.Likes.Count">@post.Likes.Count</span>
+                                }
+                            </div>
+                            <div class="d-flex gap-3">
+                                <span class="cursor-pointer hover-underline" onclick="toggleComment(@post.Id)">@(post.Comments?.Count ?? 0) bình luận</span>
+                                <span id="share-count-@post.Id" class="cursor-pointer hover-underline">@if(post.Shares?.Any() == true){
+                                <span>@post.Shares.Count lượt chia sẻ</span>
                             }
+</span>
                         </div>
-                        <div class="card-footer bg-white border-0 pt-1 pb-2 rounded-bottom-4">
-                            <div class="d-flex justify-content-between gap-1">
-                                <button class="btn btn-light flex-grow-1 text-secondary fw-bold py-2 rounded-3"><i class="bi bi-hand-thumbs-up"></i> Thích</button>
-                                <button class="btn btn-light flex-grow-1 text-secondary fw-bold py-2 rounded-3"><i class="bi bi-chat"></i> Bình luận</button>
-                                <button class="btn btn-light flex-grow-1 text-secondary fw-bold py-2 rounded-3"><i class="bi bi-share"></i> Chia sẻ</button>
+                    </div>
+
+                    <div class="post-actions">
+                        <div class="reaction-wrapper">
+                            <div class="reaction-box">
+                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Like')" title="Thích">👍</div>
+                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Love')" title="Yêu thích">❤️</div>
+                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Haha')" title="Haha">😆</div>
+                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Wow')" title="Wow">😮</div>
+                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Sad')" title="Buồn">😢</div>
+                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Angry')" title="Phẫn nộ">😡</div>
+                            </div>
+                            @{
+                                var myLike = post.Likes?.FirstOrDefault(l => l.UserId == Model.CurrentUser?.Id);
+                                string btnClass = "", iconClass = "bi-hand-thumbs-up", labelText = "Thích";
+                                if (myLike != null)
+                                {
+                                    switch (myLike.Type)
+                                    {
+                                        case "Like": btnClass = "btn-like-active"; iconClass = "bi-hand-thumbs-up-fill"; break;
+                                        case "Love": btnClass = "btn-love-active"; iconClass = "bi-heart-fill"; labelText = "Yêu thích"; break;
+                                        case "Haha": btnClass = "btn-haha-active"; iconClass = "bi-emoji-laughing-fill"; labelText = "Haha"; break;
+                                        case "Wow": btnClass = "btn-wow-active"; iconClass = "bi-emoji-surprise-fill"; labelText = "Wow"; break;
+                                        case "Sad": btnClass = "btn-sad-active"; iconClass = "bi-emoji-frown-fill"; labelText = "Buồn"; break;
+                                        case "Angry": btnClass = "btn-angry-active"; iconClass = "bi-emoji-angry-fill"; labelText = "Phẫn nộ"; break;
+                                    }
+                                }
+                            }
+                            <button class="btn-action w-100 @btnClass" id="btn-react-@post.Id" onclick="doReact(@post.Id, 'Like')">
+                                <i class="bi @iconClass" style="font-size: 1.2rem;"></i> <span>@labelText</span>
+                            </button>
+                        </div>
+                        <button class="btn-action" onclick="toggleComment(@post.Id)"><i class="bi bi-chat-text" style="font-size: 1.2rem;"></i> Bình luận</button>
+                        <button class="btn-action" onclick="sharePost(@post.Id)"><i class="bi bi-share" style="font-size: 1.2rem;"></i> Chia sẻ</button>
+                    </div>
+
+                    <div id="comment-box-@post.Id" class="mt-2 d-none px-3 pb-3">
+                        <hr class="my-2 opacity-10">
+                        <div id="comment-list-@post.Id" class="mb-2"></div>
+                        <div class="d-flex align-items-start gap-2 pt-1">
+                            <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle border" width="32" height="32">
+                            <div class="flex-grow-1 position-relative">
+                                <textarea id="input-comment-@post.Id" class="form-control bg-light px-3 py-2 comment-input" rows="1" placeholder="Viết bình luận..." onkeydown="if(event.keyCode==13 && !event.shiftKey){ event.preventDefault(); sendComment(@post.Id); }"></textarea>
+                                <button class="btn btn-primary btn-sm position-absolute end-0 bottom-0 m-2 rounded-circle" style="width:28px; height:28px; padding:0" onclick="sendComment(@post.Id)"><i class="bi bi-send-fill" style="font-size:0.8rem"></i></button>
                             </div>
                         </div>
                     </div>
-                }
+                </div>
+                                }
                 @if (!Model.Posts.Any())
                 {
                     <div class="text-center py-5 text-muted">Chưa có bài viết nào phù hợp để hiển thị.</div>
@@ -123,115 +263,37 @@
     </div>
 </div>
 
-@await Html.PartialAsync("_CreatePostModal")
-@await Html.PartialAsync("_EditPostModal")
+<partial name="_CreatePostModal" />
+<partial name="_EditPostModal" />
+
 @section Scripts {
     <script>
+        const currentUserAvatar = '@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")';
         var targetId = '@Model.User.Id';
-        let uploadedFiles = []; let currentStatus = { emotionHTML: '', locationName: '' };
-        function openPostModal(v='default'){uploadedFiles=[];currentStatus={emotionHTML:'',locationName:''};updateHeaderStatus();clearAllMedia();document.getElementById('createPostForm').reset();setPrivacy(0,'Công khai','bi-globe-americas');new bootstrap.Modal(document.getElementById('createPostModal')).show();switchView(v);}
-        function switchView(v){document.querySelectorAll('.modal-view').forEach(e=>e.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');if(v==='default'){document.getElementById('modalTitle').innerText='Tạo bài viết';document.getElementById('btnBackView').classList.add('d-none');}else{document.getElementById('btnBackView').classList.remove('d-none');}}
-        function setPrivacy(l,t,i){document.getElementById('hiddenPrivacy').value=l;document.getElementById('privacyText').innerText=t;document.getElementById('privacyIcon').className=`bi ${i} me-1`;}
-        function selectFeeling(i,t){currentStatus.emotionHTML=`<span class="fw-normal">${i} ${t}</span>`;document.getElementById('hiddenEmotion').value=currentStatus.emotionHTML;updateHeaderStatus();switchView('default');}
-        function selectLocation(n){currentStatus.locationName=n;document.getElementById('hiddenLocation').value=n;updateHeaderStatus();switchView('default');}
-        function removeStatus(t){if(t==='emotion')currentStatus.emotionHTML='';else currentStatus.locationName='';updateHeaderStatus();}
-        function updateHeaderStatus(){const a=document.getElementById('statusArea');let h='';if(currentStatus.emotionHTML)h+=`${currentStatus.emotionHTML} <i class="bi bi-x-circle-fill text-secondary ms-1 cursor-pointer" onclick="removeStatus('emotion')" style="font-size:12px"></i>`;if(currentStatus.locationName){if(h)h+=' ';h+=`tại <strong>${currentStatus.locationName}</strong> <i class="bi bi-x-circle-fill text-secondary ms-1 cursor-pointer" onclick="removeStatus('location')" style="font-size:12px"></i>`;}a.innerHTML=h;checkInput();}
-        function handleFilesSelect(i){if(i.files)Array.from(i.files).forEach(f=>uploadedFiles.push(f));renderPreview();checkInput();i.value='';}
-        function removeFile(i){uploadedFiles.splice(i,1);renderPreview();checkInput();}
-        function clearAllMedia(){uploadedFiles=[];renderPreview();}
-        function renderPreview(){const c=document.getElementById('modalMediaPreview'),w=document.getElementById('mediaPreviewContainer');c.innerHTML='';if(uploadedFiles.length===0){w.classList.add('d-none');return;}w.classList.remove('d-none');uploadedFiles.forEach((f,i)=>{const r=new FileReader();r.onload=e=>{let m=f.type.startsWith('video')?`<video src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover"></video>`:`<img src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover">`;c.innerHTML+=`<div class="${uploadedFiles.length===1?'col-12':'col-6'} position-relative"><div class="ratio ratio-4x3">${m}</div><div class="media-remove-btn" onclick="removeFile(${i})"><i class="bi bi-x"></i></div></div>`;};r.readAsDataURL(f);});}
-        function checkInput(){const t=document.getElementById('modalPostContent').value.trim().length>0,f=uploadedFiles.length>0,s=currentStatus.emotionHTML!==''||currentStatus.locationName!=='';document.getElementById('btnSubmitPost').classList.toggle('disabled',!(t||f||s));}
-        document.getElementById('modalPostContent').addEventListener('input',checkInput);
-        function submitPostModal(){
-            var b=document.getElementById('btnSubmitPost'),ot=b.innerText;b.innerHTML='<span class="spinner-border spinner-border-sm"></span>';b.classList.add('disabled');
-            var fd=new FormData();fd.append('content',document.getElementById('modalPostContent').value);fd.append('locationName',document.getElementById('hiddenLocation').value);fd.append('emotion',document.getElementById('hiddenEmotion').value);fd.append('privacyLevel',document.getElementById('hiddenPrivacy').value);fd.append('__RequestVerificationToken',document.querySelector('input[name="__RequestVerificationToken"]').value);uploadedFiles.forEach(f=>fd.append('mediaFiles',f));
-            $.ajax({url:'/Posts/CreatePost',type:'POST',data:fd,processData:false,contentType:false,success:r=>{if(r.success)location.reload();else{alert(r.message);b.innerText=ot;b.classList.remove('disabled');}},error:()=>{alert('Lỗi!');b.innerText=ot;b.classList.remove('disabled');}});
-        }
-        let dTimer;document.getElementById('searchLocInput').addEventListener('input',e=>{clearTimeout(dTimer);const q=e.target.value.trim(),l=document.getElementById('locationList');if(q.length<2){l.innerHTML='';return;}document.getElementById('locationLoading').classList.remove('d-none');dTimer=setTimeout(()=>{fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&addressdetails=1&limit=5`).then(r=>r.json()).then(d=>{document.getElementById('locationLoading').classList.add('d-none');let h='';d.forEach(p=>{let n=p.name||p.address.city||"";h+=`<div class="item-list-row px-3 py-2 border-bottom" onclick="selectLocation('${n}')"><div class="emoji-icon bg-secondary bg-opacity-10"><i class="bi bi-geo-alt-fill text-danger"></i></div><div><div class="fw-bold text-truncate">${n}</div><small class="text-muted">${p.display_name}</small></div></div>`;});l.innerHTML=h;});},500);});
-
-        let editNewFiles=[],removedMediaIds=[];
-        function openEditModal(id){editNewFiles=[];removedMediaIds=[];document.getElementById('editRemovedMediaIds').value='';document.getElementById('newMediaPreview').innerHTML='';document.getElementById('oldMediaPreview').innerHTML='';Swal.showLoading();$.get('/Posts/GetPost?id='+id,res=>{Swal.close();if(res.success){const d=res.data;document.getElementById('editPostId').value=d.id;document.getElementById('editContent').value=d.content;document.getElementById('editHiddenLocation').value=d.locationName||'';document.getElementById('editHiddenEmotion').value=d.emotion||'';let pt=d.privacyLevel==0?'Công khai':(d.privacyLevel==1?'Bạn bè':'Chỉ mình tôi'),pi=d.privacyLevel==0?'bi-globe-americas':(d.privacyLevel==1?'bi-people-fill':'bi-lock-fill');setEditPrivacy(d.privacyLevel,pt,pi);updateEditHeaderStatus(d.emotion,d.locationName);const oc=document.getElementById('oldMediaPreview');if(d.medias&&d.medias.length>0){d.medias.forEach(m=>{let mh=m.type===1?`<video src="${m.url}" class="rounded border w-100 h-100 object-fit-cover"></video>`:`<img src="${m.url}" class="rounded border w-100 h-100 object-fit-cover">`;oc.innerHTML+=`<div class="col-4 position-relative" id="old-media-${m.id}"><div class="ratio ratio-4x3">${mh}</div><div class="media-remove-btn" onclick="removeOldMedia(${m.id})"><i class="bi bi-x"></i></div></div>`;});document.getElementById('editMediaContainer').classList.remove('d-none');}else document.getElementById('editMediaContainer').classList.add('d-none');new bootstrap.Modal(document.getElementById('editPostModal')).show();}});}
-        function setEditPrivacy(l,t,i){document.getElementById('editHiddenPrivacy').value=l;document.getElementById('editPrivacyText').innerText=t;document.getElementById('editPrivacyIcon').className=`bi ${i} me-1`;}
-        function updateEditHeaderStatus(e,l){let h='';if(e)h+=`${e} `;if(l)h+=`tại <strong>${l}</strong>`;document.getElementById('editStatusArea').innerHTML=h;}
-        function clearEditStatus(){document.getElementById('editHiddenLocation').value='';document.getElementById('editHiddenEmotion').value='';updateEditHeaderStatus('','');}
-        function removeOldMedia(id){removedMediaIds.push(id);document.getElementById('editRemovedMediaIds').value=removedMediaIds.join(',');document.getElementById(`old-media-${id}`).remove();}
-        function handleEditFiles(i){if(i.files){Array.from(i.files).forEach(f=>editNewFiles.push(f));renderEditNewPreview();}i.value='';document.getElementById('editMediaContainer').classList.remove('d-none');}
-        function renderEditNewPreview(){const c=document.getElementById('newMediaPreview');c.innerHTML='';editNewFiles.forEach((f,i)=>{const r=new FileReader();r.onload=e=>{let m=f.type.startsWith('video')?`<video src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover"></video>`:`<img src="${e.target.result}" class="rounded border w-100 h-100 object-fit-cover">`;c.innerHTML+=`<div class="col-4 position-relative"><div class="ratio ratio-4x3">${m}</div><div class="media-remove-btn" onclick="removeNewEditFile(${i})"><i class="bi bi-x"></i></div></div>`;};r.readAsDataURL(f);});}
-        function removeNewEditFile(i){editNewFiles.splice(i,1);renderEditNewPreview();}
-        function submitEditPost(){var b=document.getElementById('btnSaveEdit');b.innerHTML='<span class="spinner-border spinner-border-sm"></span>';b.classList.add('disabled');var fd=new FormData(document.getElementById('editPostForm'));editNewFiles.forEach(f=>fd.append('newMediaFiles',f));$.ajax({url:'/Posts/Edit',type:'POST',data:fd,processData:false,contentType:false,success:r=>{if(r.success){bootstrap.Modal.getInstance(document.getElementById('editPostModal')).hide();Swal.fire({icon:'success',title:'Đã cập nhật!',showConfirmButton:false,timer:1000}).then(()=>location.reload());}else{Swal.fire('Lỗi',r.message,'error');b.innerHTML='Lưu thay đổi';b.classList.remove('disabled');}},error:()=>{Swal.fire('Lỗi mạng','','error');b.innerHTML='Lưu thay đổi';b.classList.remove('disabled');}});}
-
-        function deletePost(id){Swal.fire({title:'Xóa bài?',text:"Không thể hoàn tác!",icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',confirmButtonText:'Xóa',cancelButtonText:'Hủy'}).then((r)=>{if(r.isConfirmed){Swal.showLoading();$.post('/Posts/Delete',{id:id},res=>{Swal.close();if(res.success){$(`#post-${id}`).fadeOut(500,function(){$(this).remove()});const T=Swal.mixin({toast:true,position:'bottom-start',showConfirmButton:false,timer:3000});T.fire({icon:'success',title:'Đã xóa'});}else Swal.fire('Lỗi!',res.message,'error');});}})}
-
+    </script>
+    <script src="~/js/home.js"></script>
+    <script>
         function uploadAvatar() {
             var file = document.getElementById('avatarInput').files[0];
-            var formData = new FormData();
-            formData.append('file', file);
-
-            var img = document.getElementById('avatarImageDisplay');
-            img.style.opacity = '0.5';
-
-            $.ajax({
-                url: '/Profile/UploadAvatar',
-                type: 'POST',
-                data: formData,
-                processData: false, contentType: false,
-                success: function(res) {
-                    if (res.success) {
-                        img.src = res.newUrl;
-                        img.style.opacity = '1';
-                        Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh đại diện', showConfirmButton: false, timer: 3000 });
-                    } else {
-                        alert(res.message);
-                        img.style.opacity = '1';
-                    }
-                }
+            var formData = new FormData(); formData.append('file', file);
+            var img = document.getElementById('avatarImageDisplay'); img.style.opacity = '0.5';
+            $.ajax({ url: '/Profile/UploadAvatar', type: 'POST', data: formData, processData: false, contentType: false,
+                success: function(res) { if (res.success) { img.src = res.newUrl; img.style.opacity = '1'; Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh đại diện', showConfirmButton: false, timer: 3000 }); } else { alert(res.message); img.style.opacity = '1'; } }
             });
         }
-
         function uploadCover() {
             var file = document.getElementById('coverInput').files[0];
-            var formData = new FormData();
-            formData.append('file', file);
-
-            var img = document.getElementById('coverImageDisplay');
-            img.style.opacity = '0.5';
-
-            $.ajax({
-                url: '/Profile/UploadCover',
-                type: 'POST',
-                data: formData,
-                processData: false, contentType: false,
-                success: function(res) {
-                    if (res.success) {
-                        img.src = res.newUrl;
-                        img.style.opacity = '1';
-                        Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh bìa', showConfirmButton: false, timer: 3000 });
-                    } else {
-                        alert(res.message);
-                        img.style.opacity = '1';
-                    }
-                }
+            var formData = new FormData(); formData.append('file', file);
+            var img = document.getElementById('coverImageDisplay'); img.style.opacity = '0.5';
+            $.ajax({ url: '/Profile/UploadCover', type: 'POST', data: formData, processData: false, contentType: false,
+                success: function(res) { if (res.success) { img.src = res.newUrl; img.style.opacity = '1'; Swal.fire({ toast: true, position: 'bottom-start', icon: 'success', title: 'Đã cập nhật ảnh bìa', showConfirmButton: false, timer: 3000 }); } else { alert(res.message); img.style.opacity = '1'; } }
             });
         }
-
         function handleFriendAction(action) {
             let url = '';
-
-            if (action === 'Add') url = '/Friends/AddFriend';
-            else if (action === 'Cancel') url = '/Friends/CancelRequest';
-            else if (action === 'Accept') url = '/Friends/AcceptRequest';
-            else if (action === 'Unfriend') url = '/Friends/Unfriend';
-
+            if (action === 'Add') url = '/Friends/AddFriend'; else if (action === 'Cancel') url = '/Friends/CancelRequest'; else if (action === 'Accept') url = '/Friends/AcceptRequest'; else if (action === 'Unfriend') url = '/Friends/Unfriend';
             Swal.showLoading();
-
-            $.post(url, { targetId: targetId }, function(res) {
-                Swal.close();
-                if (res.success) {
-                    location.reload();
-                } else {
-                    Swal.fire('Lỗi', res.message || 'Có lỗi xảy ra', 'error');
-                }
-            });
+            $.post(url, { targetId: targetId }, function(res) { Swal.close(); if (res.success) { location.reload(); } else { Swal.fire('Lỗi', res.message || 'Có lỗi xảy ra', 'error'); } });
         }
     </script>
 }

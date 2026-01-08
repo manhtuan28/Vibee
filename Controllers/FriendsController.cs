@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Vibee.Data;
 using Vibee.Models;
+using Vibee.ViewModels;
 
 namespace Vibee.Controllers
 {
@@ -17,6 +18,48 @@ namespace Vibee.Controllers
         {
             _userManager = userManager;
             _context = context;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            var allFriendships = await _context.Friendships
+                .Where(f => f.SenderId == currentUser.Id || f.ReceiverId == currentUser.Id)
+                .ToListAsync();
+
+            var requestSenderIds = allFriendships
+                .Where(f => f.ReceiverId == currentUser.Id && f.Status == FriendshipStatus.Pending)
+                .Select(f => f.SenderId).ToList();
+            var friendRequests = await _context.Users.Where(u => requestSenderIds.Contains(u.Id)).ToListAsync();
+
+            var sentReceiverIds = allFriendships
+                .Where(f => f.SenderId == currentUser.Id && f.Status == FriendshipStatus.Pending)
+                .Select(f => f.ReceiverId).ToList();
+            var sentRequests = await _context.Users.Where(u => sentReceiverIds.Contains(u.Id)).ToListAsync();
+
+            var friendIds = allFriendships
+                .Where(f => f.Status == FriendshipStatus.Accepted)
+                .Select(f => f.SenderId == currentUser.Id ? f.ReceiverId : f.SenderId).ToList();
+            var friends = await _context.Users.Where(u => friendIds.Contains(u.Id)).ToListAsync();
+
+            var suggestions = await _context.Users
+                .Where(u => u.Id != currentUser.Id && !friendIds.Contains(u.Id))
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            var model = new FriendsPageViewModel
+            {
+                CurrentUser = currentUser,
+                FriendRequests = friendRequests,
+                SentRequests = sentRequests,
+                Friends = friends,
+                Suggestions = suggestions,
+                SentRequestIds = sentReceiverIds
+            };
+
+            return View(model);
         }
 
         [HttpPost]

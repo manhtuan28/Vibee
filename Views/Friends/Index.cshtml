@@ -1,0 +1,383 @@
+﻿@model Vibee.ViewModels.FriendsPageViewModel
+@{
+    ViewData["Title"] = "Quản lý bạn bè";
+}
+
+<style>
+    /* CSS Card */
+    .fr-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .fr-card-img {
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+    }
+
+    .fr-card-body {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .fr-name {
+        font-weight: bold;
+        font-size: 1.05rem;
+        margin-bottom: 5px;
+        color: #050505;
+        text-decoration: none;
+    }
+
+    .fr-btn {
+        width: 100%;
+        border: none;
+        padding: 6px 0;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    /* Màu nút */
+    .btn-blue {
+        background-color: #e7f3ff;
+        color: #1877f2;
+    }
+
+        .btn-blue:hover {
+            background-color: #dbe7f2;
+        }
+
+    .btn-gray {
+        background-color: #e4e6eb;
+        color: #050505;
+    }
+
+        .btn-gray:hover {
+            background-color: #d8dadf;
+        }
+
+    /* CSS cho Sidebar Active */
+    .list-group-item {
+        cursor: pointer;
+        border-radius: 8px !important;
+        margin-bottom: 4px;
+        border: none;
+        font-weight: 500;
+        color: #050505;
+    }
+
+        .list-group-item:hover {
+            background-color: #e4e6eb;
+        }
+
+        .list-group-item.active {
+            background-color: #e7f3ff;
+            color: #1877f2;
+            font-weight: bold;
+        }
+
+        .list-group-item i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+
+    /* Ẩn hiện tab */
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3 d-none d-md-block">
+            <h4 class="fw-bold mb-3 px-2">Bạn bè</h4>
+            <div class="list-group">
+                <div onclick="switchTab('suggestions')" id="nav-suggestions" class="list-group-item active">
+                    <i class="bi bi-person-lines-fill"></i> Gợi ý kết bạn
+                </div>
+
+                <div onclick="switchTab('requests')" id="nav-requests" class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person-down"></i> Lời mời kết bạn</span>
+                        @if (Model.FriendRequests.Any())
+                        {
+                            <span class="badge bg-danger rounded-pill">@Model.FriendRequests.Count</span>
+                        }
+                    </div>
+                </div>
+
+                <div onclick="switchTab('sent')" id="nav-sent" class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-send"></i> Lời mời đã gửi</span>
+                        @if (Model.SentRequests.Any())
+                        {
+                            <span class="badge bg-secondary rounded-pill">@Model.SentRequests.Count</span>
+                        }
+                    </div>
+                </div>
+
+                <div onclick="switchTab('friends')" id="nav-friends" class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-people-fill"></i> Tất cả bạn bè</span>
+                        <span class="badge bg-light text-dark border">@Model.Friends.Count</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+
+            <div id="tab-suggestions" class="tab-content active">
+                <h5 class="fw-bold mb-3">Bạn có thể biết</h5>
+
+                @{
+                    var sentIds = new HashSet<string>(Model.SentRequestIds);
+                    var friendIds = new HashSet<string>(Model.Friends.Select(f => f.Id));
+                    var receivedIds = new HashSet<string>(Model.FriendRequests.Select(f => f.Id));
+                }
+
+                @if (Model.Suggestions.Any())
+                {
+                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                        @foreach (var user in Model.Suggestions)
+                        {
+                            bool isFriend = friendIds.Contains(user.Id);
+                            bool isSent = sentIds.Contains(user.Id);
+                            bool isReceived = receivedIds.Contains(user.Id);
+
+                            <div class="col" id="sug-@user.Id">
+                                <div class="fr-card">
+                                    <a href="/Profile/@(user.UrlHandle ?? user.Id)">
+                                        <img src="@(user.AvatarUrl ?? "/images/default-avatar.png")" class="fr-card-img">
+                                    </a>
+                                    <div class="fr-card-body">
+                                        <a href="/Profile/@(user.UrlHandle ?? user.Id)" class="fr-name text-truncate">@user.FullName</a>
+
+                                        <div class="mt-auto" id="action-sug-@user.Id">
+                                            @if (isFriend)
+                                            {
+                                                <button class="fr-btn btn-gray" disabled><i class="bi bi-check-circle-fill text-success"></i> Bạn bè</button>
+                                                <button class="fr-btn btn-gray mt-1" onclick="unfriend('@user.Id')">Hủy kết bạn</button>
+                                            }
+                                            else if (isSent)
+                                            {
+                                                <button class="fr-btn text-danger bg-light" onclick="cancelSentRequest('@user.Id')">Hủy lời mời</button>
+                                            }
+                                            else if (isReceived)
+                                            {
+                                                <button class="fr-btn btn-blue" onclick="acceptFriend('@user.Id')">Chấp nhận</button>
+                                                <button class="fr-btn btn-gray mt-1" onclick="denyFriend('@user.Id')">Xóa</button>
+                                            }
+                                            else
+                                            {
+                                                <button class="fr-btn btn-blue bg-primary bg-opacity-10" onclick="addFriend('@user.Id')">Thêm bạn bè</button>
+                                                <button class="fr-btn btn-gray" onclick="$('#sug-@user.Id').fadeOut()">Gỡ</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</div>
+                }
+            </div>
+
+            <div id="tab-requests" class="tab-content">
+                <h5 class="fw-bold mb-3">Lời mời kết bạn <span class="text-danger">@Model.FriendRequests.Count</span></h5>
+                @if (Model.FriendRequests.Any())
+                {
+                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                        @foreach (var user in Model.FriendRequests)
+                        {
+                            <div class="col" id="req-@user.Id">
+                                <div class="fr-card">
+                                    <a href="/Profile/@(user.UrlHandle ?? user.Id)"><img src="@(user.AvatarUrl ?? "/images/default-avatar.png")" class="fr-card-img"></a>
+                                    <div class="fr-card-body">
+                                        <a href="/Profile/@(user.UrlHandle ?? user.Id)" class="fr-name text-truncate">@user.FullName</a>
+                                        <div class="mt-auto">
+                                            <button class="fr-btn btn-blue" onclick="acceptFriend('@user.Id')">Xác nhận</button>
+                                            <button class="fr-btn btn-gray" onclick="denyFriend('@user.Id')">Xóa</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">Bạn không có lời mời kết bạn nào.</div>
+                }
+            </div>
+
+            <div id="tab-sent" class="tab-content">
+                <h5 class="fw-bold mb-3">Lời mời đã gửi <span class="text-secondary">@Model.SentRequests.Count</span></h5>
+                @if (Model.SentRequests.Any())
+                {
+                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                        @foreach (var user in Model.SentRequests)
+                        {
+                            <div class="col" id="sent-@user.Id">
+                                <div class="fr-card">
+                                    <a href="/Profile/@(user.UrlHandle ?? user.Id)"><img src="@(user.AvatarUrl ?? "/images/default-avatar.png")" class="fr-card-img"></a>
+                                    <div class="fr-card-body">
+                                        <a href="/Profile/@(user.UrlHandle ?? user.Id)" class="fr-name text-truncate">@user.FullName</a>
+                                        <div class="mt-auto">
+                                            <button class="fr-btn btn-gray text-danger" onclick="cancelSentRequest('@user.Id')">Hủy lời mời</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">Bạn chưa gửi lời mời nào.</div>
+                }
+            </div>
+
+            <div id="tab-friends" class="tab-content">
+                <h5 class="fw-bold mb-3">Tất cả bạn bè (@Model.Friends.Count)</h5>
+                <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                    @foreach (var user in Model.Friends)
+                    {
+                        <div class="col" id="fr-@user.Id">
+                            <div class="fr-card">
+                                <a href="/Profile/@(user.UrlHandle ?? user.Id)"><img src="@(user.AvatarUrl ?? "/images/default-avatar.png")" class="fr-card-img"></a>
+                                <div class="fr-card-body">
+                                    <a href="/Profile/@(user.UrlHandle ?? user.Id)" class="fr-name text-truncate">@user.FullName</a>
+                                    <div class="mt-auto">
+                                        <button class="fr-btn btn-gray" onclick="unfriend('@user.Id')">Hủy kết bạn</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function switchTab(tabName) {
+            $('.tab-content').removeClass('active');
+            $('.list-group-item').removeClass('active');
+            $(`#tab-${tabName}`).addClass('active');
+            $(`#nav-${tabName}`).addClass('active');
+        }
+
+        function addFriend(id) {
+            $.post('/Friends/AddFriend', { targetId: id }, function(res) {
+                if(res.success) {
+                    $(`#action-sug-${id}`).html(`
+                        <button class="fr-btn text-danger bg-light" onclick="cancelSentRequest('${id}')">Hủy lời mời</button>
+                    `);
+                }
+            });
+        }
+
+        function cancelSentRequest(id) {
+            $.post('/Friends/CancelRequest', { targetId: id }, function(res) {
+                if(res.success) {
+                    if ($(`#sent-${id}`).length) {
+                        $(`#sent-${id}`).fadeOut(300, function() { $(this).remove(); });
+                    }
+
+                    if ($(`#action-sug-${id}`).length) {
+                         $(`#action-sug-${id}`).html(`
+                            <button class="fr-btn btn-blue bg-primary bg-opacity-10" onclick="addFriend('${id}')">Thêm bạn bè</button>
+                            <button class="fr-btn btn-gray" onclick="$('#sug-${id}').fadeOut()">Gỡ</button>
+                        `);
+                    }
+
+                    Swal.fire({toast:true, icon:'success', title:'Đã hủy lời mời', position:'bottom-start', showConfirmButton:false, timer:2000});
+                }
+            });
+        }
+
+        function acceptFriend(id) {
+            $.post('/Friends/AcceptRequest', { targetId: id }, function(res) {
+                if(res.success) {
+                    Swal.fire({toast:true, icon:'success', title:'Đã kết bạn', position:'bottom-start', showConfirmButton:false, timer:2000});
+                    $(`#req-${id}`).fadeOut();
+
+                    if ($(`#action-sug-${id}`).length) {
+                        $(`#action-sug-${id}`).html(`
+                            <button class="fr-btn btn-gray" disabled><i class="bi bi-check-circle-fill text-success"></i> Bạn bè</button>
+                            <button class="fr-btn btn-gray mt-1" onclick="unfriend('${id}')">Hủy kết bạn</button>
+                        `);
+                    }
+                }
+            });
+        }
+
+        function denyFriend(id) {
+             $.post('/Friends/CancelRequest', { targetId: id }, function(res) {
+                if(res.success) {
+                    $(`#req-${id}`).fadeOut();
+                    if ($(`#action-sug-${id}`).length) {
+                         $(`#action-sug-${id}`).html(`
+                            <button class="fr-btn btn-blue bg-primary bg-opacity-10" onclick="addFriend('${id}')">Thêm bạn bè</button>
+                            <button class="fr-btn btn-gray" onclick="$('#sug-${id}').fadeOut()">Gỡ</button>
+                        `);
+                    }
+                }
+            });
+        }
+
+        function unfriend(id) {
+            Swal.fire({
+                title: 'Hủy kết bạn?', text: "Bạn có chắc chắn không?", icon: 'warning',
+                showCancelButton: true, confirmButtonText: 'Đồng ý', cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    $.post('/Friends/Unfriend', { targetId: id }, function(res) {
+                        if(res.success) {
+                            $(`#fr-${id}`).fadeOut();
+
+                             if ($(`#action-sug-${id}`).length) {
+                                $(`#action-sug-${id}`).html(`
+                                    <button class="fr-btn btn-blue bg-primary bg-opacity-10" onclick="addFriend('${id}')">Thêm bạn bè</button>
+                                    <button class="fr-btn btn-gray" onclick="$('#sug-${id}').fadeOut()">Gỡ</button>
+                                `);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

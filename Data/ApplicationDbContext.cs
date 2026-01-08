@@ -12,8 +12,8 @@ namespace Vibee.Data
         }
 
         public DbSet<Post> Posts { get; set; }
-        public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
+        public DbSet<Comment> Comments { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -23,7 +23,16 @@ namespace Vibee.Data
             base.OnModelCreating(builder);
 
             builder.Entity<Like>()
-                .HasKey(k => new { k.UserId, k.PostId });
+                    .HasOne(l => l.Post)
+                    .WithMany(p => p.Likes)
+                    .HasForeignKey(l => l.PostId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Comment>()
+                    .HasOne(c => c.ParentComment)
+                    .WithMany(c => c.Replies)
+                    .HasForeignKey(c => c.ParentCommentId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Friendship>()
                 .HasKey(k => new { k.SenderId, k.ReceiverId });
@@ -60,6 +69,7 @@ namespace Vibee.Data
                 .WithMany()
                 .HasForeignKey(t => t.ReceiverWalletId)
                 .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

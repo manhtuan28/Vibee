@@ -5,6 +5,7 @@ namespace Vibee.ViewModels
     public class ProfileViewModel
     {
         public ApplicationUser User { get; set; }
+        public ApplicationUser CurrentUser { get; set; }
         public bool IsOwner { get; set; }
         public List<Post> Posts { get; set; }
         public int FriendCount { get; set; }
