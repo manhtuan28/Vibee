@@ -17,10 +17,11 @@ namespace Vibee.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public FriendsController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public FriendsController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IHubContext<NotificationHub> hubContext)
         {
             _userManager = userManager;
             _context = context;
+            _hubContext = hubContext;
         }
 
         private async Task CreateNotification(string receiverId, string senderId, string content, string link, int type)
@@ -45,7 +46,8 @@ namespace Vibee.Controllers
             await _hubContext.Clients.User(receiverId).SendAsync("ReceiveNotification", new
             {
                 avatar = sender.AvatarUrl ?? "/images/default-avatar.png",
-                content = $"<strong>{sender.FullName}</strong> {content}",
+                senderName = sender.FullName,
+                content = content,
                 link = link,
                 time = "Vừa xong"
             });
@@ -75,6 +77,11 @@ namespace Vibee.Controllers
                 .Select(f => f.SenderId == currentUser.Id ? f.ReceiverId : f.SenderId).ToList();
             var friends = await _context.Users.Where(u => friendIds.Contains(u.Id)).ToListAsync();
 
+            var excludeIds = new List<string> { currentUser.Id };
+            excludeIds.AddRange(friendIds);
+            excludeIds.AddRange(requestSenderIds);
+            excludeIds.AddRange(sentReceiverIds);
+
             var suggestions = await _context.Users
                 .Where(u => u.Id != currentUser.Id && !friendIds.Contains(u.Id))
                 .OrderBy(u => u.FullName)
@@ -101,8 +108,8 @@ namespace Vibee.Controllers
             if (sender.Id == targetId) return Json(new { success = false, message = "Không thể kết bạn với chính mình" });
 
             var exists = await _context.Friendships.AnyAsync(f =>
-                (f.SenderId == sender.Id && f.ReceiverId == targetId) ||
-                (f.SenderId == targetId && f.ReceiverId == sender.Id));
+                            (f.SenderId == currentUser.Id && f.ReceiverId == targetId) ||
+                            (f.SenderId == targetId && f.ReceiverId == currentUser.Id));
 
             if (exists) return Json(new { success = false, message = "Đã gửi lời mời hoặc đã là bạn bè." });
 
@@ -149,7 +156,10 @@ namespace Vibee.Controllers
             request.Status = FriendshipStatus.Accepted;
             request.ActionDate = DateTime.Now;
 
+
             await _context.SaveChangesAsync();
+
+            await CreateNotification(targetId, receiver.Id, "đã chấp nhận lời mời kết bạn.", $"/Profile/{receiver.Id}", 4);
             return Json(new { success = true });
         }
 
