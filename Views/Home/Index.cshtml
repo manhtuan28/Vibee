@@ -6,11 +6,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <link rel="stylesheet" href="~/css/home.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-lg-3 d-none d-lg-block">
-            <div class="sidebar-sticky custom-scrollbar ps-2">
+<div class="container-fluid fb-main-container">
+    <div class="row g-0 justify-content-between">
+        <div class="col-xl-3 col-lg-3 d-none d-lg-block">
+            <div class="sidebar-sticky custom-scrollbar sidebar-left">
                 <a href="/Profile/@(Model.CurrentUser?.UrlHandle ?? Model.CurrentUser?.Id)" class="left-menu-item mb-2">
                     <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-3 border" width="36" height="36" style="object-fit:cover">
                     <span class="fw-bold">@Model.CurrentUser?.FullName</span>
@@ -18,236 +20,259 @@
                 <a href="/Friends" class="left-menu-item"><i class="bi bi-people-fill text-primary" style="font-size:1.5rem;margin-right:12px"></i> Bạn bè</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-collection-play-fill text-danger" style="font-size:1.5rem;margin-right:12px"></i> Watch</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-shop text-primary" style="font-size:1.5rem;margin-right:12px"></i> Marketplace</a>
+                <a href="#" class="left-menu-item"><i class="bi bi-clock-history text-primary" style="font-size:1.5rem;margin-right:12px"></i> Kỷ niệm</a>
+                <a href="#" class="left-menu-item"><i class="bi bi-bookmark-fill text-secondary" style="font-size:1.5rem;margin-right:12px"></i> Đã lưu</a>
             </div>
         </div>
 
-        <div class="col-lg-6 col-md-8 col-12 py-3">
-            <div class="fb-card p-3">
-                <div class="d-flex align-items-center mb-3">
-                    <a href="/Profile/@(Model.CurrentUser?.UrlHandle ?? Model.CurrentUser?.Id)">
-                        <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40" style="object-fit:cover">
-                    </a>
-                    <div class="flex-grow-1 post-input-trigger user-select-none" onclick="openPostModal()">
-                        @Model.CurrentUser?.FullName ơi, bạn đang nghĩ gì thế?
+        <div class="col-xl-6 col-lg-6 col-12">
+            <div class="feed-wrapper">
+                <div class="fb-card p-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <a href="/Profile/@(Model.CurrentUser?.UrlHandle ?? Model.CurrentUser?.Id)">
+                            <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40" style="object-fit:cover">
+                        </a>
+                        <div class="flex-grow-1 post-input-trigger user-select-none" onclick="openPostModal()">
+                            @Model.CurrentUser?.FullName ơi, bạn đang nghĩ gì thế?
+                        </div>
+                    </div>
+                    <hr class="my-2 opacity-15">
+                    <div class="d-flex justify-content-between">
+                        <button class="btn-action" onclick="openPostModal()"><i class="bi bi-camera-video-fill text-danger" style="font-size:1.5rem"></i> Live video</button>
+                        <button class="btn-action" onclick="openPostModal()"><i class="bi bi-images text-success" style="font-size:1.5rem"></i> Ảnh/Video</button>
+                        <button class="btn-action" onclick="openPostModal('feeling')"><i class="bi bi-emoji-smile-fill text-warning" style="font-size:1.5rem"></i> Cảm xúc</button>
                     </div>
                 </div>
-                <hr class="my-2 opacity-15">
-                <div class="d-flex justify-content-between">
-                    <button class="btn-action" onclick="openPostModal()"><i class="bi bi-camera-video-fill text-danger" style="font-size:1.5rem"></i> Live video</button>
-                    <button class="btn-action" onclick="openPostModal()"><i class="bi bi-images text-success" style="font-size:1.5rem"></i> Ảnh/Video</button>
-                    <button class="btn-action" onclick="openPostModal('feeling')"><i class="bi bi-emoji-smile-fill text-warning" style="font-size:1.5rem"></i> Cảm xúc</button>
-                </div>
-            </div>
 
-            <div id="newsfeed">
-                @foreach (var post in Model.Posts)
-                {
-                    <div class="fb-card" id="post-@post.Id">
-                        <div class="p-3 d-flex align-items-start">
-                            <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none">
-                                <img src="@(post.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40" style="object-fit:cover">
-                            </a>
-                            <div class="flex-grow-1">
-                                <div class="mb-0 fw-bold" style="font-size: 0.95rem;">
-                                    <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none text-dark hover-underline">@post.User?.FullName</a>
-                                    @if (post.SharedPost != null)
-                                    {
-                                        <span class="fw-normal text-secondary"> đã chia sẻ một bài viết</span>
-                                    }
-                                    else
-                                    {
-                                        @if (!string.IsNullOrEmpty(post.Emotion))
+                <div id="newsfeed">
+                    @foreach (var post in Model.Posts)
+                    {
+                        <div class="fb-card" id="post-@post.Id">
+                            <div class="p-3 d-flex align-items-start">
+                                <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none">
+                                    <img src="@(post.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="40" height="40" style="object-fit:cover">
+                                </a>
+                                <div class="flex-grow-1">
+                                    <div class="mb-0 fw-bold" style="font-size: 0.95rem;">
+                                        <a href="/Profile/@(post.User?.UrlHandle ?? post.UserId)" class="text-decoration-none text-dark hover-underline">@post.User?.FullName</a>
+                                        @if (post.SharedPost != null)
                                         {
-                                            <span class="fw-normal text-dark"> đang @Html.Raw(post.Emotion)</span>
+                                            <span class="fw-normal text-secondary"> đã chia sẻ một bài viết</span>
                                         }
-                                        @if (!string.IsNullOrEmpty(post.LocationName))
+                                        else
                                         {
-                                            <span class="fw-normal text-dark"> tại <strong>@post.LocationName</strong></span>
-                                        }
-                                    }
-                                </div>
-                                <small class="text-muted" style="font-size: 0.8rem;">
-                                    @post.CreatedAt.ToString("dd/MM HH:mm") • <i class="bi @(post.PrivacyLevel == 0 ? "bi-globe-americas" : (post.PrivacyLevel == 1 ? "bi-people-fill" : "bi-lock-fill"))"></i>
-                                </small>
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:36px; height:36px" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
-                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    @if (post.UserId == Model.CurrentUser?.Id)
-                                    {
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEditModal(@post.Id)"><i class="bi bi-pencil me-2"></i> Chỉnh sửa</a></li>
-                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deletePost(@post.Id)"><i class="bi bi-trash me-2"></i> Xóa</a></li>
-                                    }
-                                    else
-                                    {
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-bookmark me-2"></i> Lưu bài viết</a></li>
-                                    }
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="px-3 pb-2 text-dark" style="font-size:0.95rem">@Html.Raw(post.Content)</div>
-
-                        @if (post.SharedPost != null)
-                        {
-                            var original = post.SharedPost;
-                            <div class="mx-3 mb-3 border rounded-3 overflow-hidden">
-                                <div class="p-2 bg-light d-flex align-items-center border-bottom bg-opacity-10">
-                                    <a href="/Profile/@(original.User?.UrlHandle ?? original.UserId)">
-                                        <img src="@(original.User?.AvatarUrl ?? "/images/default-avatar.png")" width="32" height="32" class="rounded-circle me-2 border object-fit-cover">
-                                    </a>
-                                    <div class="lh-1">
-                                        <a href="/Profile/@(original.User?.UrlHandle ?? original.UserId)" class="fw-bold text-dark text-decoration-none hover-underline small">@original.User?.FullName</a>
-                                        <div class="text-muted" style="font-size: 0.7rem;">@original.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
-                                    </div>
-                                </div>
-                                <div class="p-2 small text-dark">@Html.Raw(original.Content)</div>
-                                @if (original.Medias != null && original.Medias.Any())
-                                {
-                                    <div class="overflow-hidden border-top bg-black">
-                                        <div class="row g-1">
-                                            @foreach (var media in original.Medias)
+                                            @if (!string.IsNullOrEmpty(post.Emotion))
                                             {
-                                                <div class="@(original.Medias.Count == 1 ? "col-12" : "col-6")">
-                                                    @if (media.Type == Vibee.Models.MediaType.Video)
-                                                    {
-                                                        <video src="@media.Url" controls class="w-100 object-fit-cover" style="height:300px; display:block"></video>
-                                                    }
-                                                    else
-                                                    {
-
-                                                        <img src="@media.Url" class="w-100 object-fit-cover" style="height:300px; display:block">
-                                                    }
-                                                </div>
+                                                <span class="fw-normal text-dark"> đang @Html.Raw(post.Emotion)</span>
                                             }
+                                            @if (!string.IsNullOrEmpty(post.LocationName))
+                                            {
+                                                <span class="fw-normal text-dark"> tại <strong>@post.LocationName</strong></span>
+                                            }
+                                        }
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.8rem;">
+                                        @post.CreatedAt.ToString("dd/MM HH:mm") • <i class="bi @(post.PrivacyLevel == 0 ? "bi-globe-americas" : (post.PrivacyLevel == 1 ? "bi-people-fill" : "bi-lock-fill"))"></i>
+                                    </small>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:36px; height:36px" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                        @if (post.UserId == Model.CurrentUser?.Id)
+                                        {
+                                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEditModal(@post.Id)"><i class="bi bi-pencil me-2"></i> Chỉnh sửa</a></li>
+                                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deletePost(@post.Id)"><i class="bi bi-trash me-2"></i> Xóa</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-bookmark me-2"></i> Lưu bài viết</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="px-3 pb-2 text-dark" style="font-size:0.95rem">@Html.Raw(post.Content)</div>
+
+                            @if (post.SharedPost != null)
+                            {
+                                var original = post.SharedPost;
+                                <div class="mx-3 mb-3 border rounded-3 overflow-hidden">
+                                    <div class="p-2 bg-light d-flex align-items-center border-bottom bg-opacity-10">
+                                        <a href="/Profile/@(original.User?.UrlHandle ?? original.UserId)">
+                                            <img src="@(original.User?.AvatarUrl ?? "/images/default-avatar.png")" width="32" height="32" class="rounded-circle me-2 border object-fit-cover">
+                                        </a>
+                                        <div class="lh-1">
+                                            <a href="/Profile/@(original.User?.UrlHandle ?? original.UserId)" class="fw-bold text-dark text-decoration-none hover-underline small">@original.User?.FullName</a>
+                                            <div class="text-muted" style="font-size: 0.7rem;">@original.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                                         </div>
                                     </div>
-                                }
-                            </div>
-                        }
-                        else if (post.Medias != null && post.Medias.Any())
-                        {
-                            <div class="overflow-hidden border-top border-bottom bg-black">
-                                <div class="row g-1">
-                                    @foreach (var media in post.Medias)
+                                    <div class="p-2 small text-dark">@Html.Raw(original.Content)</div>
+                                    @if (original.Medias != null && original.Medias.Any())
                                     {
-                                        <div class="@(post.Medias.Count == 1 ? "col-12" : "col-6")">
-                                            @if (media.Type == Vibee.Models.MediaType.Video)
+                                        var count = original.Medias.Count;
+                                        var layoutClass = "layout-" + (count > 5 ? 5 : count);
+                                        var displayMedias = original.Medias.Take(5).ToList();
+                                        var mediaJson = System.Text.Json.JsonSerializer.Serialize(original.Medias.Select(m => new { type = m.Type.ToString(), url = m.Url }));
+                                        <div class="fb-media-grid @layoutClass">
+                                            @for (int i = 0; i < displayMedias.Count; i++)
                                             {
-                                                <video src="@media.Url" controls class="w-100 object-fit-cover" style="height:400px; display:block"></video>
-                                            }
-                                            else
-                                            {
+                                                var media = displayMedias[i];
+                                                bool isLastItem = (count > 5 && i == 4);
+                                                int remaining = count - 5;
 
-                                                <img src="@media.Url" class="w-100 object-fit-cover" style="height:400px; display:block">
+                                                if (media.Type == Vibee.Models.MediaType.Video)
+                                                {
+                                                    string dataSetup = "{ \"fluid\": false, \"fill\": true, \"controls\": true, \"preload\": \"metadata\" }";
+                                                    <div class="media-item" style="cursor: default;">
+                                                        <div class="feed-video-container">
+                                                            <video id="feed-vid-share-@original.Id-@i" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="metadata" data-setup='@dataSetup'>
+                                                                <source src="@media.Url" type="video/mp4" />
+                                                            </video>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="media-item" onclick='openMediaViewer(@Html.Raw(mediaJson), @i)'>
+                                                        <img src="@media.Url" alt="Media">
+                                                        @if (isLastItem)
+                                                        {
+                                                            <div class="more-overlay">+@remaining</div>
+                                                        }
+                                                    </div>
+                                                }
                                             }
                                         </div>
                                     }
                                 </div>
-                            </div>
-                        }
-
-                        <div class="d-flex align-items-center justify-content-between px-3 py-2 text-muted small">
-                            <div class="d-flex align-items-center" id="count-react-@post.Id">
-                                @if (post.Likes != null && post.Likes.Any())
-                                {
-                                    var topReactions = post.Likes
-                                    .GroupBy(l => l.Type)
-                                    .OrderByDescending(g => g.Count())
-                                    .Take(2)
-                                    .Select(g => g.Key)
-                                    .ToList();
-
-                                    var icons = new Dictionary<string, string> {
-                                                        { "Like",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#1877F2'/><path d='M8.5 4h1a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-1s1 2.5-1.5 3c-1.8.4-1.5-1.5-2.5-2H4V5h1.1c.9 0 1.9-2 3.4-1z' fill='#fff'/></svg>" },
-                                                        { "Love",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F3425F'/><path d='M8 12.5s-4.5-2.5-4.5-5.5c0-1.5 1-2.5 2.5-2.5 1 0 2 .5 2 1.5 0-1 1-1.5 2-1.5 1.5 0 2.5 1 2.5 2.5C12.5 10 8 12.5 8 12.5z' fill='#fff'/></svg>" },
-                                                        { "Haha",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><path d='M4.5 9.5a3.5 3.5 0 0 0 7 0c0-.5-.5-1-1-1h-5c-.5 0-1 .5-1 1z' fill='#4B3212'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/><path d='M4.5 9.5a3.5 3.5 0 0 0 7 0' fill='none' stroke='#4B3212' stroke-width='0.5'/></svg>" },
-                                                        { "Wow",   @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><ellipse cx='8' cy='10' rx='2' ry='3' fill='#4B3212'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/></svg>" },
-                                                        { "Sad",   @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><path d='M5.5 10.5c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#4B3212' stroke-width='1'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/><circle cx='8' cy='6' r='0.5' fill='#4B3212'/></svg>" },
-                                                        { "Angry", @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#E4605A'/><path d='M5.5 10c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#fff' stroke-width='1'/><path d='M5 5.5l1.5 1m3 0l1.5-1' stroke='#4B0000' stroke-width='1' stroke-linecap='round'/><circle cx='6' cy='7' r='0.8' fill='#4B0000'/><circle cx='10' cy='7' r='0.8' fill='#4B0000'/></svg>" }
-                                                        };
-
-                                    <div class="reaction-stack">
-                                        @foreach (var type in topReactions)
-                                        {
-                                            if (icons.ContainsKey(type))
-                                            {
-                                                <div class="reaction-icon-img">
-                                                    @Html.Raw(icons[type])
-                                                </div>
-                                            }
-                                        }
-                                    </div>
-
-                                    <span class="hover-underline cursor-pointer text-muted small" data-count="@post.Likes.Count">
-                                        @post.Likes.Count
-                                    </span>
-                                }
-                            </div>
-                            <div class="d-flex gap-3">
-                                <span class="cursor-pointer hover-underline" onclick="toggleComment(@post.Id)">@(post.Comments?.Count ?? 0) bình luận</span>
-                                <span id="share-count-@post.Id" class="cursor-pointer hover-underline">@if(post.Shares?.Any() == true){
-                                <span>@post.Shares.Count lượt chia sẻ</span>
                             }
-</span>
-                        </div>
-                    </div>
-
-                    <div class="post-actions">
-                            <div class="reaction-wrapper">
-                                <div class="reaction-box">
-                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Like')" title="Thích">👍</div>
-                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Love')" title="Yêu thích">❤️</div>
-                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Haha')" title="Haha">😆</div>
-                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Wow')" title="Wow">😮</div>
-                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Sad')" title="Buồn">😢</div>
-                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Angry')" title="Phẫn nộ">😡</div>
-                                </div>
-
-                                @{
-                                    var myLike = post.Likes?.FirstOrDefault(l => l.UserId == Model.CurrentUser?.Id);
-                                    string btnClass = "", iconClass = "bi-hand-thumbs-up", labelText = "Thích";
-
-                                    if (myLike != null)
+                            else if (post.Medias != null && post.Medias.Any())
+                            {
+                                var count = post.Medias.Count;
+                                var layoutClass = "layout-" + (count > 5 ? 5 : count);
+                                var displayMedias = post.Medias.Take(5).ToList();
+                                var mediaJson = System.Text.Json.JsonSerializer.Serialize(post.Medias.Select(m => new { type = m.Type.ToString(), url = m.Url }));
+                                <div class="fb-media-grid @layoutClass">
+                                    @for (int i = 0; i < displayMedias.Count; i++)
                                     {
-                                        switch (myLike.Type)
+                                        var media = displayMedias[i];
+                                        bool isLastItem = (count > 5 && i == 4);
+                                        int remaining = count - 5;
+
+                                        if (media.Type == Vibee.Models.MediaType.Video)
                                         {
-                                            case "Like": btnClass = "btn-like-active"; iconClass = "bi-hand-thumbs-up-fill"; labelText = "Thích"; break;
-                                            case "Love": btnClass = "btn-love-active"; iconClass = "bi-heart-fill"; labelText = "Yêu thích"; break;
-                                            case "Haha": btnClass = "btn-haha-active"; iconClass = "bi-emoji-laughing-fill"; labelText = "Haha"; break;
-                                            case "Wow": btnClass = "btn-wow-active"; iconClass = "bi-emoji-surprise-fill"; labelText = "Wow"; break;
-                                            case "Sad": btnClass = "btn-sad-active"; iconClass = "bi-emoji-frown-fill"; labelText = "Buồn"; break;
-                                            case "Angry": btnClass = "btn-angry-active"; iconClass = "bi-emoji-angry-fill"; labelText = "Phẫn nộ"; break;
+                                            string dataSetup = "{ \"fluid\": false, \"fill\": true, \"controls\": true, \"preload\": \"metadata\" }";
+                                            <div class="media-item" style="cursor: default;">
+                                                <div class="feed-video-container">
+                                                    <video id="feed-vid-@post.Id-@i" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="metadata" data-setup='@dataSetup'>
+                                                        <source src="@media.Url" type="video/mp4" />
+                                                    </video>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="media-item" onclick='openMediaViewer(@Html.Raw(mediaJson), @i)'>
+                                                <img src="@media.Url" alt="Media">
+                                                @if (isLastItem)
+                                                {
+                                                    <div class="more-overlay">+@remaining</div>
+                                                }
+                                            </div>
                                         }
                                     }
-                                }
+                                </div>
+                            }
 
-                                <button class="btn-action w-100 @btnClass" id="btn-react-@post.Id" onclick="doReact(@post.Id, 'Like')">
-                                    <i class="bi @iconClass" style="font-size: 1.2rem;"></i> <span>@labelText</span>
-                                </button>
+                            <div class="d-flex align-items-center justify-content-between px-3 py-2 text-muted small">
+                                <div class="d-flex align-items-center" id="count-react-@post.Id">
+                                    @if (post.Likes != null && post.Likes.Any())
+                                    {
+                                        var topReactions = post.Likes.GroupBy(l => l.Type).OrderByDescending(g => g.Count()).Take(2).Select(g => g.Key).ToList();
+                                        var icons = new Dictionary<string, string> {
+                                                                { "Like",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#1877F2'/><path d='M8.5 4h1a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-1s1 2.5-1.5 3c-1.8.4-1.5-1.5-2.5-2H4V5h1.1c.9 0 1.9-2 3.4-1z' fill='#fff'/></svg>" },
+                                                                { "Love",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F3425F'/><path d='M8 12.5s-4.5-2.5-4.5-5.5c0-1.5 1-2.5 2.5-2.5 1 0 2 .5 2 1.5 0-1 1-1.5 2-1.5 1.5 0 2.5 1 2.5 2.5C12.5 10 8 12.5 8 12.5z' fill='#fff'/></svg>" },
+                                                                { "Haha",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><path d='M4.5 9.5a3.5 3.5 0 0 0 7 0c0-.5-.5-1-1-1h-5c-.5 0-1 .5-1 1z' fill='#4B3212'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/><path d='M4.5 9.5a3.5 3.5 0 0 0 7 0' fill='none' stroke='#4B3212' stroke-width='0.5'/></svg>" },
+                                                                { "Wow",   @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><ellipse cx='8' cy='10' rx='2' ry='3' fill='#4B3212'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/></svg>" },
+                                                                { "Sad",   @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><path d='M5.5 10.5c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#4B3212' stroke-width='1'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/><circle cx='8' cy='6' r='0.5' fill='#4B3212'/></svg>" },
+                                                                { "Angry", @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#E4605A'/><path d='M5.5 10c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#fff' stroke-width='1'/><path d='M5 5.5l1.5 1m3 0l1.5-1' stroke='#4B0000' stroke-width='1' stroke-linecap='round'/><circle cx='6' cy='7' r='0.8' fill='#4B0000'/><circle cx='10' cy='7' r='0.8' fill='#4B0000'/></svg>" }
+                                                                };
+                                        <div class="reaction-stack">
+                                            @foreach (var type in topReactions)
+                                            {
+                                                if (icons.ContainsKey(type))
+                                                {
+                                                    <div class="reaction-icon-img">@Html.Raw(icons[type])</div>
+                                                }
+                                            }
+                                        </div>
+                                        <span class="hover-underline cursor-pointer text-muted small" data-count="@post.Likes.Count">@post.Likes.Count</span>
+                                    }
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <span class="cursor-pointer hover-underline" onclick="toggleComment(@post.Id)">@(post.Comments?.Count ?? 0) bình luận</span>
+                                    <span id="share-count-@post.Id" class="cursor-pointer hover-underline">
+                                        @if (post.Shares?.Any() == true)
+                                        {
+                                            <span>@post.Shares.Count lượt chia sẻ</span>
+                                        }
+                                    </span>
+                                </div>
                             </div>
-                        <button class="btn-action" onclick="toggleComment(@post.Id)"><i class="bi bi-chat-text" style="font-size: 1.2rem;"></i> Bình luận</button>
-                        <button class="btn-action" onclick="sharePost(@post.Id)"><i class="bi bi-share" style="font-size: 1.2rem;"></i> Chia sẻ</button>
-                    </div>
 
-                    <div id="comment-box-@post.Id" class="mt-2 d-none px-3 pb-3">
-                        <hr class="my-2 opacity-10">
-                        <div id="comment-list-@post.Id" class="mb-2"></div>
-                        <div class="d-flex align-items-start gap-2 pt-1">
-                            <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle border" width="32" height="32">
-                            <div class="flex-grow-1 position-relative">
-                                <textarea id="input-comment-@post.Id" class="form-control bg-light px-3 py-2 comment-input" rows="1" placeholder="Viết bình luận..." onkeydown="if(event.keyCode==13 && !event.shiftKey){ event.preventDefault(); sendComment(@post.Id); }"></textarea>
-                                <button class="btn btn-primary btn-sm position-absolute end-0 bottom-0 m-2 rounded-circle" style="width:28px; height:28px; padding:0" onclick="sendComment(@post.Id)"><i class="bi bi-send-fill" style="font-size:0.8rem"></i></button>
+                            <div class="post-actions">
+                                <div class="reaction-wrapper">
+                                    <div class="reaction-box">
+                                        <div class="emoji-btn" onclick="doReact(@post.Id, 'Like')" title="Thích">👍</div>
+                                        <div class="emoji-btn" onclick="doReact(@post.Id, 'Love')" title="Yêu thích">❤️</div>
+                                        <div class="emoji-btn" onclick="doReact(@post.Id, 'Haha')" title="Haha">😆</div>
+                                        <div class="emoji-btn" onclick="doReact(@post.Id, 'Wow')" title="Wow">😮</div>
+                                        <div class="emoji-btn" onclick="doReact(@post.Id, 'Sad')" title="Buồn">😢</div>
+                                        <div class="emoji-btn" onclick="doReact(@post.Id, 'Angry')" title="Phẫn nộ">😡</div>
+                                    </div>
+                                    @{
+                                        var myLike = post.Likes?.FirstOrDefault(l => l.UserId == Model.CurrentUser?.Id);
+                                        string btnClass = "", iconClass = "bi-hand-thumbs-up", labelText = "Thích";
+                                        if (myLike != null)
+                                        {
+                                            switch (myLike.Type)
+                                            {
+                                                case "Like": btnClass = "btn-like-active"; iconClass = "bi-hand-thumbs-up-fill"; labelText = "Thích"; break;
+                                                case "Love": btnClass = "btn-love-active"; iconClass = "bi-heart-fill"; labelText = "Yêu thích"; break;
+                                                case "Haha": btnClass = "btn-haha-active"; iconClass = "bi-emoji-laughing-fill"; labelText = "Haha"; break;
+                                                case "Wow": btnClass = "btn-wow-active"; iconClass = "bi-emoji-surprise-fill"; labelText = "Wow"; break;
+                                                case "Sad": btnClass = "btn-sad-active"; iconClass = "bi-emoji-frown-fill"; labelText = "Buồn"; break;
+                                                case "Angry": btnClass = "btn-angry-active"; iconClass = "bi-emoji-angry-fill"; labelText = "Phẫn nộ"; break;
+                                            }
+                                        }
+                                    }
+                                    <button class="btn-action w-100 @btnClass" id="btn-react-@post.Id" onclick="doReact(@post.Id, 'Like')">
+                                        <i class="bi @iconClass" style="font-size: 1.2rem;"></i> <span>@labelText</span>
+                                    </button>
+                                </div>
+                                <button class="btn-action" onclick="toggleComment(@post.Id)"><i class="bi bi-chat-text" style="font-size: 1.2rem;"></i> Bình luận</button>
+                                <button class="btn-action" onclick="sharePost(@post.Id)"><i class="bi bi-share" style="font-size: 1.2rem;"></i> Chia sẻ</button>
+                            </div>
+
+                            <div id="comment-box-@post.Id" class="mt-2 d-none px-3 pb-3">
+                                <hr class="my-2 opacity-10">
+                                <div id="comment-list-@post.Id" class="mb-2"></div>
+                                <div class="d-flex align-items-start gap-2 pt-1">
+                                    <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle border" width="32" height="32">
+                                    <div class="flex-grow-1 position-relative">
+                                        <textarea id="input-comment-@post.Id" class="form-control bg-light px-3 py-2 comment-input" rows="1" placeholder="Viết bình luận..." onkeydown="if(event.keyCode==13 && !event.shiftKey){ event.preventDefault(); sendComment(@post.Id); }"></textarea>
+                                        <button class="btn btn-primary btn-sm position-absolute end-0 bottom-0 m-2 rounded-circle" style="width:28px; height:28px; padding:0" onclick="sendComment(@post.Id)"><i class="bi bi-send-fill" style="font-size:0.8rem"></i></button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 </div>
-                                }
             </div>
         </div>
 
-        <div class="col-lg-3 d-none d-lg-block">
-            <div class="sidebar-sticky custom-scrollbar ps-2">
+        <div class="col-xl-3 col-lg-3 d-none d-lg-block">
+            <div class="sidebar-sticky custom-scrollbar sidebar-right">
                 @if (Model.OnlineFriends != null && Model.OnlineFriends.Any())
                 {
                     <h6 class="text-secondary fw-bold small mt-3 px-2">Người liên hệ</h6>
@@ -270,7 +295,27 @@
 <partial name="_CreatePostModal" />
 <partial name="_EditPostModal" />
 
+<div id="media-viewer" onclick="closeMediaViewer()">
+    <div class="mv-close" onclick="closeMediaViewer()">
+        <i class="bi bi-x-lg"></i>
+    </div>
+    <div class="mv-content">
+        <div class="mv-btn mv-prev" id="mv-prev" onclick="prevMedia(event)">
+            <i class="bi bi-chevron-left"></i>
+        </div>
+        <div id="mv-media-container" onclick="event.stopPropagation()"></div>
+        <div class="mv-btn mv-next" id="mv-next" onclick="nextMedia(event)">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>const currentUserAvatar = '@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")';</script>
     <script src="~/js/home.js"></script>
+    <script>
+        $(document).ready(function() {
+            setTimeout(initFeedVideos, 500);
+        });
+    </script>
 }

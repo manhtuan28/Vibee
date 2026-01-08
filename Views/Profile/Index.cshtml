@@ -6,6 +6,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <link rel="stylesheet" href="~/css/home.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
 <partial name="_ProfileHeader" model="Model" />
 
@@ -90,12 +92,10 @@
                                     }
                                     else if (post.PrivacyLevel == 1)
                                     {
-
                                         <i class="bi bi-people-fill" title="Bạn bè"></i>
                                     }
                                     else
                                     {
-
                                         <i class="bi bi-lock-fill" title="Chỉ mình tôi"></i>
                                     }
                                 </small>
@@ -129,50 +129,86 @@
                                     </div>
                                 </div>
                                 <div class="p-2 small text-dark">@Html.Raw(original.Content)</div>
+
                                 @if (original.Medias != null && original.Medias.Any())
                                 {
-                                    <div class="overflow-hidden border-top bg-black">
-                                        <div class="row g-1">
-                                            @foreach (var media in original.Medias)
-                                            {
-                                                <div class="@(original.Medias.Count == 1 ? "col-12" : "col-6")">
-                                                    @if (media.Type == Vibee.Models.MediaType.Video)
-                                                    {
-                                                        <video src="@media.Url" controls class="w-100 object-fit-cover" style="height:300px; display:block"></video>
-                                                    }
-                                                    else
-                                                    {
+                                    var count = original.Medias.Count;
+                                    var layoutClass = "layout-" + (count > 5 ? 5 : count);
+                                    var displayMedias = original.Medias.Take(5).ToList();
+                                    var mediaJson = System.Text.Json.JsonSerializer.Serialize(original.Medias.Select(m => new { type = m.Type.ToString(), url = m.Url }));
 
-                                                        <img src="@media.Url" class="w-100 object-fit-cover" style="height:300px; display:block">
+                                    <div class="fb-media-grid @layoutClass">
+                                        @for (int i = 0; i < displayMedias.Count; i++)
+                                        {
+                                            var media = displayMedias[i];
+                                            bool isLastItem = (count > 5 && i == 4);
+                                            int remaining = count - 5;
+
+                                            if (media.Type == Vibee.Models.MediaType.Video)
+                                            {
+                                                string dataSetup = "{ \"fluid\": false, \"fill\": true, \"controls\": true, \"preload\": \"metadata\" }";
+                                                <div class="media-item" style="cursor: default;">
+                                                    <div class="feed-video-container">
+                                                        <video id="feed-vid-share-@original.Id-@i" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="metadata" data-setup='@dataSetup'>
+                                                            <source src="@media.Url" type="video/mp4" />
+                                                        </video>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="media-item" onclick='openMediaViewer(@Html.Raw(mediaJson), @i)'>
+                                                    <img src="@media.Url" alt="Media">
+                                                    @if (isLastItem)
+                                                    {
+                                                        <div class="more-overlay">+@remaining</div>
                                                     }
                                                 </div>
                                             }
-                                        </div>
+                                        }
                                     </div>
                                 }
                             </div>
                         }
                         else if (post.Medias != null && post.Medias.Any())
                         {
-                            <div class="overflow-hidden border-top border-bottom bg-black">
-                                <div class="row g-1">
-                                    @foreach (var media in post.Medias)
-                                    {
-                                        <div class="@(post.Medias.Count == 1 ? "col-12" : "col-6")">
-                                            @if (media.Type == Vibee.Models.MediaType.Video)
-                                            {
-                                                <video src="@media.Url" controls class="w-100 object-fit-cover" style="height:400px; display:block"></video>
-                                            }
-                                            else
-                                            {
+                            var count = post.Medias.Count;
+                            var layoutClass = "layout-" + (count > 5 ? 5 : count);
+                            var displayMedias = post.Medias.Take(5).ToList();
+                            var mediaJson = System.Text.Json.JsonSerializer.Serialize(post.Medias.Select(m => new { type = m.Type.ToString(), url = m.Url }));
 
-                                                <img src="@media.Url" class="w-100 object-fit-cover" style="height:400px; display:block">
+                            <div class="fb-media-grid @layoutClass">
+                                @for (int i = 0; i < displayMedias.Count; i++)
+                                {
+                                    var media = displayMedias[i];
+                                    bool isLastItem = (count > 5 && i == 4);
+                                    int remaining = count - 5;
+
+                                    if (media.Type == Vibee.Models.MediaType.Video)
+                                    {
+                                        string dataSetup = "{ \"fluid\": false, \"fill\": true, \"controls\": true, \"preload\": \"metadata\" }";
+                                        <div class="media-item" style="cursor: default;">
+                                            <div class="feed-video-container">
+                                                <video id="feed-vid-@post.Id-@i" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="metadata" data-setup='@dataSetup'>
+                                                    <source src="@media.Url" type="video/mp4" />
+                                                </video>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="media-item" onclick='openMediaViewer(@Html.Raw(mediaJson), @i)'>
+                                            <img src="@media.Url" alt="Media">
+                                            @if (isLastItem)
+                                            {
+                                                <div class="more-overlay">+@remaining</div>
                                             }
                                         </div>
                                     }
-                                </div>
+                                }
                             </div>
                         }
+
                         <div class="d-flex align-items-center justify-content-between px-3 py-2 text-muted small">
                             <div class="d-flex align-items-center" id="count-react-@post.Id">
                                 @if (post.Likes != null && post.Likes.Any())
@@ -200,63 +236,65 @@
                             </div>
                             <div class="d-flex gap-3">
                                 <span class="cursor-pointer hover-underline" onclick="toggleComment(@post.Id)">@(post.Comments?.Count ?? 0) bình luận</span>
-                                <span id="share-count-@post.Id" class="cursor-pointer hover-underline">@if(post.Shares?.Any() == true){
-                                <span>@post.Shares.Count lượt chia sẻ</span>
-                            }
-</span>
-                        </div>
-                    </div>
-
-                    <div class="post-actions">
-                        <div class="reaction-wrapper">
-                            <div class="reaction-box">
-                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Like')" title="Thích">👍</div>
-                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Love')" title="Yêu thích">❤️</div>
-                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Haha')" title="Haha">😆</div>
-                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Wow')" title="Wow">😮</div>
-                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Sad')" title="Buồn">😢</div>
-                                <div class="emoji-btn" onclick="doReact(@post.Id, 'Angry')" title="Phẫn nộ">😡</div>
-                            </div>
-                            @{
-                                var myLike = post.Likes?.FirstOrDefault(l => l.UserId == Model.CurrentUser?.Id);
-                                string btnClass = "", iconClass = "bi-hand-thumbs-up", labelText = "Thích";
-                                if (myLike != null)
-                                {
-                                    switch (myLike.Type)
+                                <span id="share-count-@post.Id" class="cursor-pointer hover-underline">
+                                    @if (post.Shares?.Any() == true)
                                     {
-                                        case "Like": btnClass = "btn-like-active"; iconClass = "bi-hand-thumbs-up-fill"; break;
-                                        case "Love": btnClass = "btn-love-active"; iconClass = "bi-heart-fill"; labelText = "Yêu thích"; break;
-                                        case "Haha": btnClass = "btn-haha-active"; iconClass = "bi-emoji-laughing-fill"; labelText = "Haha"; break;
-                                        case "Wow": btnClass = "btn-wow-active"; iconClass = "bi-emoji-surprise-fill"; labelText = "Wow"; break;
-                                        case "Sad": btnClass = "btn-sad-active"; iconClass = "bi-emoji-frown-fill"; labelText = "Buồn"; break;
-                                        case "Angry": btnClass = "btn-angry-active"; iconClass = "bi-emoji-angry-fill"; labelText = "Phẫn nộ"; break;
+                                        <span>@post.Shares.Count lượt chia sẻ</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="post-actions">
+                            <div class="reaction-wrapper">
+                                <div class="reaction-box">
+                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Like')" title="Thích">👍</div>
+                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Love')" title="Yêu thích">❤️</div>
+                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Haha')" title="Haha">😆</div>
+                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Wow')" title="Wow">😮</div>
+                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Sad')" title="Buồn">😢</div>
+                                    <div class="emoji-btn" onclick="doReact(@post.Id, 'Angry')" title="Phẫn nộ">😡</div>
+                                </div>
+                                @{
+                                    var myLike = post.Likes?.FirstOrDefault(l => l.UserId == Model.CurrentUser?.Id);
+                                    string btnClass = "", iconClass = "bi-hand-thumbs-up", labelText = "Thích";
+                                    if (myLike != null)
+                                    {
+                                        switch (myLike.Type)
+                                        {
+                                            case "Like": btnClass = "btn-like-active"; iconClass = "bi-hand-thumbs-up-fill"; labelText = "Thích"; break;
+                                            case "Love": btnClass = "btn-love-active"; iconClass = "bi-heart-fill"; labelText = "Yêu thích"; break;
+                                            case "Haha": btnClass = "btn-haha-active"; iconClass = "bi-emoji-laughing-fill"; labelText = "Haha"; break;
+                                            case "Wow": btnClass = "btn-wow-active"; iconClass = "bi-emoji-surprise-fill"; labelText = "Wow"; break;
+                                            case "Sad": btnClass = "btn-sad-active"; iconClass = "bi-emoji-frown-fill"; labelText = "Buồn"; break;
+                                            case "Angry": btnClass = "btn-angry-active"; iconClass = "bi-emoji-angry-fill"; labelText = "Phẫn nộ"; break;
+                                        }
                                     }
                                 }
-                            }
-                            <button class="btn-action w-100 @btnClass" id="btn-react-@post.Id" onclick="doReact(@post.Id, 'Like')">
-                                <i class="bi @iconClass" style="font-size: 1.2rem;"></i> <span>@labelText</span>
-                            </button>
+                                <button class="btn-action w-100 @btnClass" id="btn-react-@post.Id" onclick="doReact(@post.Id, 'Like')">
+                                    <i class="bi @iconClass" style="font-size: 1.2rem;"></i> <span>@labelText</span>
+                                </button>
+                            </div>
+                            <button class="btn-action" onclick="toggleComment(@post.Id)"><i class="bi bi-chat-text" style="font-size: 1.2rem;"></i> Bình luận</button>
+                            <button class="btn-action" onclick="sharePost(@post.Id)"><i class="bi bi-share" style="font-size: 1.2rem;"></i> Chia sẻ</button>
                         </div>
-                        <button class="btn-action" onclick="toggleComment(@post.Id)"><i class="bi bi-chat-text" style="font-size: 1.2rem;"></i> Bình luận</button>
-                        <button class="btn-action" onclick="sharePost(@post.Id)"><i class="bi bi-share" style="font-size: 1.2rem;"></i> Chia sẻ</button>
-                    </div>
 
-                    <div id="comment-box-@post.Id" class="mt-2 d-none px-3 pb-3">
-                        <hr class="my-2 opacity-10">
-                        <div id="comment-list-@post.Id" class="mb-2"></div>
-                        <div class="d-flex align-items-start gap-2 pt-1">
-                            <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle border" width="32" height="32">
-                            <div class="flex-grow-1 position-relative">
-                                <textarea id="input-comment-@post.Id" class="form-control bg-light px-3 py-2 comment-input" rows="1" placeholder="Viết bình luận..." onkeydown="if(event.keyCode==13 && !event.shiftKey){ event.preventDefault(); sendComment(@post.Id); }"></textarea>
-                                <button class="btn btn-primary btn-sm position-absolute end-0 bottom-0 m-2 rounded-circle" style="width:28px; height:28px; padding:0" onclick="sendComment(@post.Id)"><i class="bi bi-send-fill" style="font-size:0.8rem"></i></button>
+                        <div id="comment-box-@post.Id" class="mt-2 d-none px-3 pb-3">
+                            <hr class="my-2 opacity-10">
+                            <div id="comment-list-@post.Id" class="mb-2"></div>
+                            <div class="d-flex align-items-start gap-2 pt-1">
+                                <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle border" width="32" height="32">
+                                <div class="flex-grow-1 position-relative">
+                                    <textarea id="input-comment-@post.Id" class="form-control bg-light px-3 py-2 comment-input" rows="1" placeholder="Viết bình luận..." onkeydown="if(event.keyCode==13 && !event.shiftKey){ event.preventDefault(); sendComment(@post.Id); }"></textarea>
+                                    <button class="btn btn-primary btn-sm position-absolute end-0 bottom-0 m-2 rounded-circle" style="width:28px; height:28px; padding:0" onclick="sendComment(@post.Id)"><i class="bi bi-send-fill" style="font-size:0.8rem"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                                }
+                }
                 @if (!Model.Posts.Any())
                 {
-                    <div class="text-center py-5 text-muted">Chưa có bài viết nào phù hợp để hiển thị.</div>
+                    <div class="text-center py-5 text-muted">Chưa có bài viết nào để hiển thị.</div>
                 }
             </div>
         </div>
@@ -266,6 +304,26 @@
 <partial name="_CreatePostModal" />
 <partial name="_EditPostModal" />
 
+<div id="media-viewer" onclick="closeMediaViewer()">
+    <div class="mv-close" onclick="closeMediaViewer()">
+        <i class="bi bi-x-lg"></i>
+    </div>
+
+    <div class="mv-content">
+        <div class="mv-btn mv-prev" id="mv-prev" onclick="prevMedia(event)">
+            <i class="bi bi-chevron-left"></i>
+        </div>
+
+        <div id="mv-media-container" onclick="event.stopPropagation()">
+        </div>
+
+        <div class="mv-btn mv-next" id="mv-next" onclick="nextMedia(event)">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts {
     <script>
         const currentUserAvatar = '@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")';
@@ -273,6 +331,10 @@
     </script>
     <script src="~/js/home.js"></script>
     <script>
+        $(document).ready(function() {
+            setTimeout(initFeedVideos, 500);
+        });
+
         function uploadAvatar() {
             var file = document.getElementById('avatarInput').files[0];
             var formData = new FormData(); formData.append('file', file);
@@ -291,7 +353,8 @@
         }
         function handleFriendAction(action) {
             let url = '';
-            if (action === 'Add') url = '/Friends/AddFriend'; else if (action === 'Cancel') url = '/Friends/CancelRequest'; else if (action === 'Accept') url = '/Friends/AcceptRequest'; else if (action === 'Unfriend') url = '/Friends/Unfriend';
+            if (action === 'Add') url = '/Friends/AddFriend'; else if (action === 'Cancel') url = '/Friends/CancelRequest';
+            else if (action === 'Accept') url = '/Friends/AcceptRequest'; else if (action === 'Unfriend') url = '/Friends/Unfriend';
             Swal.showLoading();
             $.post(url, { targetId: targetId }, function(res) { Swal.close(); if (res.success) { location.reload(); } else { Swal.fire('Lỗi', res.message || 'Có lỗi xảy ra', 'error'); } });
         }

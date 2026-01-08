@@ -1,9 +1,42 @@
-﻿let uploadedFiles = [];
+﻿document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(initFeedVideos, 500);
+});
+
+function initFeedVideos() {
+    var videos = document.querySelectorAll('.video-js');
+    videos.forEach(function (videoTag) {
+        if (!videojs.getPlayer(videoTag.id)) {
+            var player = videojs(videoTag.id);
+            player.on('click', function (e) {
+                if (e.target.closest('.vjs-control-bar')) return;
+
+                if (e.target.closest('.vjs-big-play-button')) return;
+
+                e.preventDefault();
+
+                if (player.paused()) {
+                    document.querySelectorAll('video').forEach(v => {
+                        if (v !== player.tech().el() && !v.paused) v.pause();
+                    });
+                    player.play();
+                } else {
+                    player.pause();
+                }
+            });
+        }
+    });
+}
+
+let uploadedFiles = [];
 let currentStatus = { emotionHTML: '', locationName: '' };
 let editNewFiles = [];
 let removedMediaIds = [];
 let commentPagination = {};
 let commentOffsets = {};
+let currentMediaList = [];
+let currentMediaIndex = 0;
+let currentPlayer = null;
+
 function openPostModal(view = 'default') {
     uploadedFiles = [];
     currentStatus = { emotionHTML: '', locationName: '' };
@@ -406,7 +439,7 @@ function sendComment(postId, parentId = null) {
         if (res.success) {
             input.val('');
 
-            const newHtml = renderCommentHtml(res, !!parentId); 
+            const newHtml = renderCommentHtml(res, !!parentId);
 
             if (parentId) {
                 const list = $(`#reply-list-${parentId}`);
@@ -542,3 +575,89 @@ function doHighlight(element) {
         $(element).removeClass('highlight-comment');
     }, 3000);
 }
+
+function openMediaViewer(mediaJson, startIndex) {
+    document.querySelectorAll('video').forEach(v => v.pause());
+
+    if (typeof videojs !== 'undefined') {
+        var players = videojs.getAllPlayers();
+        players.forEach(function (player) { player.pause(); });
+    }
+
+    currentMediaList = mediaJson;
+    currentMediaIndex = startIndex;
+
+    const viewer = document.getElementById('media-viewer');
+    viewer.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    renderMedia();
+}
+
+function closeMediaViewer() {
+    const viewer = document.getElementById('media-viewer');
+    viewer.style.display = 'none';
+    document.body.style.overflow = '';
+
+    if (currentPlayer) {
+        currentPlayer.dispose();
+        currentPlayer = null;
+    }
+    document.getElementById('mv-media-container').innerHTML = '';
+}
+
+function renderMedia() {
+    const container = document.getElementById('mv-media-container');
+    const media = currentMediaList[currentMediaIndex];
+    const prevBtn = document.getElementById('mv-prev');
+    const nextBtn = document.getElementById('mv-next');
+
+    if (currentPlayer) {
+        currentPlayer.dispose();
+        currentPlayer = null;
+    }
+    container.innerHTML = '';
+
+    if (media.type === 'Video') {
+        const videoElement = document.createElement('video');
+        videoElement.className = 'video-js vjs-default-skin vjs-big-play-centered';
+        videoElement.style.width = '100%';
+        videoElement.style.height = '100%';
+
+        const source = document.createElement('source');
+        source.src = media.url;
+        videoElement.appendChild(source);
+        container.appendChild(videoElement);
+
+        currentPlayer = videojs(videoElement, {
+            controls: true,
+            autoplay: true,
+            preload: 'auto',
+            fluid: false,
+            fill: true
+        });
+    } else {
+        const img = document.createElement('img');
+        img.src = media.url;
+        container.appendChild(img);
+    }
+
+    if (currentMediaList.length > 1) {
+        prevBtn.style.display = 'flex';
+        nextBtn.style.display = 'flex';
+    } else {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+    }
+}
+
+function nextMedia(e) { e.stopPropagation(); currentMediaIndex = (currentMediaIndex + 1) % currentMediaList.length; renderMedia(); }
+function prevMedia(e) { e.stopPropagation(); currentMediaIndex = (currentMediaIndex - 1 + currentMediaList.length) % currentMediaList.length; renderMedia(); }
+
+document.addEventListener('keydown', function (event) {
+    if (document.getElementById('media-viewer').style.display === 'block') {
+        if (event.key === "Escape") closeMediaViewer();
+        if (event.key === "ArrowRight") nextMedia(event);
+        if (event.key === "ArrowLeft") prevMedia(event);
+    }
+});

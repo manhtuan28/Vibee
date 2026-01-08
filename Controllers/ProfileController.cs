@@ -236,7 +236,8 @@ namespace Vibee.Controllers
             if (file == null) return Json(new { success = false, message = "Chưa chọn ảnh" });
             try
             {
-                var path = await fileService.UploadFileAsync(file);
+                var path = await fileService.UploadFileAsync(file, "avatars");
+
                 var user = await _userManager.GetUserAsync(User);
                 user.AvatarUrl = path;
                 await _context.SaveChangesAsync();
@@ -252,7 +253,8 @@ namespace Vibee.Controllers
             if (file == null) return Json(new { success = false, message = "Chưa chọn ảnh" });
             try
             {
-                var path = await fileService.UploadFileAsync(file);
+                var path = await fileService.UploadFileAsync(file, "cover-photo");
+
                 var user = await _userManager.GetUserAsync(User);
                 user.CoverPhotoUrl = path;
                 await _context.SaveChangesAsync();

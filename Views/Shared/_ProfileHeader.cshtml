@@ -93,8 +93,10 @@
 
 <div class="profile-header-wrapper">
     <div class="cover-container">
-        <img id="coverImageDisplay" src="@(Model.User.CoverPhotoUrl ?? "https://timelinecovers.pro/facebook-covers/download/ultra-hd-space-nebula-facebook-cover.jpg")" class="cover-image">
-
+        <img id="coverImageDisplay"
+             src="@(Model.User.CoverPhotoUrl)"
+             class="cover-image"
+             style="@(string.IsNullOrEmpty(Model.User.CoverPhotoUrl) ? "display:none;" : "display:block;")">
         @if (Model.IsOwner)
         {
             <input type="file" id="coverInput" hidden accept="image/*" onchange="uploadCover()">
