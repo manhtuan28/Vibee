@@ -95,7 +95,7 @@
     }
 
     .chat-main-header {
-        height: 60px;
+        height: 80px;
         border-bottom: 1px solid #f0f2f5;
         display: flex;
         align-items: center;
@@ -319,6 +319,72 @@
         box-shadow: none;
         color: #888 !important;
     }
+
+    /* --- VIDEO CALL UI (MESSENGER STYLE) --- */
+    #video-call-modal {
+        background: #202020 !important;
+    }
+
+    .video-controls {
+        background: rgba(0,0,0,0.6);
+        border-radius: 30px;
+        padding: 10px 20px;
+        backdrop-filter: blur(5px);
+    }
+
+    .btn-control {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        background: #3a3b3c;
+        color: white;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-control:hover {
+            background: #4e4f50;
+        }
+
+    .btn-end-call {
+        background: #ff3b30 !important;
+    }
+
+        .btn-end-call:hover {
+            background: #d63026 !important;
+        }
+
+    .msg-call {
+        background: transparent !important;
+        border: 1px solid #e4e6eb;
+        color: #050505 !important;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 15px !important;
+    }
+
+    .msg-mine .msg-call {
+        border-color: rgba(255,255,255,0.3);
+        color: white !important;
+    }
+
+    .call-icon-box {
+        width: 32px;
+        height: 32px;
+        background: #e4e6eb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .msg-mine .call-icon-box {
+        background: rgba(255,255,255,0.2);
+    }
 </style>
 
 <div class="messenger-container">
@@ -345,13 +411,16 @@
 
         <div id="chat-interface" class="d-none h-100 flex-column">
             <div class="chat-main-header">
-                <img id="header-avatar" src="" class="rounded-circle me-3 border" width="40" height="40" style="object-fit:cover;">
+                <img id="header-avatar" src="" class="rounded-circle me-3 border" width="50" height="50" style="object-fit:cover;">
                 <div class="d-flex flex-column justify-content-center">
                     <span id="header-name" class="fw-bold text-dark lh-1" style="font-size: 1.05rem;"></span>
                     <span id="header-status" class="small text-muted mt-1" style="font-size: 0.8rem;">Đang hoạt động</span>
                 </div>
-                <div class="ms-auto">
+                <div class="ms-auto d-flex align-items-center gap-2">
                     <button class="btn btn-circle text-primary"><i class="bi bi-info-circle-fill fs-4"></i></button>
+                    <button class="btn btn-circle text-primary" onclick="startCall()" title="Gọi video">
+                        <i class="bi bi-camera-video-fill fs-4"></i>
+                    </button>
                 </div>
             </div>
 
@@ -388,282 +457,48 @@
     </div>
 </div>
 
+<div id="video-call-modal" class="d-none" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; flex-direction:column; background: #202020;">
+    <video id="remote-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+    <div class="position-absolute" style="bottom: 20px; right: 20px; width: 160px; height: 240px; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);">
+        <video id="local-video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+    </div>
+    <div class="position-absolute top-0 start-0 m-4 text-white d-flex align-items-center gap-3">
+        <img id="video-avatar" src="/images/default-avatar.png" class="rounded-circle border border-2 border-white" width="60" height="60" style="object-fit: cover">
+        <div>
+            <h5 id="video-name" class="mb-0 fw-bold">...</h5>
+            <div id="call-timer" class="small opacity-75">Đang kết nối...</div>
+        </div>
+    </div>
+    <div class="position-absolute bottom-0 start-50 translate-middle-x mb-5 video-controls d-flex gap-4">
+        <button class="btn-control" onclick="toggleMute()"><i class="bi bi-mic-fill fs-5"></i></button>
+        <button class="btn-control" onclick="toggleCam()"><i class="bi bi-camera-video-fill fs-5"></i></button>
+        <button class="btn-control btn-end-call" onclick="endCall()"><i class="bi bi-telephone-x-fill fs-5"></i></button>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/vi.min.js"></script>
+
     <script>
-        window.currentReceiverId = null;
-        let replyingToId = null;
         moment.locale('vi');
+
         const myId = '@currentUser.Id';
 
-        if (typeof connection !== 'undefined' && connection.state === signalR.HubConnectionState.Disconnected) {
-            connection.start().catch(err => console.error(err));
-        }
-
-        connection.on("ReceiveMessage", function (senderId, content, createdAt, msgId, type, replyData) {
-            if (window.currentReceiverId === senderId) {
-                appendMainMessage({ id: msgId, content: content, createdAt: createdAt, isMine: false, type: type, replyTo: replyData });
-                scrollMainToBottom();
-                connection.invoke("MarkAsRead", senderId);
-            }
-            reloadSidebar();
-        });
-
-        connection.on("MessageSent", function (receiverId, content, createdAt, msgId, type, replyData) {
-            if (window.currentReceiverId === receiverId) {
-                appendMainMessage({ id: msgId, content: content, createdAt: createdAt, isMine: true, type: type, replyTo: replyData });
-                scrollMainToBottom();
-                cancelReply();
-            }
-            reloadSidebar();
-        });
-
-        connection.on("MessagesRead", function (readerId) {
-            if (window.currentReceiverId === readerId) {
-                document.querySelectorAll('.seen-avatar').forEach(el => el.remove());
-                const myMsgs = document.querySelectorAll('.msg-mine .msg-content-wrapper');
-                if (myMsgs.length > 0) {
-                    const lastMsg = myMsgs[myMsgs.length - 1];
-                    const seenIcon = document.createElement('img');
-                    seenIcon.src = document.getElementById('header-avatar').src;
-                    seenIcon.className = 'seen-avatar';
-                    lastMsg.appendChild(seenIcon);
-                }
-            }
-        });
-
-        connection.on("MessageDeleted", function (msgId, mode) {
-            const msgEl = document.getElementById(`msg-${msgId}`);
-            if (msgEl) {
-                if (mode === "everyone") {
-                    const bubble = msgEl.querySelector('.msg-bubble');
-                    bubble.innerText = "Tin nhắn đã bị thu hồi";
-                    bubble.classList.add("msg-deleted");
-                    const media = msgEl.querySelector('img.chat-image, video');
-                    if (media) media.remove();
-                    const reply = msgEl.querySelector('.reply-quote');
-                    if (reply) reply.remove();
-                } else if (mode === "me") {
-                    msgEl.remove();
-                }
-            }
-            reloadSidebar();
-        });
-
-        function reloadSidebar() {
-            fetch('/Chat/GetSidebarUsers')
-                .then(res => res.json())
-                .then(res => {
-                    const list = document.getElementById('chat-sidebar-list');
-                    list.innerHTML = '';
-                    res.data.forEach(u => {
-                        const isActive = u.id === window.currentReceiverId ? 'active' : '';
-                        const isUnread = !u.isRead ? 'unread' : '';
-                        const time = moment.utc(u.lastTime).local().fromNow();
-                        const contentStyle = !u.isRead ? 'font-weight:700;color:#000;' : 'color:#65676b;';
-                        const onlineHtml = u.isOnline ? `<div class="position-absolute border border-2 border-white rounded-circle bg-success" style="width:14px; height:14px; bottom:0; right:0;"></div>` : '';
-
-                        list.innerHTML += `
-                            <div class="chat-item ${isActive} ${isUnread}" id="user-item-${u.id}" onclick="loadFullChat('${u.id}', '${u.fullName}', '${u.avatarUrl}')">
-                                <div class="position-relative me-3">
-                                    <img src="${u.avatarUrl}" class="rounded-circle border" width="56" height="56" style="object-fit:cover">
-                                    ${onlineHtml}
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="user-name text-truncate" style="font-size:1rem;">${u.fullName}</div>
-                                    <div class="d-flex justify-content-between align-items-center mt-1">
-                                        <div class="last-msg text-truncate small" style="max-width:160px; ${contentStyle}">
-                                            ${u.lastMessage || 'Bắt đầu trò chuyện'}
-                                        </div>
-                                        <div class="small text-muted ms-2" style="font-size:0.75rem">${u.lastMessage ? time : ''}</div>
-                                    </div>
-                                </div>
-                                ${!u.isRead && u.unreadCount > 0 ? `<div class="unread-dot"></div>` : ''}
-                            </div>
-                        `;
-                    });
-                });
-        }
-
-        reloadSidebar();
-
-        function loadFullChat(userId, fullName, avatar) {
-            window.currentReceiverId = userId;
-            document.getElementById('chat-welcome').classList.add('d-none');
-            document.getElementById('chat-interface').classList.remove('d-none');
-            document.getElementById('chat-interface').classList.add('d-flex');
-
-            document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
-            const activeItem = document.getElementById(`user-item-${userId}`);
-            if (activeItem) activeItem.classList.add('active');
-
-            document.getElementById('header-name').innerText = fullName;
-            document.getElementById('header-avatar').src = avatar;
-
-            const body = document.getElementById('main-chat-body');
-            body.innerHTML = '<div class="h-100 d-flex align-items-center justify-content-center"><div class="spinner-border text-primary"></div></div>';
-
-            fetch(`/Message/GetConversation/${userId}`)
-                .then(res => res.json())
-                .then(res => {
-                    if (res.success) {
-                        body.innerHTML = '';
-                        body.innerHTML += '<div style="height: 20px;"></div>';
-                        res.data.forEach(msg => {
-                            appendMainMessage({
-                                id: msg.id,
-                                content: msg.content,
-                                createdAt: msg.createdAt,
-                                isMine: msg.isMine,
-                                type: msg.type || 'Text',
-                                replyTo: msg.replyTo
-                            });
-                        });
-                        scrollMainToBottom();
-                        connection.invoke("MarkAsRead", userId);
-                        reloadSidebar();
-                    }
-                });
-        }
-
-        function appendMainMessage(msg) {
-            const body = document.getElementById('main-chat-body');
-            const isMine = msg.isMine;
-            const alignClass = isMine ? 'msg-mine' : 'msg-theirs';
-
-            let contentHtml = '';
-            const cleanContent = msg.content ? msg.content.replace(/\\/g, "/") : "";
-            const msgType = msg.type || 'Text';
-
-            if (msgType === 'Image') {
-                contentHtml = `<img src="${cleanContent}" class="chat-image" onclick="window.open(this.src)">`;
-            } else if (msgType === 'Video') {
-                contentHtml = `<video src="${cleanContent}" class="chat-video" controls preload="metadata" playsinline></video>`;
-            } else {
-                contentHtml = msg.content;
-            }
-
-            let replyHtml = '';
-            if (msg.replyTo) {
-                let replyName = msg.replyTo.senderName || msg.replyTo.SenderName || "Người dùng";
-                let replyContent = msg.replyTo.content || msg.replyTo.Content || "...";
-                let replySenderId = msg.replyTo.senderId || msg.replyTo.SenderId;
-
-                if (replySenderId === myId) replyName = "bạn";
-                const actionPrefix = isMine ? 'Bạn đã trả lời' : `${document.getElementById('header-name').innerText} đã trả lời`;
-
-                replyHtml = `
-                    <div class="reply-quote" onclick="scrollToMsg(null)">
-                        <div class="small mb-1"><i class="bi bi-arrow-return-right me-1"></i>${actionPrefix} <strong>${replyName}</strong></div>
-                        <div class="text-truncate" style="opacity: 0.8; font-style:italic;">"${replyContent}"</div>
-                    </div>
-                `;
-            }
-
-            const div = document.createElement('div');
-            div.id = `msg-${msg.id}`;
-            div.className = `msg-row ${alignClass}`;
-
-            const timeTooltip = moment.utc(msg.createdAt).local().format('LLLL');
-
-            div.innerHTML = `
-                ${isMine ? getActionsHtml(msg.id) : ''}
-                <div class="msg-content-wrapper">
-                    ${replyHtml}
-                    <div class="msg-bubble" title="${timeTooltip}">
-                        ${contentHtml}
-                    </div>
-                </div>
-                ${!isMine ? getActionsHtml(msg.id) : ''}
-            `;
-
-            body.appendChild(div);
-        }
-
-        function getActionsHtml(msgId) {
-            return `
-                <div class="msg-actions">
-                    <div class="action-btn" onclick="startReply('${msgId}')" title="Trả lời"><i class="bi bi-reply-fill"></i></div>
-                    <div class="dropdown">
-                        <div class="action-btn" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></div>
-                        <ul class="dropdown-menu border-0 shadow" style="border-radius:12px;">
-                            <li><a class="dropdown-item text-danger small py-2" href="javascript:void(0)" onclick="deleteMsg(${msgId}, 'me')"><i class="bi bi-trash me-2"></i>Xóa ở phía tôi</a></li>
-                            <li><a class="dropdown-item text-danger small py-2" href="javascript:void(0)" onclick="deleteMsg(${msgId}, 'everyone')"><i class="bi bi-x-circle me-2"></i>Thu hồi</a></li>
-                        </ul>
-                    </div>
-                </div>
-            `;
-        }
-
-        function sendMainChat() {
-            const input = document.getElementById('main-chat-input');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            const replyIdInt = replyingToId ? parseInt(replyingToId) : null;
-            connection.invoke("SendMessage", window.currentReceiverId, msg, "Text", replyIdInt)
-                .catch(err => console.error(err));
-
-            document.getElementById('main-chat-input').value = '';
-            document.getElementById('main-chat-input').focus();
-        }
-
-        document.getElementById('main-chat-input').addEventListener("keyup", function(e) {
-            if (e.key === "Enter") sendMainChat();
-        });
-
-        function uploadFile(input) {
-            if (input.files.length === 0) return;
-            var formData = new FormData();
-            formData.append("file", input.files[0]);
-
-            fetch('/Chat/UploadChatFile', { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.success) {
-                        const replyIdInt = replyingToId ? parseInt(replyingToId) : null;
-                        connection.invoke("SendMessage", window.currentReceiverId, res.url, res.type, replyIdInt);
-                        cancelReply();
-                    }
-                });
-        }
-
-        function startReply(msgId) {
-            const msgEl = document.getElementById(`msg-${msgId}`);
-            if(msgEl) {
-                const bubble = msgEl.querySelector('.msg-bubble');
-                const msgContent = bubble.querySelector('img') ? '[Hình ảnh]' : bubble.querySelector('video') ? '[Video]' : bubble.innerText;
-                replyingToId = msgId;
-                const replyBar = document.getElementById('reply-bar');
-                replyBar.style.display = 'flex';
-                document.getElementById('reply-content').innerText = msgContent;
-                document.getElementById('main-chat-input').focus();
-            }
-        }
-
-        function cancelReply() {
-            replyingToId = null;
-            document.getElementById('reply-bar').style.display = 'none';
-        }
-
-        function deleteMsg(msgId, mode) {
-            connection.invoke("DeleteMessage", parseInt(msgId), mode);
-        }
-
-        function scrollMainToBottom() {
-            const body = document.getElementById('main-chat-body');
-            body.scrollTop = body.scrollHeight;
-        }
-
-        @if (ViewBag.TargetUser != null)
-        {
-                var target = (Vibee.Models.ApplicationUser)ViewBag.TargetUser;
-                <text>
-                    setTimeout(() => {
-                        loadFullChat('@target.Id', '@Html.Raw(target.FullName)', '@(target.AvatarUrl ?? "/images/default-avatar.png")');
-                    }, 300);
-                </text>
-        }
+        window.currentReceiverId = null;
     </script>
+
+    @if (ViewBag.TargetUser != null)
+    {
+        var target = (Vibee.Models.ApplicationUser)ViewBag.TargetUser;
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                setTimeout(() => {
+                    if (typeof loadFullChat === 'function') {
+                        loadFullChat('@target.Id', '@Html.Raw(target.FullName)', '@(target.AvatarUrl ?? "/images/default-avatar.png")');
+                    }
+                }, 500);
+            });
+        </script>
+    }
 }

@@ -39,13 +39,18 @@ namespace Vibee.Controllers
 
             var result = messages.Select(m => {
                 string contentShow = "";
-                try
+
+                if (m.Type == "Call")
                 {
-                    if (m.IsDeletedForEveryone)
-                    {
-                        contentShow = "Tin nhắn đã bị thu hồi";
-                    }
-                    else
+                    contentShow = m.Content;
+                }
+                else if (m.IsDeletedForEveryone)
+                {
+                    contentShow = "Tin nhắn đã bị thu hồi";
+                }
+                else
+                {
+                    try
                     {
                         contentShow = _encryptionService.Decrypt(m.Content);
 
@@ -54,8 +59,11 @@ namespace Vibee.Controllers
                             contentShow = contentShow.Replace("\\", "/");
                         }
                     }
+                    catch
+                    {
+                        contentShow = m.Content;
+                    }
                 }
-                catch { contentShow = "Lỗi hiển thị"; }
 
                 object replyData = null;
                 if (m.ReplyToMessage != null)
@@ -63,17 +71,21 @@ namespace Vibee.Controllers
                     string replyContent = "";
                     try
                     {
-                        string decryptedOrigin = _encryptionService.Decrypt(m.ReplyToMessage.Content);
-
-                        if (m.ReplyToMessage.Type == "Text") replyContent = decryptedOrigin;
-                        else replyContent = m.ReplyToMessage.Type == "Image" ? "[Hình ảnh]" : "[Video]";
+                        if (m.ReplyToMessage.Type == "Call")
+                            replyContent = "Cuộc gọi";
+                        else
+                        {
+                            string decrypted = _encryptionService.Decrypt(m.ReplyToMessage.Content);
+                            if (m.ReplyToMessage.Type == "Text") replyContent = decrypted;
+                            else replyContent = m.ReplyToMessage.Type == "Image" ? "[Hình ảnh]" : "[Video]";
+                        }
                     }
                     catch { replyContent = "..."; }
 
                     replyData = new
                     {
                         Content = replyContent,
-                        SenderName = m.ReplyToMessage.Sender.FullName,
+                        SenderName = m.ReplyToMessage.Sender != null ? m.ReplyToMessage.Sender.FullName : "Người dùng",
                         SenderId = m.ReplyToMessage.SenderId
                     };
                 }
