@@ -19,7 +19,7 @@
             _env = env;
         }
 
-        public async Task<string> UploadFileAsync(IFormFile file)
+        public async Task<string> UploadFileAsync(IFormFile file, string folderName = "posts")
         {
             if (file == null || file.Length == 0) return null;
 
@@ -38,7 +38,8 @@
             }
 
             var newFileName = Guid.NewGuid().ToString() + ext;
-            var uploadPath = Path.Combine(_env.WebRootPath, "uploads", "posts");
+
+            var uploadPath = Path.Combine(_env.WebRootPath, "uploads", folderName);
 
             if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
 
@@ -49,7 +50,7 @@
                 await file.CopyToAsync(stream);
             }
 
-            return "/uploads/posts/" + newFileName;
+            return $"/uploads/{folderName}/{newFileName}";
         }
     }
 }

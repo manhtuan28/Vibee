@@ -14,9 +14,9 @@ body {
     color: var(--fb-text);
     font-family: Segoe UI, Helvetica, Arial, sans-serif;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
 
-/* --- SCROLLBAR --- */
 .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
 }
@@ -34,24 +34,41 @@ body {
     background-color: #a0a0a0;
 }
 
-/* --- SIDEBAR --- */
+.fb-main-container {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
 .sidebar-sticky {
     position: sticky;
     top: 76px;
-    height: calc(100vh - 90px);
+    height: calc(100vh - 80px);
     overflow-y: auto;
-    padding: 10px 0;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+.sidebar-left {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.sidebar-right {
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .left-menu-item, .contact-item {
     display: flex;
     align-items: center;
-    padding: 8px 10px;
+    padding: 10px;
     border-radius: 8px;
     color: var(--fb-text);
     text-decoration: none;
     font-weight: 500;
     transition: 0.2s;
+    margin-bottom: 2px;
 }
 
     .left-menu-item:hover, .contact-item:hover {
@@ -70,7 +87,13 @@ body {
     border-radius: 50%;
 }
 
-/* --- CARD & POST --- */
+.feed-wrapper {
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+    padding-top: 24px;
+}
+
 .fb-card {
     position: relative;
     background: white;
@@ -78,7 +101,6 @@ body {
     box-shadow: var(--fb-shadow);
     margin-bottom: 16px;
     width: 100%;
-    /* Không dùng overflow: hidden để tránh cắt popup cảm xúc */
 }
 
 .post-input-trigger {
@@ -94,7 +116,6 @@ body {
         background-color: #e4e6eb;
     }
 
-/* --- POST ACTIONS (LAYOUT CHIA ĐỀU 3 CỘT) --- */
 .post-actions {
     display: flex;
     gap: 4px;
@@ -103,12 +124,10 @@ body {
     border-top: 1px solid #ced0d4;
 }
 
-    /* Chọn tất cả con trực tiếp (Wrapper và 2 nút Button) để chia đều */
-    .post-actions > .reaction-wrapper,
-    .post-actions > .btn-action {
-        flex: 1 1 0px; /* Chia đều không gian tuyệt đối */
-        width: 0; /* Fallback */
-        min-width: 0; /* Tránh vỡ layout mobile */
+    .post-actions > .reaction-wrapper, .post-actions > .btn-action {
+        flex: 1 1 0px;
+        width: 0;
+        min-width: 0;
     }
 
 .btn-action {
@@ -117,7 +136,7 @@ body {
     border-radius: 6px;
     color: #606770;
     font-weight: 600;
-    width: 100%; /* Bung full chiều rộng của cha */
+    width: 100%;
     padding: 6px 0;
     font-size: 0.95rem;
     transition: 0.2s;
@@ -133,7 +152,6 @@ body {
         background-color: #f2f2f2;
     }
 
-/* Màu nút Active */
 .btn-like-active {
     color: var(--fb-blue) !important;
 }
@@ -150,10 +168,9 @@ body {
     color: #e4605a !important;
 }
 
-/* --- REACTION BOX & HOVER FIX --- */
 .reaction-wrapper {
     position: relative;
-    display: flex; /* Để nút Thích bên trong bung full */
+    display: flex;
 }
 
 .reaction-box {
@@ -172,7 +189,6 @@ body {
     gap: 8px;
 }
 
-    /* Cầu nối vô hình giúp chuột đi qua không bị mất hover */
     .reaction-box::after {
         content: "";
         position: absolute;
@@ -183,8 +199,7 @@ body {
         background: transparent;
     }
 
-    .reaction-wrapper:hover .reaction-box,
-    .reaction-box:hover {
+    .reaction-wrapper:hover .reaction-box, .reaction-box:hover {
         display: flex;
         animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -211,7 +226,6 @@ body {
     }
 }
 
-/* --- STACKED ICONS (Stats Area) --- */
 .reaction-stack {
     display: flex;
     align-items: center;
@@ -223,150 +237,21 @@ body {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    border: 2px solid #fff; /* Viền trắng cắt nhau */
+    border: 2px solid #fff;
     position: relative;
     box-sizing: content-box;
     background: white;
 }
 
-/* Icon sau đè lên icon trước */
 .reaction-stack .reaction-icon-img:not(:first-child) {
     margin-left: -4px;
     z-index: 1;
 }
 
-/* Icon đầu tiên nằm trên cùng */
 .reaction-stack .reaction-icon-img:first-child {
     z-index: 2;
 }
 
-/* --- MODAL --- */
-.fb-modal-content {
-    border-radius: 12px;
-    box-shadow: 0 12px 28px 0 rgba(0, 0, 0, 0.2), 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-    border: none;
-}
-
-.fb-modal-header {
-    border-bottom: 1px solid #e5e5e5;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.fb-modal-title {
-    font-weight: 700;
-    font-size: 1.25rem;
-    margin: 0;
-    color: #050505;
-}
-
-.fb-btn-close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    background: #e4e6eb;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #606770;
-    transition: 0.2s;
-    cursor: pointer;
-}
-
-    .fb-btn-close:hover {
-        background-color: #d8dadf;
-    }
-
-.fb-user-info {
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    margin-top: 16px;
-    margin-bottom: 10px;
-}
-
-.fb-privacy-selector {
-    background: #e4e6eb;
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    margin-top: 4px;
-    cursor: pointer;
-}
-
-.fb-textarea {
-    border: none;
-    width: 100%;
-    resize: none;
-    outline: none;
-    font-size: 1.5rem;
-    padding: 0 16px;
-    min-height: 100px;
-}
-
-    .fb-textarea::placeholder {
-        color: #90949c;
-    }
-
-.add-to-post {
-    margin: 16px;
-    border: 1px solid #ced0d4;
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.add-option {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 1.5rem;
-}
-
-    .add-option:hover {
-        background-color: #f2f2f2;
-    }
-
-.fb-submit-btn {
-    margin: 0 16px 16px 16px;
-    background-color: var(--fb-blue);
-    color: white;
-    width: calc(100% - 32px);
-    font-weight: 600;
-    border-radius: 6px;
-    padding: 8px 0;
-    border: none;
-    transition: 0.2s;
-}
-
-    .fb-submit-btn:hover {
-        background-color: #166fe5;
-    }
-
-    .fb-submit-btn.disabled {
-        background-color: #e4e6eb;
-        color: #bcc0c4;
-        cursor: not-allowed;
-    }
-
-/* --- COMMENT --- */
 .comment-bubble {
     background-color: #f0f2f5;
     border-radius: 18px;
@@ -408,7 +293,6 @@ body {
         color: red;
     }
 
-/* Các class hỗ trợ khác */
 .modal-view {
     display: none;
 }
@@ -511,4 +395,316 @@ body {
 .reply-input-box {
     margin-top: 5px;
     margin-left: 40px;
+}
+
+.fb-media-grid {
+    display: grid;
+    width: 100%;
+    overflow: hidden;
+    gap: 2px;
+    background-color: #fff;
+    border-top: 1px solid #ced0d4;
+    border-bottom: 1px solid #ced0d4;
+    margin-top: 8px;
+}
+
+.media-item {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #f0f2f5;
+}
+
+    .media-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: filter 0.2s;
+    }
+
+    .media-item:hover img {
+        filter: brightness(0.95);
+    }
+
+.more-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 600;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+.layout-1 {
+    display: flex;
+    width: 100%;
+    height: auto;
+    max-height: 800px;
+    background-color: #000;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+    .layout-1 .media-item {
+        width: 100%;
+        height: auto;
+        display: flex;
+        justify-content: center;
+        background-color: #000;
+    }
+
+        .layout-1 .media-item img {
+            width: 100%;
+            height: auto;
+            max-height: 800px;
+            object-fit: contain;
+        }
+
+.layout-2 {
+    grid-template-columns: 1fr 1fr;
+    height: 380px;
+}
+
+.layout-3 {
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 420px;
+}
+
+    .layout-3 .media-item:nth-child(1) {
+        grid-row: 1 / 3;
+    }
+
+.layout-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 420px;
+}
+
+.layout-5 {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: 3fr 2fr;
+    height: 500px;
+}
+
+    .layout-5 .media-item:nth-child(1), .layout-5 .media-item:nth-child(2) {
+        grid-column: span 3;
+    }
+
+    .layout-5 .media-item:nth-child(3), .layout-5 .media-item:nth-child(4), .layout-5 .media-item:nth-child(5) {
+        grid-column: span 2;
+    }
+
+.layout-1 .feed-video-container {
+    width: 100%;
+    height: 520px !important;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.layout-2 .feed-video-container, .layout-3 .feed-video-container,
+.layout-4 .feed-video-container, .layout-5 .feed-video-container {
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
+
+.video-js {
+    width: 100% !important;
+    height: 100% !important;
+    background-color: transparent !important;
+    display: block;
+}
+
+.layout-1 .video-js video {
+    object-fit: contain !important;
+}
+
+.layout-2 .video-js video, .layout-3 .video-js video,
+.layout-4 .video-js video, .layout-5 .video-js video {
+    object-fit: cover !important;
+}
+
+.video-js .vjs-control-bar {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    z-index: 20;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.video-js .vjs-play-control {
+    margin-left: 10px;
+}
+
+.video-js .vjs-progress-control {
+    position: absolute;
+    top: -5px;
+    left: 0;
+    width: 100%;
+    height: 5px;
+}
+
+.video-js .vjs-slider {
+    background-color: rgba(255,255,255,0.3);
+    margin: 0;
+}
+
+.video-js .vjs-load-progress {
+    background-color: rgba(255,255,255,0.5);
+}
+
+.video-js .vjs-play-progress {
+    background-color: #1877f2;
+}
+
+    .video-js .vjs-play-progress:before {
+        display: none;
+    }
+
+.video-js .vjs-big-play-button {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    width: 68px !important;
+    height: 68px !important;
+    border-radius: 50% !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    border: 3px solid #fff !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    transition: all 0.2s;
+    box-sizing: border-box !important;
+}
+
+    .video-js .vjs-big-play-button .vjs-icon-placeholder:before {
+        position: static !important;
+        content: "\f101";
+        font-size: 38px !important;
+        line-height: 1 !important;
+        display: block !important;
+    }
+
+.video-js:hover .vjs-big-play-button {
+    background-color: #1877f2 !important;
+    border-color: #1877f2 !important;
+    transform: translate(-50%, -50%) scale(1.1) !important;
+}
+
+.video-js.vjs-playing .vjs-big-play-button {
+    display: none !important;
+}
+
+.btn-expand-video {
+    display: none !important;
+}
+
+#media-viewer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 99999;
+    user-select: none;
+}
+
+.mv-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .mv-content img, .mv-content video, .mv-content .video-js {
+        max-width: 100vw;
+        max-height: 100vh;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain;
+    }
+
+.mv-close {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: 0.2s;
+    z-index: 100000;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+    .mv-close:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+.mv-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.2s;
+    z-index: 100000;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+    .mv-btn:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+.mv-prev {
+    left: 30px;
+}
+
+.mv-next {
+    right: 30px;
 }
