@@ -25,5 +25,7 @@ namespace Vibee.Models
 
         public virtual ICollection<Friendship>? SentFriendRequests { get; set; }
         public virtual ICollection<Friendship>? ReceivedFriendRequests { get; set; }
+        public bool IsOnline { get; set; } = false;
+        public DateTime LastActive { get; set; } = DateTime.UtcNow;
     }
 }

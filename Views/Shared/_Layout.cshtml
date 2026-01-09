@@ -201,9 +201,16 @@
                             <i class="bi bi-grid-3x3-gap-fill"></i>
                         </a>
 
-                        <a href="#" class="btn-circle" title="Tin nhắn">
+                        <a href="/Chat" class="btn-circle position-relative" title="Tin nhắn" id="btn-msg-nav">
                             <i class="bi bi-chat-dots-fill"></i>
+
+                            <span id="msg-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem; border: 2px solid #fff;">
+                                0
+                                <span class="visually-hidden">unread messages</span>
+                            </span>
                         </a>
+
+                        <audio id="msg-sound" src="~/uploads/am-thanh-thong-bao-messenger.mp3" preload="auto"></audio>
 
                             <div class="dropdown">
                                 <a href="#" class="btn-circle position-relative" id="notiDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
@@ -253,10 +260,45 @@
             @RenderBody()
         </main>
     </div>
+
+
+    <div id="chat-container" class="fixed-bottom end-0 mb-0 me-4 d-flex align-items-end gap-2" style="z-index: 1050; pointer-events: none;">
+    </div>
+
+    <template id="chat-box-template">
+        <div class="chat-box bg-white rounded-top shadow-lg border" style="width: 330px; height: 450px; display: flex; flex-direction: column; pointer-events: auto;">
+            <div class="chat-header bg-primary text-white p-2 rounded-top d-flex justify-content-between align-items-center cursor-pointer shadow-sm">
+                <div class="d-flex align-items-center">
+                    <img src="/images/default-avatar.png" class="chat-avatar rounded-circle border border-white me-2" width="32" height="32" style="object-fit:cover">
+                    <div class="d-flex flex-column">
+                        <span class="chat-username fw-bold small">Username</span>
+                        <span class="chat-status small" style="font-size: 10px; opacity: 0.8;">Đang hoạt động</span>
+                    </div>
+                </div>
+                <div class="chat-controls">
+                    <button class="btn btn-sm btn-link text-white p-0 me-2 btn-minimize"><i class="bi bi-dash-lg"></i></button>
+                    <button class="btn btn-sm btn-link text-white p-0 btn-close-chat"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+
+            <div class="chat-body p-3 flex-grow-1 overflow-auto custom-scrollbar bg-light" style="background-color: #f0f2f5;">
+            </div>
+
+            <div class="chat-footer p-2 border-top bg-white">
+                <div class="input-group">
+                    <input type="text" class="chat-input form-control border-0 bg-light rounded-pill px-3" placeholder="Nhập tin nhắn..." style="font-size: 0.9rem;">
+                    <button class="btn btn-link text-primary btn-send p-2"><i class="bi bi-send-fill"></i></button>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 
     <script>
