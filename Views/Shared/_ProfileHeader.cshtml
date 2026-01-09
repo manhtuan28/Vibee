@@ -18,6 +18,7 @@
         overflow: hidden;
         max-width: 1095px;
         margin: 0 auto;
+        background-color: #f0f2f5;
     }
 
     .cover-image {
@@ -170,7 +171,9 @@
                             <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="handleFriendAction('Unfriend')">Hủy kết bạn</a></li>
                         </ul>
                     </div>
-                    <button class="btn btn-primary fw-bold"><i class="bi bi-messenger me-1"></i> Nhắn tin</button>
+                    <a href="/Chat?userId=@Model.User.Id" class="btn btn-primary fw-bold">
+                        <i class="bi bi-messenger me-1"></i> Nhắn tin
+                    </a>
                 }
                 else if (Model.FriendshipStatus == "PendingSent")
                 {

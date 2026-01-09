@@ -28,6 +28,8 @@ builder.Services.AddScoped<Vibee.Services.FileService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
+builder.Services.AddSingleton<Vibee.Services.EncryptionService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -55,6 +57,8 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<Vibee.Hubs.ChatHub>("/chatHub");
 
 app.MapRazorPages();
 

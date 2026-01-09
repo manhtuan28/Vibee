@@ -19,6 +19,7 @@ namespace Vibee.Data
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<PostMedia> PostMedias { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Message> Messages { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -72,6 +73,17 @@ namespace Vibee.Data
                 .HasForeignKey(t => t.ReceiverWalletId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Receiver)
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
