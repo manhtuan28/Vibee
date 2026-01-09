@@ -63,6 +63,10 @@ namespace Vibee.Areas.Identity.Pages.Account
             [StringLength(100, ErrorMessage = "{0} phải dài ít nhất {2} và tối đa {1} ký tự.", MinimumLength = 2)]
             public string FullName { get; set; }
 
+            [Required(ErrorMessage = "Vui lòng chọn Giới tính.")]
+            [Display(Name = "Giới tính")]
+            public string Gender { get; set; }
+
             [Required(ErrorMessage = "Vui lòng nhập Mật khẩu.")]
             [StringLength(100, ErrorMessage = "{0} phải dài ít nhất {2} ký tự.", MinimumLength = 6)]
             [DataType(DataType.Password)]
@@ -91,6 +95,7 @@ namespace Vibee.Areas.Identity.Pages.Account
                 var user = CreateUser();
 
                 user.FullName = Input.FullName;
+                user.Gender = Input.Gender;
                 user.AvatarUrl = "/images/default-avatar.png";
                 user.JoinDate = DateTime.Now;
 
@@ -102,7 +107,6 @@ namespace Vibee.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Người dùng đã tạo tài khoản mới thành công.");
-
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

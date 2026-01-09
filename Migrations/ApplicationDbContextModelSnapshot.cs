@@ -190,6 +190,9 @@ namespace Vibee.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsOnline")
                         .HasColumnType("bit");
 
