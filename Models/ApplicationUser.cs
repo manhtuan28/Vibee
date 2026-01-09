@@ -14,7 +14,7 @@ namespace Vibee.Models
         public string? Job { get; set; }
         public string? LiveAt { get; set; }
         public string? From { get; set; }
-
+        public string? Gender { get; set; }
         public DateTime JoinDate { get; set; } = DateTime.Now;
         public bool IsVerified { get; set; } = false;
         [StringLength(30)]

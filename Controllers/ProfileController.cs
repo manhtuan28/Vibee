@@ -198,7 +198,7 @@ namespace Vibee.Controllers
         [Route("Profile/UpdateInfo")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateInfo(string FullName, string Bio, string Job, string LiveAt, string From, string UrlHandle)
+        public async Task<IActionResult> UpdateInfo(string FullName, string Bio, string Job, string LiveAt, string From, string UrlHandle, string Gender) // 1. Thêm tham số Gender
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -207,21 +207,25 @@ namespace Vibee.Controllers
             user.Job = Job;
             user.LiveAt = LiveAt;
             user.From = From;
+            user.Gender = Gender;
 
             if (!string.IsNullOrEmpty(UrlHandle))
             {
-                if (!Regex.IsMatch(UrlHandle, "^[a-z0-9.]+$"))
+                if (user.UrlHandle != UrlHandle)
                 {
-                    return Content("Lỗi: URL chỉ được chứa chữ thường, số và dấu chấm.");
-                }
+                    if (!Regex.IsMatch(UrlHandle, "^[a-z0-9.]+$"))
+                    {
+                        return Content("Lỗi: URL chỉ được chứa chữ thường, số và dấu chấm.");
+                    }
 
-                var exists = await _context.Users.AnyAsync(u => u.UrlHandle == UrlHandle && u.Id != user.Id);
-                if (exists)
-                {
-                    return Content("Lỗi: Tên đường dẫn này đã có người sử dụng.");
-                }
+                    var exists = await _context.Users.AnyAsync(u => u.UrlHandle == UrlHandle && u.Id != user.Id);
+                    if (exists)
+                    {
+                        return Content("Lỗi: Tên đường dẫn này đã có người sử dụng.");
+                    }
 
-                user.UrlHandle = UrlHandle;
+                    user.UrlHandle = UrlHandle;
+                }
             }
 
             await _context.SaveChangesAsync();

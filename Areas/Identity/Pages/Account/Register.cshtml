@@ -218,7 +218,7 @@
                     </div>
 
                     <div class="mb-2">
-                        <input asp-for="Input.Email" class="form-control" placeholder="Số di động hoặc email" autocomplete="username" aria-required="true" />
+                        <input asp-for="Input.Email" class="form-control" placeholder="Email" autocomplete="username" aria-required="true" />
                         <span asp-validation-for="Input.Email" class="text-danger small" style="font-size:12px"></span>
                     </div>
 
@@ -262,20 +262,29 @@
                         </select>
                     </div>
 
-                    <label class="lbl-small">Giới tính <i class="bi bi-question-circle-fill text-secondary"></i></label>
-                    <div class="d-flex gap-3 mb-3">
-                        <label class="gender-box flex-fill" for="female">
-                            <span class="small fw-bold">Nữ</span>
-                            <input class="form-check-input m-0" type="radio" name="gender" id="female" value="Female">
+                    <div class="mb-3">
+                        <label class="lbl-small mb-1 fw-bold text-muted" style="font-size: 0.8rem;">
+                            Giới tính <i class="bi bi-question-circle-fill text-secondary" title="Sau này bạn có thể tùy chỉnh ai sẽ thấy giới tính của mình."></i>
                         </label>
-                        <label class="gender-box flex-fill" for="male">
-                            <span class="small fw-bold">Nam</span>
-                            <input class="form-check-input m-0" type="radio" name="gender" id="male" value="Male" checked>
-                        </label>
-                        <label class="gender-box flex-fill" for="custom">
-                            <span class="small fw-bold">Tùy chỉnh</span>
-                            <input class="form-check-input m-0" type="radio" name="gender" id="custom" value="Custom">
-                        </label>
+
+                        <div class="d-flex gap-3">
+                            <label class="gender-box flex-fill border rounded p-2 d-flex align-items-center justify-content-between cursor-pointer" for="gender_female">
+                                <span class="small fw-bold">Nữ</span>
+                                <input class="form-check-input m-0" type="radio" asp-for="Input.Gender" id="gender_female" value="Nữ">
+                            </label>
+
+                            <label class="gender-box flex-fill border rounded p-2 d-flex align-items-center justify-content-between cursor-pointer" for="gender_male">
+                                <span class="small fw-bold">Nam</span>
+                                <input class="form-check-input m-0" type="radio" asp-for="Input.Gender" id="gender_male" value="Nam" checked>
+                            </label>
+
+                            <label class="gender-box flex-fill border rounded p-2 d-flex align-items-center justify-content-between cursor-pointer" for="gender_custom">
+                                <span class="small fw-bold">Tùy chỉnh</span>
+                                <input class="form-check-input m-0" type="radio" asp-for="Input.Gender" id="gender_custom" value="Khác">
+                            </label>
+                        </div>
+
+                        <span asp-validation-for="Input.Gender" class="text-danger small mt-1 d-block"></span>
                     </div>
 
                     <p class="terms-text">
