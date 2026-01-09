@@ -139,6 +139,14 @@
                 transform: translateY(-2px);
                 color: white;
             }
+
+        .transition-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .transition-btn:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
@@ -293,79 +301,146 @@
         </div>
     </template>
 
+    <audio id="ringtone" loop>
+        <source src="~/uploads/nhac-chuong-cuoc-goi-messenger.mp3" type="audio/mp3">
+    </audio>
+
+    <div class="modal fade" id="incomingCallModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+                <div class="modal-body text-center p-5">
+                    <div class="position-relative d-inline-block mb-4">
+                        <img id="global-caller-avatar" src="/images/default-avatar.png" class="rounded-circle shadow" width="100" height="100" style="object-fit:cover; border: 4px solid #fff;">
+                        <div class="spinner-grow text-primary position-absolute top-50 start-50 translate-middle" style="width: 110px; height: 110px; z-index: -1; opacity: 0.3;" role="status"></div>
+                    </div>
+                    <h4 id="global-caller-name" class="fw-bold mb-1">Người gọi</h4>
+                    <p class="text-muted mb-4">Đang gọi video cho bạn...</p>
+
+                    <div class="d-flex justify-content-center gap-4 align-items-center">
+                        <button class="btn btn-danger rounded-circle p-0 d-flex align-items-center justify-content-center shadow transition-btn" style="width: 60px; height: 60px;" onclick="globalRejectCall()">
+                            <i class="bi bi-telephone-x-fill fs-4"></i>
+                        </button>
+
+                        <button class="btn btn-success rounded-circle p-0 d-flex align-items-center justify-content-center shadow transition-btn" style="width: 60px; height: 60px;" onclick="globalAcceptCall()">
+                            <i class="bi bi-camera-video-fill fs-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/chat.js" asp-append-version="true"></script>
-
-    @await RenderSectionAsync("Scripts", required: false)
 
     <script>
-        let notiConfig = {
-            filter: 'all',
-            skip: 0,
-            take: 5,
-            isLoading: false
-        };
+        window.incomingCallerId = null;
+        window.connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .withAutomaticReconnect()
+            .build();
 
+        window.connection.start()
+            // .then(() => console.log("✅ ChatHub Connected"))
+            .catch(err => console.error("❌ ChatHub Error: ", err));
+
+        window.connection.on("IncomingCall", function (callerId, callerName, callerAvatar) {
+                // console.log("📞 Cuộc gọi từ: ", callerName);
+
+                window.incomingCallerId = callerId;
+                window.incomingCallerName = callerName || "Người dùng Vibee";
+                window.incomingCallerAvatar = callerAvatar || "/images/default-avatar.png";
+
+                var nameEl = document.getElementById('global-caller-name');
+                var avatarEl = document.getElementById('global-caller-avatar');
+
+                if (nameEl) nameEl.innerText = window.incomingCallerName;
+                if (avatarEl) avatarEl.src = window.incomingCallerAvatar;
+
+                var audio = document.getElementById('ringtone');
+                if (audio) {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => {});
+                }
+
+                var modalEl = document.getElementById('incomingCallModal');
+                if(modalEl) {
+                    var m = new bootstrap.Modal(modalEl);
+                    m.show();
+                }
+            });
+
+        window.connection.on("CallEnded", function () {
+            closeGlobalCallModal();
+        });
+
+        function closeGlobalCallModal() {
+            var audio = document.getElementById('ringtone');
+            if (audio) { audio.pause(); audio.currentTime = 0; }
+            var el = document.getElementById('incomingCallModal');
+            if(el) { var m = bootstrap.Modal.getInstance(el); if(m) m.hide(); }
+        }
+
+        function globalRejectCall() {
+            closeGlobalCallModal();
+            if(window.incomingCallerId && window.connection) {
+                window.connection.invoke("RejectCall", window.incomingCallerId);
+            }
+        }
+
+        function globalAcceptCall() {
+                    closeGlobalCallModal();
+
+                    var uid = window.incomingCallerId;
+                    var name = encodeURIComponent(window.incomingCallerName || "Người dùng");
+                    var avatar = encodeURIComponent(window.incomingCallerAvatar || "/images/default-avatar.png");
+
+                    if (window.location.pathname.toLowerCase().includes("/chat")) {
+                        if(typeof acceptIncomingCall === 'function') acceptIncomingCall();
+                        else window.location.href = `/Chat?userId=${uid}&autoAccept=true&name=${name}&avatar=${avatar}`;
+                    } else {
+                        window.location.href = `/Chat?userId=${uid}&autoAccept=true&name=${name}&avatar=${avatar}`;
+                    }
+                }
+
+        let notiConfig = { filter: 'all', skip: 0, take: 5, isLoading: false };
         $(document).ready(function () {
-            var connection = new signalR.HubConnectionBuilder()
+            var notiConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/notificationHub")
                 .withAutomaticReconnect()
                 .build();
 
-            connection.on("ReceiveNotification", function (data) {
+            notiConnection.on("ReceiveNotification", function (data) {
                 let badge = $('#noti-badge');
                 let count = parseInt(badge.text() || 0) + 1;
                 updateBadge(count);
 
-                const Toast = Swal.mixin({
-                    toast: true, position: 'bottom-start', showConfirmButton: false,
-                    timer: 5000, timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer);
-                        toast.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
-                });
-
-                Toast.fire({
-                    icon: 'info',
-                    html: `<div class="d-flex align-items-center gap-2">
-                            <img src="${data.avatar}" class="rounded-circle" width="30" height="30">
-                            <div class="small text-start">${data.content}</div>
-                           </div>`
-                });
+                const Toast = Swal.mixin({ toast: true, position: 'bottom-start', showConfirmButton: false, timer: 5000, timerProgressBar: true });
+                Toast.fire({ icon: 'info', html: `<div class="d-flex align-items-center gap-2"><img src="${data.avatar}" class="rounded-circle" width="30" height="30"><div class="small text-start">${data.content}</div></div>` });
 
                 let list = $('#noti-list');
                 if (list.is(':visible')) {
                     list.find('.text-muted.p-4').remove();
-
-                    let newItem = `
-                    <a href="${data.link}" class="noti-item unread" onclick="handleClickNoti(event, ${data.id}, '${data.link}')">
-                        <img src="${data.avatar}" class="noti-avatar">
-                        <div class="flex-grow-1 ms-2">
-                            <div class="noti-content" style="font-size: 0.9rem; line-height: 1.3;">
-                                ${data.content}
-                            </div>
-                            <div class="noti-time mt-1 text-primary fw-bold">Vừa xong</div>
-                        </div>
-                        <div class="noti-dot"></div>
-                    </a>`;
-
+                    let newItem = `<a href="${data.link}" class="noti-item unread" onclick="handleClickNoti(event, ${data.id}, '${data.link}')"><img src="${data.avatar}" class="noti-avatar"><div class="flex-grow-1 ms-2"><div class="noti-content" style="font-size: 0.9rem;">${data.content}</div><div class="noti-time mt-1 text-primary fw-bold">Vừa xong</div></div><div class="noti-dot"></div></a>`;
                     list.prepend(newItem);
                 }
             });
 
-            connection.start().catch(function (err) {
-                console.error(err.toString());
-            });
+            notiConnection.start().catch(err => console.error("NotiHub Error: ", err));
 
             $('#notiDropdownBtn').on('show.bs.dropdown', function () {
                 notiConfig.skip = 0;
                 $('#noti-list').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
                 $('#noti-footer').addClass('d-none');
-
                 loadNotifications(true);
             });
         });
@@ -373,95 +448,31 @@
         function loadNotifications(isReset = false) {
             if (notiConfig.isLoading) return;
             notiConfig.isLoading = true;
-
             $.get(`/Notification/GetNotifications?filter=${notiConfig.filter}&skip=${notiConfig.skip}&take=${notiConfig.take}`, function (res) {
                 notiConfig.isLoading = false;
-
                 let html = '';
-                if (isReset && res.data.length === 0) {
-                    html = '<div class="text-center p-4 text-muted">Không có thông báo nào.</div>';
-                } else {
+                if (isReset && res.data.length === 0) html = '<div class="text-center p-4 text-muted">Không có thông báo nào.</div>';
+                else {
                     res.data.forEach(n => {
-                        let unreadClass = n.isRead ? 'read' : 'unread';
-                        let timeClass = n.isRead ? 'text-muted' : 'text-primary fw-bold';
-                        let dotHtml = n.isRead ? '' : '<div class="noti-dot"></div>';
-
-                    html += `
-                    <a href="${n.link}" class="noti-item ${unreadClass}" onclick="handleClickNoti(event, ${n.id}, '${n.link}')">
-                        <img src="${n.avatar}" class="noti-avatar">
-                        <div class="flex-grow-1 ms-2">
-                            <div class="noti-content" style="font-size: 0.9rem; line-height: 1.3;">
-                                <strong>${n.senderName}</strong> ${n.actionText}
-                            </div>
-                            <div class="noti-time mt-1 ${timeClass}">${n.time}</div>
-                        </div>
-                        ${dotHtml}
-                    </a>`;
+                        let c = n.isRead ? 'read' : 'unread'; let t = n.isRead ? 'text-muted' : 'text-primary fw-bold'; let d = n.isRead ? '' : '<div class="noti-dot"></div>';
+                        html += `<a href="${n.link}" class="noti-item ${c}" onclick="handleClickNoti(event, ${n.id}, '${n.link}')"><img src="${n.avatar}" class="noti-avatar"><div class="flex-grow-1 ms-2"><div class="noti-content" style="font-size: 0.9rem;"><strong>${n.senderName}</strong> ${n.actionText}</div><div class="noti-time mt-1 ${t}">${n.time}</div></div>${d}</a>`;
                     });
                 }
-
-                if (isReset) $('#noti-list').html(html);
-                else $('#noti-list').append(html);
-
+                if (isReset) $('#noti-list').html(html); else $('#noti-list').append(html);
                 notiConfig.skip += res.data.length;
-                if (notiConfig.skip < res.total) {
-                    $('#noti-footer').removeClass('d-none');
-                } else {
-                    $('#noti-footer').addClass('d-none');
-                }
-
+                if (notiConfig.skip < res.total) $('#noti-footer').removeClass('d-none'); else $('#noti-footer').addClass('d-none');
                 updateBadge(res.unreadCount);
-            }).fail(function() {
-                notiConfig.isLoading = false;
-                if (isReset) $('#noti-list').html('<div class="text-center p-4 text-danger">Lỗi tải dữ liệu.</div>');
             });
         }
-
-        function switchTab(type) {
-            if(notiConfig.filter === type) return;
-
-            notiConfig.filter = type;
-            notiConfig.skip = 0;
-
-            $('.noti-tabs .btn-tab').removeClass('active');
-            $(`.noti-tabs .btn-tab[onclick="switchTab('${type}')"]`).addClass('active');
-
-            $('#noti-list').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>');
-            $('#noti-footer').addClass('d-none');
-            loadNotifications(true);
-        }
-
-        function loadMoreNotis() {
-            loadNotifications(false);
-        }
-
-        function markAllRead() {
-            $.post('/Notification/MarkAllRead', function(res) {
-                if(res.success) {
-                    $('.noti-item').removeClass('unread').addClass('read');
-                    $('.noti-item .noti-time').removeClass('text-primary fw-bold').addClass('text-muted');
-                    $('.noti-dot').remove();
-                    updateBadge(0);
-                }
-            });
-        }
-
-        function handleClickNoti(e, id, link) {
-            e.preventDefault();
-
-            $.post('/Notification/MarkRead', { id: id }, function () {
-                window.location.href = link;
-            });
-        }
-
-        function updateBadge(count) {
-            let badge = $('#noti-badge');
-            if (count > 0) {
-                badge.text(count).removeClass('d-none');
-            } else {
-                badge.addClass('d-none');
-            }
-        }
+        function switchTab(type) { if(notiConfig.filter === type) return; notiConfig.filter = type; notiConfig.skip = 0; $('.noti-tabs .btn-tab').removeClass('active'); $(`.noti-tabs .btn-tab[onclick="switchTab('${type}')"]`).addClass('active'); $('#noti-list').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>'); $('#noti-footer').addClass('d-none'); loadNotifications(true); }
+        function loadMoreNotis() { loadNotifications(false); }
+        function markAllRead() { $.post('/Notification/MarkAllRead', function(res) { if(res.success) { $('.noti-item').removeClass('unread').addClass('read'); $('.noti-item .noti-time').removeClass('text-primary fw-bold').addClass('text-muted'); $('.noti-dot').remove(); updateBadge(0); } }); }
+        function handleClickNoti(e, id, link) { e.preventDefault(); $.post('/Notification/MarkRead', { id: id }, function () { window.location.href = link; }); }
+        function updateBadge(count) { let b = $('#noti-badge'); if (count > 0) b.text(count).removeClass('d-none'); else b.addClass('d-none'); }
     </script>
+
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
