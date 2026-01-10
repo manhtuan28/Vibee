@@ -36,11 +36,13 @@ jobs:
 
       - name: Upload zip
         run: |
+          # Lưu ý: Windows OpenSSH đôi khi kén đường dẫn, dùng dấu / thay vì \ cho đường dẫn đích thường an toàn hơn với scp
           scp -P ${{ secrets.SERVER_PORT }} -i ~/.ssh/id_ed25519 \
             vibee.zip ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:"D:/deploy/incoming/vibee.zip"
 
       - name: Deploy on server (PROD)
         run: |
+          # Lệnh này gọi PowerShell trên Windows Server để chạy script deploy
           ssh -p ${{ secrets.SERVER_PORT }} -i ~/.ssh/id_ed25519 \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
             'powershell -ExecutionPolicy Bypass -File "D:\deploy\scripts\deploy.ps1" -ZipPath "D:\deploy\incoming\vibee.zip" -SiteName "Vibee" -DestPath "D:\sites\Vibee"'
