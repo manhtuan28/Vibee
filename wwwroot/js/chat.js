@@ -147,12 +147,10 @@ if (connection) {
     });
 
     connection.on("CallRejected", function () {
-        //console.log("Cuộc gọi bị từ chối hoặc người dùng bận.");
         endCall(false);
     });
 
     connection.on("CallEnded", function () {
-        //console.log("Đối phương đã kết thúc cuộc gọi.");
         endCall(false);
     });
 
@@ -250,7 +248,7 @@ function loadFullChat(userId, fullName, avatar) {
                 res.data.forEach(msg => {
                     appendMainMessage({
                         id: msg.id, content: msg.content, createdAt: msg.createdAt,
-                        isMine: msg.isMine, type: msg.type || 'Text', replyTo: msg.replyTo
+                        isMine: msg.isMine, type: msg.type || 'Text', replyTo: msg.replyTo,
                     });
                 });
                 scrollMainToBottom();
