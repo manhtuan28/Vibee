@@ -661,3 +661,420 @@ document.addEventListener('keydown', function (event) {
         if (event.key === "ArrowLeft") prevMedia(event);
     }
 });
+
+// STORY JS
+
+$(document).ready(function () {
+    loadStories();
+});
+
+let allStories = [];
+let currentStoryUserIdx = 0;
+let currentStoryItemIdx = 0;
+let storyTimer = null;
+
+function loadStories() {
+    $.get('/Story/GetStories', function (res) {
+        if (res.success) {
+            allStories = res.data;
+            renderStoriesTray();
+        }
+    });
+}
+
+function renderStoriesTray() {
+    $('.story-card:not(.create-story-card)').remove();
+
+    allStories.forEach((user, idx) => {
+        let mediaHtml = user.items[0].type === 'Video'
+            ? `<video src="${user.items[0].mediaUrl}#t=0.5" class="friend-story-bg" preload="metadata" muted></video>`
+            : `<img src="${user.items[0].mediaUrl}" class="friend-story-bg">`;
+
+        let html = `
+            <div class="story-card" onclick="openStoryViewer(${idx})">
+                <div class="friend-story-bg-wrapper">
+                    ${mediaHtml}
+                </div>
+                <img src="${user.userAvatar}" class="friend-story-avatar">
+                <div class="friend-story-name">${user.userName}</div>
+            </div>
+        `;
+        $('#stories-tray').append(html);
+    });
+}
+
+function uploadStory(input) {
+    if (input.files.length === 0) return;
+
+    let file = input.files[0];
+    let formData = new FormData();
+    formData.append('file', file);
+
+    Swal.fire({
+        title: 'Đang tạo tin...',
+        html: '<div class="progress mt-2"><div id="upload-progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div></div>',
+        showConfirmButton: false,
+        allowOutsideClick: false
+    });
+
+    $.ajax({
+        url: '/Story/Create',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        xhr: function () {
+            var xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener("progress", function (evt) {
+                if (evt.lengthComputable) {
+                    var percent = Math.round((evt.loaded / evt.total) * 100);
+                    $("#upload-progress").css("width", percent + "%");
+                }
+            }, false);
+            return xhr;
+        },
+        success: function (res) {
+            Swal.close();
+            if (res.success) {
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                Toast.fire({ icon: 'success', title: 'Tin của bạn đã được thêm' });
+                loadStories();
+            } else {
+                Swal.fire('Lỗi', res.message, 'error');
+            }
+        },
+        error: function () {
+            Swal.fire('Lỗi', 'Không kết nối được server', 'error');
+        }
+    });
+    input.value = '';
+}
+
+function openStoryViewer(userIdx) {
+    currentStoryUserIdx = userIdx;
+    currentStoryItemIdx = 0;
+    $('#story-viewer').removeClass('d-none');
+    $('body').css('overflow', 'hidden');
+    showStoryItem();
+}
+
+function closeStoryViewer() {
+    $('#story-viewer').addClass('d-none');
+    $('body').css('overflow', '');
+    clearTimeout(storyTimer);
+    document.getElementById('viewer-video').pause();
+}
+
+function showStoryItem() {
+    clearTimeout(storyTimer);
+
+    let user = allStories[currentStoryUserIdx];
+    let item = user.items[currentStoryItemIdx];
+
+    $('#viewer-avatar').attr('src', user.userAvatar);
+    $('#viewer-name').text(user.userName);
+    moment.locale('vi');
+    $('#viewer-time').text(moment.utc(item.time).local().fromNow());
+
+    if (user.isMe) {
+        $('#btn-delete-story').removeClass('d-none');
+        $('#story-reaction-bar').addClass('d-none');
+
+        $('#story-viewers-btn').removeClass('d-none');
+        $('#story-viewers-count').text(item.viewCount);
+        $('#story-viewers-indicator').removeClass('d-none');
+
+        renderViewerList(item.viewers);
+    } else {
+        $('#btn-delete-story').addClass('d-none');
+        $('#story-reaction-bar').removeClass('d-none');
+        $('#story-viewers-indicator').addClass('d-none');
+
+        $.post('/Story/ViewStory', { id: item.id });
+    }
+
+    const reactContainer = $('#story-reactions-display');
+    reactContainer.empty();
+    if (item.topReactions && item.topReactions.length > 0) {
+        const emojiMap = { 'Like': '👍', 'Love': '❤️', 'Haha': '😆', 'Wow': '😮', 'Sad': '😢', 'Angry': '😡' };
+        item.topReactions.forEach(r => {
+            let icon = emojiMap[r.type] || '👍';
+            reactContainer.append(`<div class="mini-reaction-icon">${icon}</div>`);
+        });
+    }
+
+    let progressHtml = '';
+    user.items.forEach((it, i) => {
+        let width = (i < currentStoryItemIdx) ? '100%' : '0%';
+        let idAttr = (i === currentStoryItemIdx) ? 'id="active-progress-fill"' : '';
+        progressHtml += `<div class="progress-segment"><div class="progress-fill" style="width:${width}" ${idAttr}></div></div>`;
+    });
+    $('#story-progress-container').html(progressHtml);
+
+    let imgMain = document.getElementById('viewer-img');
+    let vidMain = document.getElementById('viewer-video');
+    let imgBg = document.getElementById('viewer-bg-img');
+    let vidBg = document.getElementById('viewer-bg-vid');
+
+    imgMain.classList.add('d-none');
+    vidMain.classList.add('d-none');
+    imgBg.classList.add('d-none');
+    vidBg.classList.add('d-none');
+
+    $('#video-controls').addClass('d-none');
+    $('#center-play-icon').hide();
+
+    if (item.type === 'Image') {
+        vidMain.pause(); vidBg.pause();
+
+        imgMain.src = item.mediaUrl;
+        imgBg.src = item.mediaUrl;
+
+        imgMain.classList.remove('d-none');
+        imgBg.classList.remove('d-none');
+
+        runProgressBar(5000);
+    } else {
+        imgMain.src = ""; imgBg.src = "";
+
+        vidMain.src = item.mediaUrl;
+        vidBg.src = item.mediaUrl;
+
+        vidMain.classList.remove('d-none');
+        vidBg.classList.remove('d-none');
+
+        vidMain.currentTime = 0;
+        vidMain.muted = false;
+        updateMuteIcon(false);
+
+        vidBg.muted = true;
+        vidBg.currentTime = 0;
+
+        var playPromise = vidMain.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                vidBg.play();
+                $('#video-controls').removeClass('d-none');
+            }).catch(error => {
+                console.log("Auto-play prevented");
+                vidMain.muted = true;
+                updateMuteIcon(true);
+                vidMain.play();
+                vidBg.play();
+                $('#video-controls').removeClass('d-none');
+            });
+        }
+
+        vidMain.onended = () => nextStoryItem();
+
+        vidMain.onloadedmetadata = function () {
+            let duration = vidMain.duration * 1000;
+            if (duration > 30000) duration = 30000;
+            if (duration < 3000) duration = 3000;
+            runProgressBar(duration);
+        };
+    }
+}
+
+function runProgressBar(duration) {
+    let bar = document.getElementById('active-progress-fill');
+    if (!bar) return;
+
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+
+    setTimeout(() => {
+        bar.style.transition = `width ${duration}ms linear`;
+        bar.style.width = '100%';
+    }, 10);
+
+    storyTimer = setTimeout(nextStoryItem, duration);
+}
+
+function nextStoryItem(e) {
+    if (e) e.stopPropagation();
+    let user = allStories[currentStoryUserIdx];
+
+    if (currentStoryItemIdx < user.items.length - 1) {
+        currentStoryItemIdx++;
+        showStoryItem();
+    } else {
+        if (currentStoryUserIdx < allStories.length - 1) {
+            currentStoryUserIdx++;
+            currentStoryItemIdx = 0;
+            showStoryItem();
+        } else {
+            closeStoryViewer();
+        }
+    }
+}
+
+function prevStoryItem(e) {
+    if (e) e.stopPropagation();
+
+    if (currentStoryItemIdx > 0) {
+        currentStoryItemIdx--;
+        showStoryItem();
+    } else {
+        if (currentStoryUserIdx > 0) {
+            currentStoryUserIdx--;
+            currentStoryItemIdx = allStories[currentStoryUserIdx].items.length - 1;
+            showStoryItem();
+        }
+    }
+}
+
+function deleteCurrentStory() {
+    let user = allStories[currentStoryUserIdx];
+    let item = user.items[currentStoryItemIdx];
+
+    let vidMain = document.getElementById('viewer-video');
+    let vidBg = document.getElementById('viewer-bg-vid');
+    if (!vidMain.paused) {
+        vidMain.pause();
+        vidBg.pause();
+        let bar = document.getElementById('active-progress-fill');
+        if (bar) {
+            let w = window.getComputedStyle(bar).width;
+            bar.style.transitionProperty = 'none';
+            bar.style.width = w;
+        }
+        clearTimeout(storyTimer);
+    }
+
+    Swal.fire({
+        title: 'Xóa tin này?',
+        text: "Bạn sẽ không thể khôi phục tin sau khi xóa.",
+        icon: 'warning',
+        target: document.getElementById('story-viewer'),
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy',
+        background: '#242526',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('/Story/Delete', { id: item.id }, function (res) {
+                if (res.success) {
+                    user.items.splice(currentStoryItemIdx, 1);
+
+                    if (user.items.length === 0) {
+                        allStories.splice(currentStoryUserIdx, 1);
+                        closeStoryViewer();
+                        renderStoriesTray();
+                    } else {
+                        if (currentStoryItemIdx >= user.items.length) {
+                            currentStoryItemIdx = user.items.length - 1;
+                        }
+                        showStoryItem();
+                    }
+                }
+            });
+        } else {
+            if (!vidMain.classList.contains('d-none')) {
+                toggleStoryVideoPlay();
+            }
+        }
+    });
+}
+function sendStoryReaction(type) {
+    let user = allStories[currentStoryUserIdx];
+    let item = user.items[currentStoryItemIdx];
+
+    const emojiMap = { 'Like': '👍', 'Love': '❤️', 'Haha': '😆', 'Wow': '😮', 'Sad': '😢', 'Angry': '😡' };
+    let emoji = emojiMap[type] || '👍';
+
+    let container = document.getElementById('flying-reaction-container');
+    let el = document.createElement('div');
+    el.innerText = emoji;
+    el.className = 'flying-emoji';
+    el.style.left = (50 + (Math.random() * 20 - 10)) + '%';
+    container.appendChild(el);
+
+    setTimeout(() => el.remove(), 2000);
+
+    $.post('/Story/React', { storyId: item.id, type: type });
+}
+
+function toggleStoryVideoPlay() {
+    let vidMain = document.getElementById('viewer-video');
+    let vidBg = document.getElementById('viewer-bg-vid');
+
+    if (!vidMain.classList.contains('d-none')) {
+        if (vidMain.paused) {
+            vidMain.play();
+            vidBg.play();
+            $('#center-play-icon').hide();
+            let bar = document.getElementById('active-progress-fill');
+            if (bar) bar.style.transitionProperty = 'width';
+            clearTimeout(storyTimer);
+            let remainingTime = (vidMain.duration - vidMain.currentTime) * 1000;
+            storyTimer = setTimeout(nextStoryItem, remainingTime);
+        } else {
+            vidMain.pause();
+            vidBg.pause();
+            $('#center-play-icon').show();
+            let bar = document.getElementById('active-progress-fill');
+            if (bar) {
+                let computedWidth = window.getComputedStyle(bar).width;
+                bar.style.transitionProperty = 'none';
+                bar.style.width = computedWidth;
+            }
+            clearTimeout(storyTimer);
+        }
+    }
+}
+
+function toggleStoryMute() {
+    let vidMain = document.getElementById('viewer-video');
+    if (vidMain) {
+        vidMain.muted = !vidMain.muted;
+        updateMuteIcon(vidMain.muted);
+    }
+    if (event) event.stopPropagation();
+}
+
+function updateMuteIcon(isMuted) {
+    let icon = document.getElementById('icon-mute');
+    if (isMuted) {
+        icon.className = 'bi bi-volume-mute-fill';
+    } else {
+        icon.className = 'bi bi-volume-up-fill';
+    }
+}
+
+function toggleViewerList() {
+    let modal = $('#viewer-list-modal');
+    if (modal.hasClass('active')) {
+        modal.removeClass('active');
+        let vid = document.getElementById('viewer-video');
+        if (!vid.classList.contains('d-none') && vid.paused) toggleStoryVideoPlay();
+    } else {
+        modal.addClass('active');
+        let vid = document.getElementById('viewer-video');
+        if (!vid.paused) toggleStoryVideoPlay();
+        clearTimeout(storyTimer);
+    }
+}
+function renderViewerList(viewers) {
+    let container = $('#viewer-list-content');
+    container.empty();
+    if (!viewers || viewers.length === 0) {
+        container.html('<div class="text-center text-muted mt-3 small">Chưa có ai xem tin này</div>');
+        return;
+    }
+    viewers.forEach(v => {
+        let time = moment.utc(v.time).local().fromNow();
+        let html = `
+            <div class="viewer-item">
+                <img src="${v.avatar}">
+                <div class="viewer-item-info">
+                    <span class="viewer-item-name">${v.userName}</span>
+                    <span class="viewer-item-time">${time}</span>
+                </div>
+            </div>`;
+        container.append(html);
+    });
+}

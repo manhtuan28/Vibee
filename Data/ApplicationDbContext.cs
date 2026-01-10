@@ -20,6 +20,9 @@ namespace Vibee.Data
         public DbSet<PostMedia> PostMedias { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Story> Stories { get; set; }
+        public DbSet<StoryReaction> StoryReactions { get; set; }
+        public DbSet<StoryView> StoryViews { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

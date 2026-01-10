@@ -26,6 +26,89 @@
         </div>
 
         <div class="col-xl-6 col-lg-6 col-12">
+
+            <div class="stories-container" id="stories-tray">
+                <div class="story-card create-story-card" onclick="document.getElementById('inp-story-file').click()">
+                    <div class="create-story-img-wrapper">
+                        <img src="@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")" class="create-story-img">
+                    </div>
+                    <div class="create-story-btn"><i class="bi bi-plus"></i></div>
+                    <div class="create-story-text">Tạo tin</div>
+                    <input type="file" id="inp-story-file" accept="image/*,video/*" hidden onchange="uploadStory(this)">
+                </div>
+            </div>
+
+            <div id="story-viewer" class="d-none">
+
+                <div class="story-controls-top">
+                    <div id="btn-delete-story" class="story-btn-circle story-btn-delete d-none" onclick="deleteCurrentStory()" title="Xóa tin này">
+                        <i class="bi bi-trash-fill"></i>
+                    </div>
+                    <div class="story-btn-circle" onclick="closeStoryViewer()">
+                        <i class="bi bi-x-lg"></i>
+                    </div>
+                </div>
+
+                <div id="video-controls" class="story-video-controls d-none">
+                    <div class="video-control-btn" onclick="toggleStoryMute()" title="Bật/Tắt tiếng">
+                        <i id="icon-mute" class="bi bi-volume-up-fill"></i>
+                    </div>
+                </div>
+
+                <div class="story-content-wrapper">
+                    <div id="flying-reaction-container" style="position:absolute; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index: 50;"></div>
+
+                    <div class="story-progress-bar" id="story-progress-container"></div>
+
+                    <div class="story-header">
+                        <img id="viewer-avatar" class="viewer-avatar" src="">
+                        <div class="viewer-info">
+                            <span id="viewer-name" class="viewer-name"></span>
+                            <span id="viewer-time" class="viewer-time"></span>
+                        </div>
+                    </div>
+
+                    <div class="story-media-container" onclick="toggleStoryVideoPlay()">
+                        <img id="viewer-bg-img" class="story-bg-blur d-none">
+                        <video id="viewer-bg-vid" class="story-bg-blur d-none" muted loop></video>
+
+                        <img id="viewer-img" class="story-media-main d-none">
+                        <video id="viewer-video" class="story-media-main d-none" autoplay playsinline></video>
+
+                        <div id="center-play-icon" class="center-play-icon">
+                            <i class="bi bi-play-circle-fill"></i>
+                        </div>
+                    </div>
+
+                    <div class="story-nav-area nav-prev" onclick="prevStoryItem(event)"></div>
+                    <div class="story-nav-area nav-next" onclick="nextStoryItem(event)"></div>
+
+                    <div id="story-reaction-bar" class="story-reaction-bar d-none" onclick="event.stopPropagation()">
+                        <div class="react-btn" onclick="sendStoryReaction('Like')">👍</div>
+                        <div class="react-btn" onclick="sendStoryReaction('Love')">❤️</div>
+                        <div class="react-btn" onclick="sendStoryReaction('Haha')">😆</div>
+                        <div class="react-btn" onclick="sendStoryReaction('Wow')">😮</div>
+                        <div class="react-btn" onclick="sendStoryReaction('Sad')">😢</div>
+                        <div class="react-btn" onclick="sendStoryReaction('Angry')">😡</div>
+                    </div>
+                </div>
+
+                <div id="story-viewers-indicator" class="story-viewers-btn d-none" onclick="toggleViewerList()">
+                    <i class="bi bi-eye-fill"></i> <span id="story-viewers-count">0</span>
+                </div>
+
+                <div id="story-reactions-display" class="story-reactions-display"></div>
+
+                <div id="viewer-list-modal" class="viewer-list-overlay" onclick="event.stopPropagation()">
+                    <div class="viewer-list-header">
+                        <h6 class="mb-0 fw-bold">Người xem</h6>
+                        <i class="bi bi-x-lg cursor-pointer" onclick="toggleViewerList()"></i>
+                    </div>
+                    <div class="viewer-list-body" id="viewer-list-content">
+                    </div>
+                </div>
+            </div>
+
             <div class="feed-wrapper">
                 <div class="fb-card p-3">
                     <div class="d-flex align-items-center mb-3">
@@ -311,8 +394,13 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/vi.min.js"></script>
+
     <script>const currentUserAvatar = '@(Model.CurrentUser?.AvatarUrl ?? "/images/default-avatar.png")';</script>
+
     <script src="~/js/home.js"></script>
+
     <script>
         $(document).ready(function() {
             setTimeout(initFeedVideos, 500);
