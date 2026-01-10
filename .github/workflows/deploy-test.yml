@@ -1,16 +1,15 @@
-name: Deploy Vibee (IIS)
+name: Deploy Vibee - TEST
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "test" ]
 
 jobs:
-  deploy:
+  deploy_test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup .NET 10 (preview)
         uses: actions/setup-dotnet@v4
@@ -26,7 +25,7 @@ jobs:
       - name: Zip publish
         run: |
           cd publish
-          zip -r ../vibee.zip .
+          zip -r ../vibee-test.zip .
 
       - name: Setup SSH
         run: |
@@ -38,10 +37,10 @@ jobs:
       - name: Upload zip
         run: |
           scp -P ${{ secrets.SERVER_PORT }} -i ~/.ssh/id_ed25519 \
-            vibee.zip ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:"D:/deploy/incoming/vibee.zip"
+            vibee-test.zip ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:"D:/deploy/incoming/vibee-test.zip"
 
-      - name: Deploy on server
+      - name: Deploy on server (TEST)
         run: |
           ssh -p ${{ secrets.SERVER_PORT }} -i ~/.ssh/id_ed25519 \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            'powershell -ExecutionPolicy Bypass -File "D:\deploy\scripts\deploy.ps1" -ZipPath "D:\deploy\incoming\vibee.zip" -SiteName "Vibee" -DestPath "D:\sites\Vibee"'
+            'powershell -ExecutionPolicy Bypass -File "D:\deploy\scripts\deploy.ps1" -ZipPath "D:\deploy\incoming\vibee-test.zip" -SiteName "VibeeTest" -DestPath "D:\sites\Vibee-Test"'
