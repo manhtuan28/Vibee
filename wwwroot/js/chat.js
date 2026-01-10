@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const callerAvatar = urlParams.get('avatar');
 
     if (autoAccept === 'true' && targetId) {
-        //console.log("🔄 Đang tự động kết nối cuộc gọi với:", targetId);
 
         window.incomingCallerId = targetId;
         if (callerName) window.incomingCallerName = decodeURIComponent(callerName);
@@ -354,18 +353,90 @@ function sendMainChat() {
 
 function uploadFile(input) {
     if (input.files.length === 0) return;
-    var formData = new FormData();
-    formData.append("file", input.files[0]);
 
-    fetch('/Chat/UploadChatFile', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(res => {
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const tempUrl = URL.createObjectURL(file);
+    const tempId = "temp-" + Date.now();
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+
+    let contentHtml = "";
+    if (isImage) {
+        contentHtml = `<div class="msg-uploading">
+                            <img src="${tempUrl}" class="chat-image" style="border-radius:12px;">
+                            <div class="upload-overlay"><div class="upload-progress-circle"></div></div>
+                       </div>`;
+    } else if (isVideo) {
+        contentHtml = `<div class="msg-uploading">
+                            <video src="${tempUrl}" class="chat-video" style="border-radius:12px;"></video>
+                            <div class="upload-overlay"><div class="upload-progress-circle"></div></div>
+                       </div>`;
+    } else {
+        contentHtml = `<div class="p-3 border rounded bg-light d-flex align-items-center gap-2">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                            <span>Đang gửi file...</span>
+                       </div>`;
+    }
+
+    const body = document.getElementById('main-chat-body');
+    const div = document.createElement('div');
+    div.id = tempId;
+    div.className = `msg-row msg-mine`;
+    div.innerHTML = `<div class="msg-content-wrapper">
+                        <div class="msg-bubble p-0 bg-transparent shadow-none">
+                            ${contentHtml}
+                        </div>
+                     </div>`;
+
+    body.appendChild(div);
+    scrollMainToBottom();
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/Chat/UploadChatFile", true);
+
+    xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+        }
+    };
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            const res = JSON.parse(xhr.responseText);
             if (res.success) {
                 const replyIdInt = replyingToId ? parseInt(replyingToId) : null;
-                connection.invoke("SendMessage", window.currentReceiverId, res.url, res.type, replyIdInt);
-                cancelReply();
+
+                connection.invoke("SendMessage", window.currentReceiverId, res.url, res.type, replyIdInt)
+                    .then(() => {
+                        const tempEl = document.getElementById(tempId);
+                        if (tempEl) tempEl.remove();
+                        cancelReply();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Lỗi gửi tin nhắn SignalR");
+                    });
+            } else {
+                alert("Lỗi server: " + res.message);
+                document.getElementById(tempId).remove();
             }
-        });
+        } else {
+            alert("Lỗi upload file.");
+            document.getElementById(tempId).remove();
+        }
+    };
+
+    xhr.onerror = function () {
+        alert("Không thể kết nối tới server.");
+        document.getElementById(tempId).remove();
+    };
+
+    xhr.send(formData);
+
+    input.value = "";
 }
 
 function startReply(msgId) {
@@ -521,8 +592,48 @@ function startTimer() {
     }, 1000);
 }
 function stopTimer() { if (callTimerInterval) { clearInterval(callTimerInterval); callTimerInterval = null; } callStartTime = null; }
-function toggleMute() { if (localStream) { const t = localStream.getAudioTracks()[0]; if (t) t.enabled = !t.enabled; } }
-function toggleCam() { if (localStream) { const t = localStream.getVideoTracks()[0]; if (t) t.enabled = !t.enabled; } }
+function toggleMute() {
+    if (localStream) {
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+            audioTrack.enabled = !audioTrack.enabled;
+
+            const btn = document.getElementById('btn-mute');
+            const icon = btn.querySelector('i');
+
+            if (audioTrack.enabled) {
+                icon.className = 'bi bi-mic-fill fs-5';
+                btn.style.backgroundColor = '';
+                btn.classList.remove('bg-danger', 'border-0');
+            } else {
+                icon.className = 'bi bi-mic-mute-fill fs-5';
+                btn.style.backgroundColor = '#dc3545';
+                btn.classList.add('bg-danger', 'border-0');
+            }
+        }
+    }
+}
+function toggleCam() {
+    if (localStream) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+            videoTrack.enabled = !videoTrack.enabled;
+
+            const btn = document.getElementById('btn-cam');
+            const icon = btn.querySelector('i');
+
+            if (videoTrack.enabled) {
+                icon.className = 'bi bi-camera-video-fill fs-5';
+                btn.style.backgroundColor = '';
+                btn.classList.remove('bg-danger', 'border-0');
+            } else {
+                icon.className = 'bi bi-camera-video-off-fill fs-5';
+                btn.style.backgroundColor = '#dc3545';
+                btn.classList.add('bg-danger', 'border-0');
+            }
+        }
+    }
+}
 
 function playMsgSound() { var a = document.getElementById("msg-sound"); if (a) a.play().catch(e => { }); }
 function updateMsgBadge() { var b = document.getElementById("msg-badge"); if (b) { var c = parseInt(b.innerText) || 0; b.innerText = (c + 1) > 9 ? "9+" : (c + 1); b.classList.remove("d-none"); } }
