@@ -18,8 +18,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
     <style>
         :root {
             --vibee-primary: #1877f2;
@@ -331,12 +329,6 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -347,14 +339,13 @@
         window.connection = new signalR.HubConnectionBuilder()
             .withUrl("/chatHub")
             .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.None)
             .build();
 
         window.connection.start()
-            // .then(() => console.log("✅ ChatHub Connected"))
             .catch(err => console.error("❌ ChatHub Error: ", err));
 
         window.connection.on("IncomingCall", function (callerId, callerName, callerAvatar) {
-                // console.log("📞 Cuộc gọi từ: ", callerName);
 
                 window.incomingCallerId = callerId;
                 window.incomingCallerName = callerName || "Người dùng Vibee";
@@ -417,6 +408,7 @@
             var notiConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/notificationHub")
                 .withAutomaticReconnect()
+                .configureLogging(signalR.LogLevel.None)
                 .build();
 
             notiConnection.on("ReceiveNotification", function (data) {
