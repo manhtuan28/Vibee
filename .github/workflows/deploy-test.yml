@@ -48,3 +48,4 @@ jobs:
           ssh -p ${{ secrets.SERVER_PORT }} -i ~/.ssh/id_ed25519 \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
             'powershell -ExecutionPolicy Bypass -File "D:\deploy\scripts\deploy.ps1" -ZipPath "D:\deploy\incoming\vibee-test.zip" -SiteName "VibeeTest" -DestPath "D:\sites\Vibee-Test"'
+
