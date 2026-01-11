@@ -107,6 +107,8 @@ namespace Vibee.Controllers
         {
             if (string.IsNullOrWhiteSpace(content)) return Json(new { success = false });
 
+            content = System.Net.WebUtility.HtmlEncode(content);
+
             var user = await _userManager.GetUserAsync(User);
             var post = await _context.Posts.FindAsync(postId);
             if (post == null) return Json(new { success = false });
