@@ -458,6 +458,12 @@ namespace Vibee.Migrations
                     b.Property<string>("Emotion")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("FakeLikeCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FakeShareCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("IpAddress")
                         .HasColumnType("nvarchar(max)");
 

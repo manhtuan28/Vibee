@@ -159,7 +159,9 @@
                                     </small>
                                 </div>
                                 <div class="dropdown">
-                                    <button class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:36px; height:36px" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                    <button type="button" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:36px; height:36px" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
                                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                         @if (post.UserId == Model.CurrentUser?.Id)
                                         {
@@ -174,7 +176,7 @@
                                 </div>
                             </div>
 
-                            <div class="px-3 pb-2 text-dark" style="font-size:0.95rem">@Html.Raw(post.Content)</div>
+                            <div class="px-3 pb-2 text-dark text-break" style="font-size:0.95rem">@Html.Raw(post.Content)</div>
 
                             @if (post.SharedPost != null)
                             {
@@ -189,7 +191,7 @@
                                             <div class="text-muted" style="font-size: 0.7rem;">@original.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                                         </div>
                                     </div>
-                                    <div class="p-2 small text-dark">@Html.Raw(original.Content)</div>
+                                    <div class="p-2 small text-dark text-break">@Html.Raw(original.Content)</div>
                                     @if (original.Medias != null && original.Medias.Any())
                                     {
                                         var count = original.Medias.Count;
@@ -202,7 +204,6 @@
                                                 var media = displayMedias[i];
                                                 bool isLastItem = (count > 5 && i == 4);
                                                 int remaining = count - 5;
-
                                                 if (media.Type == Vibee.Models.MediaType.Video)
                                                 {
                                                     string dataSetup = "{ \"fluid\": false, \"fill\": true, \"controls\": true, \"preload\": \"metadata\" }";
@@ -241,7 +242,6 @@
                                         var media = displayMedias[i];
                                         bool isLastItem = (count > 5 && i == 4);
                                         int remaining = count - 5;
-
                                         if (media.Type == Vibee.Models.MediaType.Video)
                                         {
                                             string dataSetup = "{ \"fluid\": false, \"fill\": true, \"controls\": true, \"preload\": \"metadata\" }";
@@ -269,7 +269,11 @@
 
                             <div class="d-flex align-items-center justify-content-between px-3 py-2 text-muted small">
                                 <div class="d-flex align-items-center" id="count-react-@post.Id">
-                                    @if (post.Likes != null && post.Likes.Any())
+                                    @{
+                                        // Tính tổng like thật + ảo
+                                        var totalLikes = (post.Likes?.Count ?? 0) + post.FakeLikeCount;
+                                    }
+                                    @if (totalLikes > 0)
                                     {
                                         var topReactions = post.Likes.GroupBy(l => l.Type).OrderByDescending(g => g.Count()).Take(2).Select(g => g.Key).ToList();
                                         var icons = new Dictionary<string, string> {
@@ -288,16 +292,24 @@
                                                     <div class="reaction-icon-img">@Html.Raw(icons[type])</div>
                                                 }
                                             }
+                                            @if (!post.Likes.Any() && post.FakeLikeCount > 0)
+                                            {
+                                                <div class="reaction-icon-img">@Html.Raw(icons["Like"])</div>
+                                            }
                                         </div>
-                                        <span class="hover-underline cursor-pointer text-muted small" data-count="@post.Likes.Count">@post.Likes.Count</span>
+                                        <span class="hover-underline cursor-pointer text-muted small" data-count="@totalLikes">@totalLikes</span>
                                     }
                                 </div>
+
                                 <div class="d-flex gap-3">
                                     <span class="cursor-pointer hover-underline" onclick="toggleComment(@post.Id)">@(post.Comments?.Count ?? 0) bình luận</span>
                                     <span id="share-count-@post.Id" class="cursor-pointer hover-underline">
-                                        @if (post.Shares?.Any() == true)
+                                        @{
+                                            var totalShares = (post.Shares?.Count ?? 0) + post.FakeShareCount;
+                                        }
+                                        @if (totalShares > 0)
                                         {
-                                            <span>@post.Shares.Count lượt chia sẻ</span>
+                                            <span>@totalShares lượt chia sẻ</span>
                                         }
                                     </span>
                                 </div>

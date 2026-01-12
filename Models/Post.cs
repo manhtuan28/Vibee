@@ -40,5 +40,8 @@ namespace Vibee.Models
 
         [InverseProperty("SharedPost")]
         public virtual ICollection<Post> Shares { get; set; } = new List<Post>();
+
+        public int FakeLikeCount { get; set; } = 0;
+        public int FakeShareCount { get; set; } = 0;
     }
 }

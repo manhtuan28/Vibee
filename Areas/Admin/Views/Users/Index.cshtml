@@ -4,103 +4,200 @@
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+    .admin-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        background: #fff;
+        overflow: hidden;
+    }
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white py-3">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h5 class="fw-bold text-primary m-0"><i class="bi bi-people-fill me-2"></i> Danh sách thành viên</h5>
-            </div>
-            <div class="col-md-6">
-                <form method="get" class="d-flex">
-                    <input type="text" name="keyword" class="form-control me-2" placeholder="Tìm tên hoặc email..." value="@Model.Keyword">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
-                    @if (!string.IsNullOrEmpty(Model.Keyword))
-                    {
-                        <a href="/Admin/Users" class="btn btn-outline-secondary ms-2" title="Xóa tìm kiếm"><i class="bi bi-x-lg"></i></a>
-                    }
-                </form>
-            </div>
-        </div>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+        color: #fff;
+    }
+
+    .badge-soft-success {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .badge-soft-warning {
+        background: #fff3cd;
+        color: #664d03;
+    }
+
+    .badge-soft-danger {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .badge-soft-primary {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .table-modern th {
+        border-bottom: 2px solid #f0f0f0;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 1rem;
+        background: #fafafa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    .table-modern td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: 0.2s;
+        border: none;
+        background: #f8f9fa;
+        color: #6c757d;
+    }
+
+        .btn-icon:hover {
+            transform: translateY(-2px);
+            background: #e9ecef;
+            color: #0d6efd;
+        }
+
+        .btn-icon.text-danger:hover {
+            background: #fee2e2;
+            color: #dc3545;
+        }
+
+    .search-box {
+        border-radius: 50px;
+        padding-left: 20px;
+        border: 1px solid #dee2e6;
+        background: #f8f9fa;
+    }
+
+        .search-box:focus {
+            background: #fff;
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+        }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 fade-in">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">Thành viên</h4>
+        <p class="text-muted small mb-0">Quản lý tài khoản hệ thống.</p>
     </div>
 
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-secondary small text-uppercase">
-                    <tr>
-                        <th class="ps-4">Thông tin</th>
-                        <th>Vai trò</th>
-                        <th>Trạng thái</th>
-                        <th class="text-end pe-4">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="userTableBody">
-                    @if (Model.Users.Any())
+    <div class="d-flex gap-2 mt-3 mt-md-0">
+        <form method="get" class="d-flex position-relative">
+            <input type="text" name="keyword" class="form-control search-box pe-5" placeholder="Tìm kiếm..." value="@Model.Keyword" style="width: 250px;">
+            <button type="submit" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-primary"><i class="bi bi-search"></i></button>
+        </form>
+        <button class="btn btn-primary rounded-pill fw-bold px-4 shadow-sm" onclick="openCreateModal()">
+            <i class="bi bi-plus-lg me-1"></i> Thêm mới
+        </button>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Thông tin</th>
+                    <th>Vai trò</th>
+                    <th>Ngày tham gia</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Users.Any())
+                {
+                    foreach (var user in Model.Users)
                     {
-                        foreach (var user in Model.Users)
-                        {
-                            <tr id="row_@user.Id">
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center cursor-pointer" onclick="showUserDetails('@user.Id')">
-                                        <img src="@user.AvatarUrl" class="rounded-circle border shadow-sm" width="50" height="50" style="object-fit: cover;">
-                                        <div class="ms-3">
-                                            <div class="fw-bold text-dark">@user.FullName</div>
-                                            <div class="small text-muted">@user.Email</div>
-                                        </div>
+                        var hasAvatar = !string.IsNullOrEmpty(user.AvatarUrl) && !user.AvatarUrl.Contains("default");
+                        var initial = !string.IsNullOrEmpty(user.FullName) ? user.FullName.Substring(0, 1).ToUpper() : "U";
+                        var colors = new[] { "#0d6efd", "#198754", "#0dcaf0", "#ffc107", "#dc3545" };
+                        var bgInfo = colors[Math.Abs(user.Id.GetHashCode()) % colors.Length];
+
+                        <tr id="row_@user.Id">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @if (hasAvatar)
+                                    {
+                                        <img src="@user.AvatarUrl" class="rounded-circle shadow-sm" width="40" height="40" style="object-fit: cover;">
+                                    }
+                                    else
+                                    {
+
+                                        <div class="avatar-circle" style="background-color: @bgInfo;">@initial</div>
+                                    }
+                                    <div class="ms-3">
+                                        <div class="fw-bold text-dark text-truncate" style="max-width: 150px;">@user.FullName</div>
+                                        <div class="small text-muted">@user.Email</div>
                                     </div>
-                                </td>
-                                <td>
-                                    @foreach (var role in user.Roles)
-                                    {
-                                        <span class="badge @(role == "Admin" ? "bg-danger" : "bg-info text-dark")">@role</span>
-                                    }
-                                </td>
-                                <td>
-                                    <span id="status_@user.Id" class="badge @(user.IsLocked ? "bg-warning text-dark" : "bg-success bg-opacity-10 text-success")">
-                                        @(user.IsLocked ? "Đang khóa" : "Hoạt động")
-                                    </span>
-                                </td>
-                                <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-light text-primary me-1" onclick="showUserDetails('@user.Id')" title="Xem chi tiết">
-                                        <i class="bi bi-eye-fill"></i>
-                                    </button>
-
-                                    <button id="btnLock_@user.Id" class="btn btn-sm @(user.IsLocked ? "btn-success" : "btn-warning") me-1"
-                                            onclick="toggleLock('@user.Id')">
-                                        <i class="bi @(user.IsLocked ? "bi-unlock-fill" : "bi-lock-fill")"></i>
-                                    </button>
-
-                                    @if (!user.Roles.Contains("Admin"))
-                                    {
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('@user.Id')">
-                                            <i class="bi bi-trash-fill"></i>
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
-                        }
+                                </div>
+                            </td>
+                            <td>
+                                @foreach (var role in user.Roles)
+                                {
+                                    <span class="badge rounded-pill @(role == "Admin" ? "bg-danger" : "bg-primary") fw-normal px-3">@role</span>
+                                }
+                            </td>
+                            <td class="text-muted small">@user.JoinDate.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <span id="status_@user.Id" class="badge rounded-pill @(user.IsLocked ? "badge-soft-warning" : "badge-soft-success") px-3 py-2 fw-normal">
+                                    <i class="bi @(user.IsLocked ? "bi-lock-fill" : "bi-check-circle-fill") me-1"></i>
+                                    @(user.IsLocked ? "Đang khóa" : "Hoạt động")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-icon me-1" onclick="openEditModal('@user.Id')" title="Chỉnh sửa"><i class="bi bi-pencil-fill"></i></button>
+                                <button id="btnLock_@user.Id" class="btn btn-icon me-1" onclick="toggleLock('@user.Id')" title="@(user.IsLocked ? "Mở khóa" : "Khóa")">
+                                    <i class="bi @(user.IsLocked ? "bi-unlock-fill text-success" : "bi-lock-fill text-warning")"></i>
+                                </button>
+                                @if (!user.Roles.Contains("Admin"))
+                                {
+                                    <button class="btn btn-icon text-danger" onclick="deleteUser('@user.Id')" title="Xóa"><i class="bi bi-trash-fill"></i></button>
+                                }
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        <tr><td colspan="4" class="text-center py-5 text-muted">Không tìm thấy dữ liệu.</td></tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                }
+                else
+                {
+                    <tr><td colspan="5" class="text-center py-5 text-muted">Không có dữ liệu.</td></tr>
+                }
+            </tbody>
+        </table>
     </div>
-
     @if (Model.TotalPages > 1)
     {
-        <div class="card-footer bg-white d-flex justify-content-center py-3">
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center">
             <nav>
                 <ul class="pagination mb-0">
                     @for (int i = 1; i <= Model.TotalPages; i++)
                     {
-                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                            <a class="page-link" href="?page=@i&keyword=@Model.Keyword">@i</a>
-                        </li>
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")"><a class="page-link rounded-circle mx-1 border-0 shadow-sm @(i == Model.CurrentPage ? "bg-primary text-white" : "text-dark bg-light")" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;" href="?page=@i&keyword=@Model.Keyword">@i</a></li>
                     }
                 </ul>
             </nav>
@@ -108,43 +205,73 @@
     }
 </div>
 
-<div class="modal fade" id="userModal" tabindex="-1">
+<div class="modal fade" id="createModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2"></i> Hồ sơ người dùng</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Thêm thành viên</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center p-4">
-                <div id="modalLoading" class="text-center"><div class="spinner-border text-primary"></div></div>
-                <div id="modalContent" style="display:none;">
-                    <img id="mAvatar" src="" class="rounded-circle border border-3 border-white shadow mb-3" width="100" height="100" style="object-fit:cover; margin-top: -60px; background:#fff;">
-                    <h4 id="mName" class="fw-bold mb-0"></h4>
-                    <p id="mEmail" class="text-muted mb-3"></p>
-
-                    <div class="d-flex justify-content-center gap-2 mb-4">
-                        <span id="mRole" class="badge bg-secondary"></span>
-                        <span id="mStatus" class="badge bg-success"></span>
+            <div class="modal-body p-4">
+                <form id="createForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Họ tên</label>
+                        <input type="text" name="FullName" class="form-control" required>
                     </div>
-
-                    <div class="row text-start bg-light rounded p-3 g-3">
-                        <div class="col-6">
-                            <small class="text-muted d-block">Ngày tham gia</small>
-                            <span id="mJoinDate" class="fw-bold text-dark"></span>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted d-block">Số dư Ví</small>
-                            <span id="mBalance" class="fw-bold text-success fs-5"></span>
-                        </div>
-                        <div class="col-12 border-top pt-2">
-                            <small class="text-muted d-block">Giới thiệu (Bio)</small>
-                            <span id="mBio" class="fst-italic text-dark"></span>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Email</label>
+                        <input type="email" name="Email" class="form-control" required>
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Mật khẩu</label>
+                        <input type="password" name="Password" class="form-control" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Vai trò</label>
+                        <select name="Role" class="form-select">
+                            <option value="User">Thành viên (User)</option>
+                            <option value="Admin">Quản trị viên (Admin)</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="submitCreate()" class="btn btn-primary w-100 fw-bold">Tạo tài khoản</button>
+                </form>
             </div>
-            <div class="modal-footer bg-light border-0 justify-content-center">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Chỉnh sửa thông tin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="editLoading" class="text-center py-3"><div class="spinner-border text-primary"></div></div>
+                <form id="editForm" style="display:none;">
+                    <input type="hidden" name="Id" id="editId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Họ tên</label>
+                        <input type="text" name="FullName" id="editName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Email</label>
+                        <input type="email" name="Email" id="editEmail" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Đổi mật khẩu (Bỏ trống nếu không đổi)</label>
+                        <input type="password" name="NewPassword" class="form-control" placeholder="Nhập mật khẩu mới...">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Vai trò</label>
+                        <select name="Role" id="editRole" class="form-select">
+                            <option value="User">Thành viên (User)</option>
+                            <option value="Admin">Quản trị viên (Admin)</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="submitEdit()" class="btn btn-primary w-100 fw-bold">Lưu thay đổi</button>
+                </form>
             </div>
         </div>
     </div>
@@ -153,78 +280,123 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function toggleLock(id) {
-            $.post('/Admin/Users/ToggleLock', { id: id }, function (res) {
-                if (res.success) {
-                    const badge = $(`#status_${id}`);
-                    const btn = $(`#btnLock_${id}`);
+        function openCreateModal() {
+            document.getElementById('createForm').reset();
+            new bootstrap.Modal(document.getElementById('createModal')).show();
+        }
 
-                    if (res.isLocked) {
-                        badge.removeClass('bg-success bg-opacity-10 text-success').addClass('bg-warning text-dark').text('Đang khóa');
-                        btn.removeClass('btn-warning').addClass('btn-success').html('<i class="bi bi-unlock-fill"></i>');
-                        Swal.fire('Đã khóa!', 'Tài khoản đã bị vô hiệu hóa.', 'success');
+        function submitCreate() {
+            const btn = document.querySelector('#createForm button');
+            const form = document.getElementById('createForm');
+            if(!form.checkValidity()) { form.reportValidity(); return; }
+
+            const fd = new FormData(form);
+            btn.disabled = true; btn.innerText = "Đang xử lý...";
+
+            $.ajax({
+                url: '/Admin/Users/Create', type: 'POST', data: Object.fromEntries(fd),
+                success: function(res) {
+                    if(res.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('createModal')).hide();
+                        Swal.fire({ icon: 'success', title: 'Thành công', text: res.message, timer: 1500, showConfirmButton: false }).then(() => location.reload());
                     } else {
-                        badge.removeClass('bg-warning text-dark').addClass('bg-success bg-opacity-10 text-success').text('Hoạt động');
-                        btn.removeClass('btn-success').addClass('btn-warning').html('<i class="bi bi-lock-fill"></i>');
-                        Swal.fire('Đã mở!', 'Tài khoản đã hoạt động trở lại.', 'success');
+                        Swal.fire('Lỗi', res.message, 'error');
+                        btn.disabled = false; btn.innerText = "Tạo tài khoản";
                     }
-                } else {
-                    Swal.fire('Lỗi!', res.message, 'error');
+                },
+                error: function() {
+                    Swal.fire('Lỗi', 'Không thể kết nối server', 'error');
+                    btn.disabled = false; btn.innerText = "Tạo tài khoản";
                 }
+            });
+        }
+
+        function openEditModal(id) {
+            var modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+            $('#editLoading').show(); $('#editForm').hide();
+
+            $.get('/Admin/Users/GetUserDetails', { id: id }, function(res) {
+                if(res.success) {
+                    const d = res.data;
+                    $('#editId').val(d.id);
+                    $('#editName').val(d.fullName);
+                    $('#editEmail').val(d.email);
+
+                    if(d.roles.includes('Admin')) $('#editRole').val('Admin');
+                    else $('#editRole').val('User');
+
+                    $('#editLoading').hide(); $('#editForm').fadeIn();
+                }
+            });
+        }
+
+        function submitEdit() {
+            const btn = document.querySelector('#editForm button');
+            const form = document.getElementById('editForm');
+            if(!form.checkValidity()) { form.reportValidity(); return; }
+
+            const fd = new FormData(form);
+            btn.disabled = true; btn.innerText = "Đang lưu...";
+
+            $.ajax({
+                url: '/Admin/Users/Edit', type: 'POST', data: Object.fromEntries(fd),
+                success: function(res) {
+                    if(res.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                        Swal.fire({ icon: 'success', title: 'Đã cập nhật', text: res.message, timer: 1500, showConfirmButton: false }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi', res.message, 'error');
+                        btn.disabled = false; btn.innerText = "Lưu thay đổi";
+                    }
+                },
+                error: function() {
+                    Swal.fire('Lỗi', 'Lỗi kết nối', 'error');
+                    btn.disabled = false; btn.innerText = "Lưu thay đổi";
+                }
+            });
+        }
+
+        function toggleLock(id) {
+            $.post('/Admin/Users/ToggleLock', { id: id }, function(res) {
+                if(res.success) {
+                    const icon = $(`#btnLock_${id} i`);
+                    const badge = $(`#status_${id}`);
+
+                    if(res.isLocked) {
+                        badge.removeClass('badge-soft-success').addClass('badge-soft-warning').html('<i class="bi bi-lock-fill me-1"></i> Đang khóa');
+                        icon.removeClass('bi-lock-fill text-warning').addClass('bi-unlock-fill text-success');
+                        Swal.fire({ icon: 'success', title: 'Đã khóa tài khoản', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                    } else {
+                        badge.removeClass('badge-soft-warning').addClass('badge-soft-success').html('<i class="bi bi-check-circle-fill me-1"></i> Hoạt động');
+                        icon.removeClass('bi-unlock-fill text-success').addClass('bi-lock-fill text-warning');
+                        Swal.fire({ icon: 'success', title: 'Đã mở khóa', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                    }
+                } else Swal.fire('Lỗi', res.message, 'error');
             });
         }
 
         function deleteUser(id) {
             Swal.fire({
-                title: 'Bạn chắc chắn chứ?',
-                text: "Hành động này không thể hoàn tác!",
+                title: 'Xóa vĩnh viễn?',
+                text: "Toàn bộ dữ liệu của người dùng này sẽ bị xóa. Không thể khôi phục!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Xóa ngay!',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Xóa ngay',
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post('/Admin/Users/DeleteUser', { id: id }, function (res) {
-                        if (res.success) {
-                            $(`#row_${id}`).fadeOut();
-                            Swal.fire('Đã xóa!', 'User đã bay màu.', 'success');
-                        } else {
-                            Swal.fire('Lỗi!', res.message, 'error');
-                        }
+                    Swal.showLoading();
+                    $.post('/Admin/Users/DeleteUser', { id: id }, function(res) {
+                        Swal.close();
+                        if(res.success) {
+                            $(`#row_${id}`).fadeOut(300, function() { $(this).remove(); });
+                            Swal.fire('Đã xóa', res.message, 'success');
+                        } else Swal.fire('Lỗi', res.message, 'error');
                     });
                 }
             })
-        }
-
-        function showUserDetails(id) {
-            var myModal = new bootstrap.Modal(document.getElementById('userModal'));
-            myModal.show();
-
-            $('#modalLoading').show();
-            $('#modalContent').hide();
-
-            $.get('/Admin/Users/GetUserDetails', { id: id }, function (res) {
-                if (res.success) {
-                    const d = res.data;
-                    $('#mAvatar').attr('src', d.avatar);
-                    $('#mName').text(d.fullName);
-                    $('#mEmail').text(d.email);
-                    $('#mJoinDate').text(d.joinDate);
-                    $('#mBalance').text(d.balance);
-                    $('#mRole').text(d.roles);
-                    $('#mBio').text(d.bio);
-
-                    if(d.isLocked){
-                        $('#mStatus').attr('class', 'badge bg-warning text-dark').text('Đang khóa');
-                    } else {
-                        $('#mStatus').attr('class', 'badge bg-success').text('Hoạt động');
-                    }
-
-                    $('#modalLoading').hide();
-                    $('#modalContent').fadeIn();
-                }
-            });
         }
     </script>
 }

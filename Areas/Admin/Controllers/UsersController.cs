@@ -19,7 +19,6 @@ namespace Vibee.Areas.Admin.Controllers
             _userManager = userManager;
             _context = context;
         }
-
         public async Task<IActionResult> Index(string keyword, int page = 1)
         {
             int pageSize = 10;
@@ -51,7 +50,7 @@ namespace Vibee.Areas.Admin.Controllers
                     AvatarUrl = user.AvatarUrl ?? "/images/default-avatar.png",
                     Roles = roles.ToList(),
                     IsLocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow,
-                    WalletBalance = user.Wallet?.Balance ?? 0
+                    JoinDate = user.JoinDate
                 });
             }
 
@@ -69,11 +68,7 @@ namespace Vibee.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUserDetails(string id)
         {
-            var user = await _context.Users
-                .Include(u => u.Wallet)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == id);
-
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
             if (user == null) return NotFound();
 
             var roles = await _userManager.GetRolesAsync(user);
@@ -83,16 +78,67 @@ namespace Vibee.Areas.Admin.Controllers
                 success = true,
                 data = new
                 {
+                    id = user.Id,
                     fullName = user.FullName,
                     email = user.Email,
                     avatar = user.AvatarUrl ?? "/images/default-avatar.png",
                     joinDate = user.JoinDate.ToString("dd/MM/yyyy HH:mm"),
-                    roles = string.Join(", ", roles),
-                    balance = user.Wallet?.Balance.ToString("N0") + " " + user.Wallet?.Currency,
+                    roles = roles,
                     bio = user.Bio ?? "Chưa có giới thiệu",
                     isLocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow
                 }
             });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateUserViewModel model)
+        {
+            if (!ModelState.IsValid) return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FullName = model.FullName,
+                JoinDate = DateTime.Now,
+                AvatarUrl = "/images/default-avatar.png",
+                Bio = "Thành viên mới"
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, model.Role);
+                return Json(new { success = true, message = "Tạo thành viên thành công!" });
+            }
+
+            var errorMsg = string.Join(", ", result.Errors.Select(e => e.Description));
+            return Json(new { success = false, message = errorMsg });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(EditUserViewModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return Json(new { success = false, message = "Không tìm thấy user." });
+
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.UserName = model.Email;
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            await _userManager.AddToRoleAsync(user, model.Role);
+
+            if (!string.IsNullOrEmpty(model.NewPassword))
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+                if (!result.Succeeded) return Json(new { success = false, message = "Lỗi đổi mật khẩu." });
+            }
+
+            await _userManager.UpdateAsync(user);
+            return Json(new { success = true, message = "Cập nhật thành công!" });
         }
 
         [HttpPost]
@@ -123,21 +169,45 @@ namespace Vibee.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return Json(new { success = false, message = "User không tồn tại." });
-
-            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                return Json(new { success = false, message = "Không thể xóa Admin." });
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null) return Json(new { success = false, message = "User không tồn tại." });
+
+                if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    return Json(new { success = false, message = "Không thể xóa Admin hệ thống." });
+
+                var stories = _context.Stories.Where(s => s.UserId == id);
+                _context.Stories.RemoveRange(stories);
+                var storyReactions = _context.StoryReactions.Where(r => r.UserId == id);
+                _context.StoryReactions.RemoveRange(storyReactions);
+                var storyViews = _context.StoryViews.Where(v => v.UserId == id);
+                _context.StoryViews.RemoveRange(storyViews);
+
+                var posts = _context.Posts.Where(p => p.UserId == id);
+                _context.Posts.RemoveRange(posts);
+                var comments = _context.Comments.Where(c => c.UserId == id);
+                _context.Comments.RemoveRange(comments);
+                var likes = _context.Likes.Where(l => l.UserId == id);
+                _context.Likes.RemoveRange(likes);
+
+                await _context.SaveChangesAsync();
+
+                var result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded) throw new Exception("Lỗi xóa Identity.");
+
+                await transaction.CommitAsync();
+                return Json(new { success = true, message = "Đã xóa user và toàn bộ dữ liệu liên quan!" });
             }
-
-            var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-                return Json(new { success = true, message = "Đã xóa thành công!" });
-
-            return Json(new { success = false, message = "Lỗi khi xóa user." });
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
         }
     }
+
     public class UserListViewModel
     {
         public List<UserViewModel> Users { get; set; }
@@ -154,6 +224,23 @@ namespace Vibee.Areas.Admin.Controllers
         public string AvatarUrl { get; set; }
         public List<string> Roles { get; set; }
         public bool IsLocked { get; set; }
-        public decimal WalletBalance { get; set; }
+        public DateTime JoinDate { get; set; }
+    }
+
+    public class CreateUserViewModel
+    {
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string Role { get; set; }
+    }
+
+    public class EditUserViewModel
+    {
+        public string Id { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Role { get; set; }
+        public string NewPassword { get; set; }
     }
 }

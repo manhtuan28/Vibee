@@ -133,7 +133,7 @@
                             }
                         </div>
 
-                        <div class="px-3 pb-2 text-dark" style="font-size:0.95rem">@Html.Raw(post.Content)</div>
+                        <div class="px-3 pb-2 text-dark text-break" style="font-size:0.95rem">@Html.Raw(post.Content)</div>
 
                         @if (post.SharedPost != null)
                         {
@@ -148,7 +148,7 @@
                                         <div class="text-muted" style="font-size: 0.7rem;">@original.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                                     </div>
                                 </div>
-                                <div class="p-2 small text-dark">@Html.Raw(original.Content)</div>
+                                <div class="p-2 small text-dark text-break">@Html.Raw(original.Content)</div>
 
                                 @if (original.Medias != null && original.Medias.Any())
                                 {
@@ -231,9 +231,15 @@
 
                         <div class="d-flex align-items-center justify-content-between px-3 py-2 text-muted small">
                             <div class="d-flex align-items-center" id="count-react-@post.Id">
-                                @if (post.Likes != null && post.Likes.Any())
+                                @{
+                                    var fakeLikes = post.GetType().GetProperty("FakeLikeCount") != null ? (int)post.GetType().GetProperty("FakeLikeCount").GetValue(post, null) : 0;
+                                    var realLikes = post.Likes?.Count ?? 0;
+                                    var totalLikes = realLikes + fakeLikes;
+                                }
+
+                                @if (totalLikes > 0)
                                 {
-                                    var topReactions = post.Likes.GroupBy(l => l.Type).OrderByDescending(g => g.Count()).Take(2).Select(g => g.Key).ToList();
+                                    var topReactions = post.Likes?.GroupBy(l => l.Type).OrderByDescending(g => g.Count()).Take(2).Select(g => g.Key).ToList() ?? new List<string>();
                                     var icons = new Dictionary<string, string> {
                                                         { "Like",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#1877F2'/><path d='M8.5 4h1a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-1s1 2.5-1.5 3c-1.8.4-1.5-1.5-2.5-2H4V5h1.1c.9 0 1.9-2 3.4-1z' fill='#fff'/></svg>" },
                                                         { "Love",  @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F3425F'/><path d='M8 12.5s-4.5-2.5-4.5-5.5c0-1.5 1-2.5 2.5-2.5 1 0 2 .5 2 1.5 0-1 1-1.5 2-1.5 1.5 0 2.5 1 2.5 2.5C12.5 10 8 12.5 8 12.5z' fill='#fff'/></svg>" },
@@ -242,6 +248,7 @@
                                                         { "Sad",   @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#F7B125'/><path d='M5.5 10.5c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#4B3212' stroke-width='1'/><path d='M5.5 6a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5zm5 0a1 1 0 1 1 0-1.5 1 1 0 0 1 0 1.5z' fill='#4B3212'/><circle cx='8' cy='6' r='0.5' fill='#4B3212'/></svg>" },
                                                         { "Angry", @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='#E4605A'/><path d='M5.5 10c.5-.5 1.5-1 2.5-1s2 .5 2.5 1' fill='none' stroke='#fff' stroke-width='1'/><path d='M5 5.5l1.5 1m3 0l1.5-1' stroke='#4B0000' stroke-width='1' stroke-linecap='round'/><circle cx='6' cy='7' r='0.8' fill='#4B0000'/><circle cx='10' cy='7' r='0.8' fill='#4B0000'/></svg>" }
                                                         };
+
                                     <div class="reaction-stack">
                                         @foreach (var type in topReactions)
                                         {
@@ -250,16 +257,28 @@
                                                 <div class="reaction-icon-img">@Html.Raw(icons[type])</div>
                                             }
                                         }
+                                        @if (!topReactions.Any() && fakeLikes > 0)
+                                        {
+                                            <div class="reaction-icon-img">@Html.Raw(icons["Like"])</div>
+                                        }
                                     </div>
-                                    <span class="hover-underline cursor-pointer text-muted small" data-count="@post.Likes.Count">@post.Likes.Count</span>
+
+                                    <span class="hover-underline cursor-pointer text-muted small" data-count="@totalLikes">@totalLikes</span>
                                 }
                             </div>
+
                             <div class="d-flex gap-3">
                                 <span class="cursor-pointer hover-underline" onclick="toggleComment(@post.Id)">@(post.Comments?.Count ?? 0) bình luận</span>
+
                                 <span id="share-count-@post.Id" class="cursor-pointer hover-underline">
-                                    @if (post.Shares?.Any() == true)
+                                    @{
+                                        var fakeShares = post.GetType().GetProperty("FakeShareCount") != null ? (int)post.GetType().GetProperty("FakeShareCount").GetValue(post, null) : 0;
+                                        var realShares = post.Shares?.Count ?? 0;
+                                        var totalShares = realShares + fakeShares;
+                                    }
+                                    @if (totalShares > 0)
                                     {
-                                        <span>@post.Shares.Count lượt chia sẻ</span>
+                                        <span>@totalShares lượt chia sẻ</span>
                                     }
                                 </span>
                             </div>
