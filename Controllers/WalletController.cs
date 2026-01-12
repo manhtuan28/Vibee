@@ -405,5 +405,32 @@ namespace Vibee.Controllers
                 return Redirect(response.PayUrl);
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> CancelTransaction(Guid id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == user.Id);
+
+            var trans = await _context.Transactions.FirstOrDefaultAsync(t => t.Id == id);
+
+            if (trans != null && trans.Status == TransactionStatus.Pending)
+            {
+                if (trans.ReceiverWalletId == wallet.Id || trans.SenderWalletId == wallet.Id)
+                {
+                    trans.Status = TransactionStatus.Failed;
+                    trans.Message += " (Đã hủy bởi người dùng)";
+                    trans.CreatedAt = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMsg"] = "Đã hủy giao dịch thành công.";
+                }
+                else
+                {
+                    TempData["ErrorMsg"] = "Bạn không có quyền hủy giao dịch này.";
+                }
+            }
+
+            return RedirectToAction("Index");
+        }
     }
 }

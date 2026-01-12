@@ -128,11 +128,21 @@
                             <div class="fw-bold fs-5 @amountClass">
                                 @amountSign @item.Amount.ToString("N0")
                             </div>
+    
                             @if (item.Status == Vibee.Models.TransactionStatus.Pending && isDeposit)
                             {
-                                <a href="/Wallet/Repay?id=@item.Id" class="btn btn-sm btn-primary rounded-pill mt-1">
-                                    Thanh toán ngay <i class="bi bi-chevron-right"></i>
-                                </a>
+                                <div class="d-flex gap-2 justify-content-end mt-1">
+                                    <a href="/Wallet/Repay?id=@item.Id" class="btn btn-sm btn-primary rounded-pill">
+                                        Thanh toán <i class="bi bi-chevron-right"></i>
+                                    </a>
+
+                                    <form action="/Wallet/CancelTransaction" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Bạn chắc chắn muốn hủy giao dịch này?')">
+                                            <i class="bi bi-x-lg"></i> Hủy
+                                        </button>
+                                    </form>
+                                </div>
                             }
                         </div>
                     </div>
@@ -143,5 +153,6 @@
                 <div class="text-center py-5 text-muted">Chưa có giao dịch nào.</div>
             }
         </div>
+
     </div>
 </div>
