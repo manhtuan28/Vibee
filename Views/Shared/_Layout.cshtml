@@ -471,6 +471,7 @@
         function markAllRead() { $.post('/Notification/MarkAllRead', function(res) { if(res.success) { $('.noti-item').removeClass('unread').addClass('read'); $('.noti-item .noti-time').removeClass('text-primary fw-bold').addClass('text-muted'); $('.noti-dot').remove(); updateBadge(0); } }); }
         function handleClickNoti(e, id, link) { e.preventDefault(); $.post('/Notification/MarkRead', { id: id }, function () { window.location.href = link; }); }
         function updateBadge(count) { let b = $('#noti-badge'); if (count > 0) b.text(count).removeClass('d-none'); else b.addClass('d-none'); }
+
     </script>
 
     <script src="~/js/chat.js" asp-append-version="true"></script>

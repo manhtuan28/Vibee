@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Vibee Admin</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
@@ -13,30 +16,54 @@
         :root {
             --admin-sidebar-bg: #1e1e2d;
             --admin-sidebar-hover: #2b2b40;
-            --admin-active: #3699ff;
-            --admin-bg: #f5f8fa;
+            --admin-active: #0d6efd; /* Màu xanh hiện đại hơn */
+            --admin-bg: #f3f6f9;
+            --admin-text-muted: #9899ac;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--admin-bg);
             margin: 0;
             overflow-x: hidden;
+            color: #3f4254;
         }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
 
         .wrapper {
             display: flex;
             width: 100%;
         }
 
+        /* Sidebar Styling */
         .sidebar {
             width: 265px;
             background-color: var(--admin-sidebar-bg);
             min-height: 100vh;
-            color: #a2a3b7;
+            color: var(--admin-text-muted);
             position: fixed;
             transition: all 0.3s;
             z-index: 1000;
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar-brand {
@@ -45,9 +72,10 @@
             align-items: center;
             padding: 0 25px;
             font-size: 1.5rem;
-            font-weight: 800;
+            font-weight: 700;
             color: white;
             border-bottom: 1px solid rgba(255,255,255,0.05);
+            background-color: rgba(0,0,0,0.1);
         }
 
             .sidebar-brand span {
@@ -56,14 +84,16 @@
 
         .sidebar-menu {
             padding: 20px 0;
+            flex-grow: 1;
+            overflow-y: auto;
         }
 
         .menu-header {
             font-size: 0.75rem;
             text-transform: uppercase;
-            font-weight: 700;
+            font-weight: 600;
             color: #5d5f77;
-            padding: 15px 25px 10px;
+            padding: 20px 25px 10px;
             letter-spacing: 0.5px;
         }
 
@@ -71,10 +101,12 @@
             display: flex;
             align-items: center;
             padding: 12px 25px;
-            color: #a2a3b7;
+            color: var(--admin-text-muted);
             text-decoration: none;
-            transition: 0.2s;
+            transition: all 0.2s ease;
             border-left: 3px solid transparent;
+            font-weight: 500;
+            font-size: 0.95rem;
         }
 
             .menu-link:hover {
@@ -89,7 +121,7 @@
             }
 
             .menu-link i {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
                 width: 30px;
                 color: #494b74;
                 transition: 0.2s;
@@ -99,11 +131,13 @@
                 color: var(--admin-active);
             }
 
+        /* Main Panel Styling */
         .main-panel {
             flex: 1;
             margin-left: 265px;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
         }
 
         .top-navbar {
@@ -114,12 +148,16 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 999;
         }
 
         .content-wrapper {
             padding: 30px;
         }
 
+        /* Utilities */
         .btn-icon {
             width: 40px;
             height: 40px;
@@ -129,12 +167,28 @@
             border-radius: 8px;
             color: #7e8299;
             transition: 0.2s;
+            text-decoration: none;
         }
 
             .btn-icon:hover {
                 background-color: #f3f6f9;
                 color: var(--admin-active);
             }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -142,13 +196,13 @@
     <div class="wrapper">
         <nav class="sidebar">
             <div class="sidebar-brand">
-                Vibee<span>Admin</span>
+                <i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i> Vibee<span>Admin</span>
             </div>
 
-            <div class="sidebar-menu">
+            <div class="sidebar-menu custom-scrollbar">
                 <a asp-area="Admin" asp-controller="Home" asp-action="Index"
                    class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")">
-                    <i class="bi bi-grid-fill"></i>
+                    <i class="bi bi-speedometer2"></i>
                     <span class="ms-2">Tổng quan</span>
                 </a>
 
@@ -160,38 +214,20 @@
                     <span class="ms-2">Thành viên</span>
                 </a>
 
-                <a asp-area="Admin" asp-controller="Roles" asp-action="Index"
-                   class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Roles" ? "active" : "")">
-                    <i class="bi bi-shield-lock-fill"></i>
-                    <span class="ms-2">Phân quyền (Roles)</span>
-                </a>
-
-                <div class="menu-header">Tài chính (Fintech)</div>
-
-                <a asp-area="Admin" asp-controller="Wallets" asp-action="Index"
-                   class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Wallets" ? "active" : "")">
-                    <i class="bi bi-wallet2"></i>
-                    <span class="ms-2">Quản lý Ví</span>
-                </a>
-
-                <a asp-area="Admin" asp-controller="Transactions" asp-action="Index"
-                   class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Transactions" ? "active" : "")">
-                    <i class="bi bi-clock-history"></i>
-                    <span class="ms-2">Lịch sử giao dịch</span>
-                </a>
-
                 <div class="menu-header">Mạng xã hội</div>
 
                 <a asp-area="Admin" asp-controller="Posts" asp-action="Index"
                    class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Posts" ? "active" : "")">
-                    <i class="bi bi-postcard-fill"></i>
+                    <i class="bi bi- postcard-fill"></i> <i class="bi bi-images"></i>
                     <span class="ms-2">Bài viết & Nội dung</span>
                 </a>
+
             </div>
 
-            <div style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
-                <a href="/" class="btn btn-dark w-100 fw-bold border border-secondary" style="background: #2b2b40;">
-                    <i class="bi bi-arrow-left-circle me-2"></i> Về trang chủ
+            <div class="p-4 mt-auto">
+                <a href="/" class="btn btn-dark w-100 fw-bold border-0 shadow-sm d-flex align-items-center justify-content-center"
+                   style="background: #2b2b40; padding: 12px;">
+                    <i class="bi bi-box-arrow-left me-2"></i> Về trang chủ
                 </a>
             </div>
         </nav>
@@ -199,26 +235,28 @@
         <div class="main-panel">
             <header class="top-navbar">
                 <div class="d-flex align-items-center">
-                    <span class="text-muted me-3"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control border-0 bg-transparent" placeholder="Tìm kiếm nhanh..." style="width: 250px;">
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light rounded-start ps-3"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-0 bg-light rounded-end" placeholder="Tìm kiếm nhanh..." style="width: 250px;">
+                    </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <a href="#" class="btn-icon" title="Thông báo">
+                    <a href="#" class="btn-icon" title="Thông báo" data-bs-toggle="tooltip" data-bs-placement="bottom">
                         <i class="bi bi-bell"></i>
                     </a>
                     <a href="#" class="btn-icon" title="Cài đặt">
                         <i class="bi bi-gear"></i>
                     </a>
 
-                    <div class="border-start mx-2 h-50"></div>
+                    <div class="border-start mx-3 h-50 my-auto" style="height: 20px;"></div>
 
-                    <div class="d-flex align-items-center ms-2">
+                    <div class="d-flex align-items-center cursor-pointer">
                         <div class="text-end me-3 d-none d-md-block">
-                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">Quản trị viên</div>
-                            <div class="text-muted" style="font-size: 0.75rem;">Super Admin</div>
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">Admin</div>
+                            <div class="text-muted small">Super Admin</div>
                         </div>
-                        <img src="~/images/default-avatar.png" class="rounded-circle border" width="40" height="40" alt="Admin">
+                        <img src="~/images/default-avatar.png" class="rounded-circle border shadow-sm" width="40" height="40" alt="Admin" style="object-fit: cover;">
                     </div>
                 </div>
             </header>
@@ -231,6 +269,14 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

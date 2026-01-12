@@ -1,0 +1,395 @@
+﻿@model Vibee.Areas.Admin.Controllers.PostListAdminViewModel
+@{
+    ViewData["Title"] = "Quản lý Bài viết";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .admin-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .media-thumb {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #eee;
+    }
+
+    .badge-soft-info {
+        background: #e3f2fd;
+        color: #0d47a1;
+    }
+
+    .badge-soft-dark {
+        background: #f8f9fa;
+        color: #212529;
+        border: 1px solid #dee2e6;
+    }
+
+    .comment-list-scroll {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .comment-item {
+        padding: 10px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 fade-in">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">Quản lý Bài viết</h4>
+        <p class="text-muted small mb-0">Theo dõi nội dung và tương tác người dùng.</p>
+    </div>
+
+    <form method="get" class="d-flex position-relative mt-3 mt-md-0">
+        <input type="text" name="keyword" class="form-control rounded-pill pe-5" placeholder="Tìm nội dung, tác giả..." value="@Model.Keyword" style="width: 300px; padding-left: 20px;">
+        <button type="submit" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-primary"><i class="bi bi-search"></i></button>
+    </form>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="bg-light text-secondary small text-uppercase">
+                <tr>
+                    <th class="ps-4">Tác giả</th>
+                    <th style="width: 35%;">Nội dung</th>
+                    <th>Media</th>
+                    <th>Tương tác</th>
+                    <th>Thời gian</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Posts.Any())
+                {
+                    foreach (var post in Model.Posts)
+                    {
+                        <tr id="row_@post.Id">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <img src="@post.AuthorAvatar" class="avatar-sm me-2">
+                                    <div>
+                                        <div class="fw-bold text-dark small">@post.AuthorName</div>
+                                        <div class="text-muted" style="font-size: 11px;">@post.AuthorEmail</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-truncate text-secondary" style="max-width: 300px;">
+                                    @if (post.IsShared)
+                                    {
+                                        <span class="text-primary fw-bold">[Share]</span>
+                                    }
+                                    @post.Content
+                                </div>
+                            </td>
+                            <td>
+                                @if (post.MediaCount > 0)
+                                {
+                                    <div class="position-relative d-inline-block">
+                                        @if (post.MediaType == "Video")
+                                        {
+                                            <video src="@post.FirstMediaUrl" class="media-thumb bg-black"></video>
+                                            <div class="position-absolute top-50 start-50 translate-middle text-white small"><i class="bi bi-play-fill"></i></div>
+                                        }
+                                        else
+                                        {
+                                            <img src="@post.FirstMediaUrl" class="media-thumb">
+                                        }
+                                        @if (post.MediaCount > 1)
+                                        {
+                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                                                +@(post.MediaCount - 1)
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+
+                                    <span class="text-muted small">Không có</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <span class="badge badge-soft-info"><i class="bi bi-hand-thumbs-up-fill"></i> @post.LikeCount</span>
+                                    <span class="badge badge-soft-info"><i class="bi bi-chat-dots-fill"></i> @post.CommentCount</span>
+                                    <span class="badge badge-soft-info"><i class="bi bi-share-fill"></i> @post.ShareCount</span>
+                                </div>
+                            </td>
+                            <td class="text-muted small">@post.CreatedAt.ToString("dd/MM/yyyy")<br>@post.CreatedAt.ToString("HH:mm")</td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-light text-primary me-1" onclick="showDetails(@post.Id)" title="Chi tiết"><i class="bi bi-eye-fill"></i></button>
+                                <button class="btn btn-sm btn-light text-warning me-1" onclick="openEditPost(@post.Id)" title="Sửa nội dung"><i class="bi bi-pencil-fill"></i></button>
+                                <button class="btn btn-sm btn-light text-danger" onclick="deletePost(@post.Id)" title="Xóa"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" class="text-center py-5 text-muted">Không tìm thấy bài viết nào.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center">
+            <nav>
+                <ul class="pagination mb-0">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")"><a class="page-link rounded-circle mx-1 border-0 shadow-sm @(i == Model.CurrentPage ? "bg-primary text-white" : "text-dark bg-light")" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;" href="?page=@i&keyword=@Model.Keyword">@i</a></li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Chi tiết bài viết</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="detailLoading" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+
+                <div id="detailContent" style="display:none;">
+                    <ul class="nav nav-tabs nav-fill" id="postTabs" role="tablist">
+                        <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#tabContent" type="button">Nội dung</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tabComments" type="button">Bình luận (<span id="countCmt">0</span>)</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tabLikes" type="button">Lượt thích & Share</button></li>
+                    </ul>
+
+                    <div class="tab-content p-4">
+                        <div class="tab-pane fade show active" id="tabContent">
+                            <div class="d-flex align-items-center mb-3">
+                                <img id="dAvatar" src="" class="avatar-sm me-2">
+                                <div>
+                                    <div id="dAuthor" class="fw-bold text-dark"></div>
+                                    <div class="text-muted small"><span id="dTime"></span> • <span id="dPrivacy" class="badge badge-soft-dark"></span></div>
+                                </div>
+                            </div>
+                            <div id="dBody" class="mb-3 text-dark text-break bg-light p-3 rounded"></div>
+                            <div id="dMedia" class="row g-2"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tabComments">
+                            <div id="commentsList" class="comment-list-scroll"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tabLikes">
+                            <div class="row">
+                                <div class="col-6 border-end">
+                                    <h6 class="fw-bold mb-3 text-primary">Người đã thích</h6>
+                                    <div id="likesList" class="comment-list-scroll"></div>
+                                </div>
+                                <div class="col-6">
+                                    <h6 class="fw-bold mb-3 text-success">Người chia sẻ</h6>
+                                    <div id="sharesList" class="comment-list-scroll"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Chỉnh sửa bài viết</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editForm">
+                    <input type="hidden" id="editId" name="id">
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Nội dung</label>
+                        <textarea id="editContent" name="content" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Quyền riêng tư</label>
+                            <select id="editPrivacy" name="privacy" class="form-select">
+                                <option value="0">Công khai</option>
+                                <option value="1">Bạn bè</option>
+                                <option value="2">Riêng tư</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small fw-bold text-primary">Like ảo</label>
+                            <input type="number" id="editFakeLikes" name="fakeLikes" class="form-control" min="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small fw-bold text-success">Share ảo</label>
+                            <input type="number" id="editFakeShares" name="fakeShares" class="form-control" min="0">
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="submitEdit()" class="btn btn-primary w-100 fw-bold">Lưu thay đổi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function showDetails(id) {
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+            $('#detailLoading').show(); $('#detailContent').hide();
+
+            $.get('/Admin/Posts/GetPostDetails', { id: id }, function(res) {
+                if(res.success) {
+                    const d = res.data;
+
+                            $('#dAvatar').attr('src', d.author.avatar);
+                            $('#dAuthor').text(d.author.name);
+                            $('#dTime').text(d.createdAt);
+                            $('#dPrivacy').text(d.privacy);
+                            $('#dBody').text(d.content).css('white-space', 'pre-wrap');
+                            $('#countCmt').text(d.comments.length);
+
+                    let mediaHtml = '';
+                    d.medias.forEach(m => {
+                        if(m.type === 'Video')
+                            mediaHtml += `<div class="col-6"><video src="${m.url}" class="w-100 rounded border" controls></video></div>`;
+                        else
+                            mediaHtml += `<div class="col-6"><img src="${m.url}" class="w-100 rounded border"></div>`;
+                    });
+                    $('#dMedia').html(mediaHtml || '<span class="text-muted fst-italic">Không có media</span>');
+
+                    $('#countCmt').text(d.comments.length);
+                    let cmtHtml = '';
+                    if(d.comments.length > 0) {
+                    d.comments.forEach(c => {
+                        cmtHtml += `
+                            <div class="comment-item d-flex justify-content-between" id="cmt_${c.id}">
+                                <div class="d-flex">
+                                    <img src="${c.userAvatar}" class="avatar-sm me-2">
+                                    <div>
+                                        <div class="fw-bold text-dark small">${c.userName} <span class="text-muted fw-normal ms-1" style="font-size:10px">${c.time}</span></div>
+                                        <div class="text-dark small" style="white-space: pre-wrap;">${c.content}</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm text-danger" onclick="deleteComment(${c.id})" title="Xóa"><i class="bi bi-x-lg"></i></button>
+                            </div>`;
+                    });
+                    } else cmtHtml = '<div class="text-center py-3 text-muted">Chưa có bình luận nào.</div>';
+                    $('#commentsList').html(cmtHtml);
+
+                    let likeHtml = '';
+                            d.likes.forEach(l => {
+                                let botBadge = l.isBot ? '<span class="badge bg-secondary ms-2" style="font-size:9px">BOT</span>' : '';
+                                likeHtml += `<div class="d-flex align-items-center mb-2">
+                                                <img src="${l.avatar}" class="avatar-sm me-2">
+                                                <span class="small">${l.userName} ${botBadge} <span class="text-muted">(${l.type})</span></span>
+                                             </div>`;
+                            });
+                            $('#likesList').html(likeHtml || '<span class="text-muted small">Chưa có ai thích.</span>');
+
+                    let shareHtml = '';
+                            d.shares.forEach(s => {
+                                let botBadge = s.isBot ? '<span class="badge bg-secondary ms-2" style="font-size:9px">BOT</span>' : '';
+                                shareHtml += `<div class="d-flex align-items-center mb-2">
+                                                <img src="${s.avatar}" class="avatar-sm me-2">
+                                                <span class="small">${s.userName} ${botBadge}</span>
+                                              </div>`;
+                            });
+                            $('#sharesList').html(shareHtml || '<span class="text-muted small">Chưa có ai chia sẻ.</span>');
+
+                            $('#detailLoading').hide(); $('#detailContent').fadeIn();
+                }
+            });
+        }
+
+        function deleteComment(id) {
+            Swal.fire({
+                title: 'Xóa bình luận này?', text: "Nội dung sẽ bị gỡ bỏ.", icon: 'warning',
+                showCancelButton: true, confirmButtonText: 'Xóa', cancelButtonText: 'Hủy', confirmButtonColor: '#dc3545'
+            }).then((r) => {
+                if(r.isConfirmed) {
+                    $.post('/Admin/Posts/DeleteComment', { id: id }, function(res) {
+                        if(res.success) $(`#cmt_${id}`).slideUp();
+                    });
+                }
+            });
+        }
+
+        function openEditPost(id) {
+                    new bootstrap.Modal(document.getElementById('editModal')).show();
+                    $.get('/Admin/Posts/GetPostDetails', { id: id }, function(res) {
+                        if(res.success) {
+                            $('#editId').val(res.data.id);
+                            $('#editContent').val(res.data.content);
+
+                            let pVal = res.data.privacy === 'Công khai' ? 0 : (res.data.privacy === 'Bạn bè' ? 1 : 2);
+                            $('#editPrivacy').val(pVal);
+
+                            $('#editFakeLikes').val(res.data.fakeLikes);
+                            $('#editFakeShares').val(res.data.fakeShares);
+                        }
+                    });
+                }
+
+        function submitEdit() {
+            const fd = new FormData(document.getElementById('editForm'));
+            $.ajax({
+                url: '/Admin/Posts/Edit', type: 'POST', data: Object.fromEntries(fd),
+                success: function(res) {
+                    if(res.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                        Swal.fire({ icon: 'success', title: 'Thành công', text: res.message, timer: 1000, showConfirmButton: false }).then(() => location.reload());
+                    } else Swal.fire('Lỗi', res.message, 'error');
+                }
+            });
+        }
+
+        function deletePost(id) {
+            Swal.fire({
+                title: 'Xóa bài viết?', text: "Toàn bộ dữ liệu liên quan sẽ bị xóa vĩnh viễn.", icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Xóa ngay', cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Posts/Delete', { id: id }, function(res) {
+                        if(res.success) {
+                            $(`#row_${id}`).fadeOut();
+                            Swal.fire('Đã xóa', res.message, 'success');
+                        } else Swal.fire('Lỗi', res.message, 'error');
+                    });
+                }
+            });
+        }
+    </script>
+}
