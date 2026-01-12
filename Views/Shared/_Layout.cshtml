@@ -13,10 +13,12 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" integrity="sha512-dPXYcDub/aeb08c63jRq/k6GaKccl256JQy/AnOq7CAnEZ9FzSL9wSbcZkMp4R26vBsMLFYH4kQ67/bbV8XaCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.min.css" integrity="sha512-l1vPIxJGBW6p+VWoLz1ohFz2Z8L6e6VjE+4f8C244q48r54r54r54r54r54r54" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.10.1/sweetalert2.all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <style>
         :root {
@@ -185,8 +187,9 @@
                             </a>
                         </li>
                         <li class="nav-item mx-1">
-                            <a class="nav-center-item" href="#" title="Ví Vibee">
-                                <i class="bi bi-wallet2"></i>
+                            <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Wallet" ? "active" : "")"
+                               asp-controller="Wallet" asp-action="Index" title="Bảng tin">
+                                <i b-ro4cbi3m9j="" class="bi bi-wallet2"></i>
                             </a>
                         </li>
                     </ul>
@@ -218,45 +221,45 @@
 
                         <audio id="msg-sound" src="~/uploads/am-thanh-thong-bao-messenger.mp3" preload="auto"></audio>
 
-                            <div class="dropdown">
-                                <a href="#" class="btn-circle position-relative" id="notiDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                    <i class="bi bi-bell-fill"></i>
-                                    <span id="noti-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">0</span>
-                                </a>
+                        <div class="dropdown">
+                            <a href="#" class="btn-circle position-relative" id="notiDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                <i class="bi bi-bell-fill"></i>
+                                <span id="noti-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">0</span>
+                            </a>
 
-                                <div class="dropdown-menu dropdown-menu-end noti-dropdown-menu" aria-labelledby="notiDropdownBtn">
-                                    <div class="noti-header">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h4 class="fw-bold mb-0">Thông báo</h4>
-                                            <button class="btn btn-sm btn-link text-decoration-none" onclick="markAllRead()" style="font-size: 0.85rem;">Đánh dấu tất cả đã đọc</button>
-                                        </div>
-                                        <div class="noti-tabs d-flex gap-2">
-                                            <button class="btn-tab active" onclick="switchTab('all')">Tất cả</button>
-                                            <button class="btn-tab" onclick="switchTab('unread')">Chưa đọc</button>
-                                        </div>
+                            <div class="dropdown-menu dropdown-menu-end noti-dropdown-menu" aria-labelledby="notiDropdownBtn">
+                                <div class="noti-header">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="fw-bold mb-0">Thông báo</h4>
+                                        <button class="btn btn-sm btn-link text-decoration-none" onclick="markAllRead()" style="font-size: 0.85rem;">Đánh dấu tất cả đã đọc</button>
                                     </div>
+                                    <div class="noti-tabs d-flex gap-2">
+                                        <button class="btn-tab active" onclick="switchTab('all')">Tất cả</button>
+                                        <button class="btn-tab" onclick="switchTab('unread')">Chưa đọc</button>
+                                    </div>
+                                </div>
 
                                 <div id="noti-list" style="max-height: 400px; overflow-y: auto;">
-                                        <div class="text-center p-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div></div>
-                                    </div>
+                                    <div class="text-center p-4 text-muted"><div class="spinner-border spinner-border-sm text-primary"></div></div>
+                                </div>
 
-                                    <div class="p-2 border-top text-center d-none" id="noti-footer">
-                                        <button class="btn btn-light w-100 fw-bold text-primary" onclick="loadMoreNotis()">Xem các thông báo trước đó</button>
-                                    </div>
+                                <div class="p-2 border-top text-center d-none" id="noti-footer">
+                                    <button class="btn btn-light w-100 fw-bold text-primary" onclick="loadMoreNotis()">Xem các thông báo trước đó</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                    <div class="ms-2">
-                        <partial name="_LoginPartial" />
-                    </div>
+            <div class="ms-2">
+                <partial name="_LoginPartial" />
+            </div>
 
-                    <button class="navbar-toggler ms-2 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCenter">
-                        <i class="bi bi-list fs-1 text-primary"></i>
-                    </button>
-                </div>
+            <button class="navbar-toggler ms-2 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCenter">
+                <i class="bi bi-list fs-1 text-primary"></i>
+            </button>
+            </div>
             </div>
         </nav>
     </header>
@@ -328,20 +331,11 @@
         </div>
     </div>
 
-    <span id="version">Version Beta 1.0</span>
-    <style>
-        #version {
-            color: slategrey;
-            display: flex;
-            justify-content: right;
-            margin: 10px;
-        }
-    </style>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
@@ -475,6 +469,16 @@
     </script>
 
     <script src="~/js/chat.js" asp-append-version="true"></script>
+
+    <span id="version">Version Beta 1.0</span>
+    <style>
+        #version {
+            color: slategrey;
+            display: flex;
+            justify-content: right;
+            margin: 10px;
+        }
+    </style>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
