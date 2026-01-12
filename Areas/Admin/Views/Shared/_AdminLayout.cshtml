@@ -16,7 +16,7 @@
         :root {
             --admin-sidebar-bg: #1e1e2d;
             --admin-sidebar-hover: #2b2b40;
-            --admin-active: #0d6efd; /* Màu xanh hiện đại hơn */
+            --admin-active: #0d6efd;
             --admin-bg: #f3f6f9;
             --admin-text-muted: #9899ac;
         }
@@ -29,7 +29,6 @@
             color: #3f4254;
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -53,7 +52,6 @@
             width: 100%;
         }
 
-        /* Sidebar Styling */
         .sidebar {
             width: 265px;
             background-color: var(--admin-sidebar-bg);
@@ -131,7 +129,6 @@
                 color: var(--admin-active);
             }
 
-        /* Main Panel Styling */
         .main-panel {
             flex: 1;
             margin-left: 265px;
@@ -157,7 +154,6 @@
             padding: 30px;
         }
 
-        /* Utilities */
         .btn-icon {
             width: 40px;
             height: 40px;
@@ -213,6 +209,12 @@
                     <i class="bi bi-people-fill"></i>
                     <span class="ms-2">Thành viên</span>
                 </a>
+
+              @*   <a asp-area="Admin" asp-controller="Users" asp-action="Index"
+                   class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Users" ? "active" : "")">
+                    <i class="bi bi-people-fill"></i>
+                    <span class="ms-2">Thành viên</span>
+                </a> *@
 
                 <div class="menu-header">Mạng xã hội</div>
 

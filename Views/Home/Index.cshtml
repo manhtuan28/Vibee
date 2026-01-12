@@ -3,9 +3,8 @@
     ViewData["Title"] = "Newsfeed";
 }
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 <link rel="stylesheet" href="~/css/home.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
 <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
@@ -20,6 +19,7 @@
                 <a href="/Friends" class="left-menu-item"><i class="bi bi-people-fill text-primary" style="font-size:1.5rem;margin-right:12px"></i> Bạn bè</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-collection-play-fill text-danger" style="font-size:1.5rem;margin-right:12px"></i> Watch</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-shop text-primary" style="font-size:1.5rem;margin-right:12px"></i> Marketplace</a>
+                <a href="/Wallet" class="left-menu-item"><i class="bi bi-wallet2 text-success" style="font-size:1.5rem;margin-right:12px"></i> Ví</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-clock-history text-primary" style="font-size:1.5rem;margin-right:12px"></i> Kỷ niệm</a>
                 <a href="#" class="left-menu-item"><i class="bi bi-bookmark-fill text-secondary" style="font-size:1.5rem;margin-right:12px"></i> Đã lưu</a>
             </div>
@@ -270,7 +270,6 @@
                             <div class="d-flex align-items-center justify-content-between px-3 py-2 text-muted small">
                                 <div class="d-flex align-items-center" id="count-react-@post.Id">
                                     @{
-                                        // Tính tổng like thật + ảo
                                         var totalLikes = (post.Likes?.Count ?? 0) + post.FakeLikeCount;
                                     }
                                     @if (totalLikes > 0)

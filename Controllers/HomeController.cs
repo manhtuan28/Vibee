@@ -14,18 +14,26 @@ namespace Vibee.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, ApplicationDbContext context, SignInManager<ApplicationUser> signInManager)
         {
             _logger = logger;
             _userManager = userManager;
             _context = context;
+            _signInManager = signInManager;
         }
 
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account", new { area = "Identity" });
+
+            if (currentUser == null)
+            {
+                await _signInManager.SignOutAsync();
+                return RedirectToAction("Login", "Account", new { area = "Identity" });
+            }
 
             var friendIds = await _context.Friendships
                 .Where(f => (f.SenderId == currentUser.Id || f.ReceiverId == currentUser.Id)

@@ -1,0 +1,147 @@
+﻿@model Vibee.Models.Wallet
+@{
+    ViewData["Title"] = "Ví của tôi";
+}
+
+<style>
+    .wallet-card {
+        background: linear-gradient(135deg, #1877f2 0%, #0099ff 100%);
+        border-radius: 16px;
+        color: white;
+        padding: 25px;
+        box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .wallet-card::after {
+        content: ""; position: absolute; top: -50px; right: -50px;
+        width: 150px; height: 150px; background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    .trans-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 15px; border-bottom: 1px solid #f0f2f5; transition: 0.2s;
+    }
+    .trans-item:hover { background-color: #f8f9fa; }
+    .amount-plus { color: #31a24c; font-weight: bold; }
+    .amount-minus { color: #dc3545; font-weight: bold; }
+</style>
+
+<div class="container mt-4" style="max-width: 800px;">
+    @if (TempData["SuccessMsg"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMsg"]
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <div class="wallet-card">
+                <div class="d-flex justify-content-between">
+                    <span class="opacity-75">Số dư hiện tại</span>
+                    <i class="bi bi-wallet2 fs-4"></i>
+                </div>
+                <h2 class="fw-bold mt-2 mb-4">@Model.Balance.ToString("N0") <small class="fs-6">@Model.Currency</small></h2>
+                <div class="d-flex justify-content-between align-items-end">
+                    <div>
+                        <small class="opacity-75 d-block" style="font-size: 12px;">CHỦ TÀI KHOẢN</small>
+                        <span class="fw-bold text-uppercase">@User.Identity.Name</span>
+                    </div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" height="20" style="filter: brightness(0) invert(1);">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 d-flex flex-column gap-2 justify-content-center">
+            <a href="/Wallet/Transfer" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                <i class="bi bi-send-fill me-2"></i> Chuyển tiền
+            </a>
+            <a href="/Wallet/Deposit" class="btn btn-success btn-lg w-100 fw-bold shadow-sm text-white">
+                <i class="bi bi-plus-circle-fill me-2"></i> Nạp tiền
+            </a>
+        </div>
+    </div>
+
+<div class="card border-0 shadow-sm rounded-4 mt-4">
+        <div class="card-header bg-white border-0 pt-4 pb-2 px-4">
+            <h5 class="fw-bold mb-0">Lịch sử giao dịch</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (ViewBag.Transactions != null)
+            {
+                foreach (var item in ViewBag.Transactions)
+                {
+                    bool isReceiver = item.ReceiverWalletId == Model.Id;
+                    bool isDeposit = item.Type == Vibee.Models.TransactionType.Deposit;
+                    
+                    var amountClass = isReceiver ? "text-success" : "text-danger";
+                    var amountSign = isReceiver ? "+" : "-";
+                    var icon = "";
+
+                    if (isDeposit) { icon = "bi-arrow-down-circle-fill text-primary"; }
+                    else if (isReceiver) { icon = "bi-arrow-down-left-circle-fill text-success"; }
+                    else { icon = "bi-arrow-up-right-circle-fill text-danger"; }
+
+                    string displayTitle = "";
+                    if (isDeposit)
+                    {
+                        displayTitle = "Nạp tiền vào ví";
+                    }
+                    else if (isReceiver)
+                    {
+                        var sender = item.SenderWallet?.User;
+                        displayTitle = "Nhận từ: " + (sender?.FullName ?? sender?.Email ?? "Ẩn danh");
+                    }
+                    else
+                    {
+                        var receiver = item.ReceiverWallet?.User;
+                        displayTitle = "Chuyển đến: " + (receiver?.FullName ?? receiver?.Email ?? "Unknown");
+                    }
+
+                    string statusBadge = "";
+                    if(item.Status == Vibee.Models.TransactionStatus.Completed)
+                    {
+                        statusBadge = "<span class='badge bg-success bg-opacity-10 text-success rounded-pill'>Thành công</span>";
+                    }
+                    else if (item.Status == Vibee.Models.TransactionStatus.Pending)
+                    {
+                        statusBadge = "<span class='badge bg-warning bg-opacity-10 text-warning rounded-pill'>Chờ thanh toán</span>";
+                    }
+                    else
+                    {
+                        statusBadge = "<span class='badge bg-danger bg-opacity-10 text-danger rounded-pill'>Thất bại</span>";
+                        amountClass = "text-muted text-decoration-line-through";
+                    }
+
+                    <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3 fs-3"><i class="bi @icon"></i></div>
+                            <div>
+                                <div class="fw-bold text-dark">@displayTitle</div>
+                                <div class="text-muted small">
+                                    @item.CreatedAt.ToString("dd/MM/yyyy HH:mm") • @item.Message
+                                </div>
+                                <div class="mt-1">@Html.Raw(statusBadge)</div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold fs-5 @amountClass">
+                                @amountSign @item.Amount.ToString("N0")
+                            </div>
+                            @if (item.Status == Vibee.Models.TransactionStatus.Pending && isDeposit)
+                            {
+                                <a href="/Wallet/Repay?id=@item.Id" class="btn btn-sm btn-primary rounded-pill mt-1">
+                                    Thanh toán ngay <i class="bi bi-chevron-right"></i>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            @if(((IEnumerable<dynamic>)ViewBag.Transactions).Count() == 0)
+            {
+                <div class="text-center py-5 text-muted">Chưa có giao dịch nào.</div>
+            }
+        </div>
+    </div>
+</div>

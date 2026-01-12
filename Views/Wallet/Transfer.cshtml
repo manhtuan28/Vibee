@@ -1,0 +1,53 @@
+﻿@{
+    ViewData["Title"] = "Chuyển tiền";
+}
+
+<div class="container mt-5" style="max-width: 500px;">
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 text-center pt-4">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                <i class="bi bi-send-fill fs-3"></i>
+            </div>
+            <h4 class="fw-bold">Chuyển tiền</h4>
+            <p class="text-muted small">Gửi tiền nhanh chóng đến bạn bè</p>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" action="/Wallet/Transfer">
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger border-0 shadow-sm mb-3">
+                        @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">EMAIL NGƯỜI NHẬN</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="receiverEmail" class="form-control bg-light border-0" placeholder="name@example.com" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">SỐ TIỀN (VND)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0 fw-bold">₫</span>
+                        <input type="number" name="amount" class="form-control bg-light border-0 fw-bold text-primary" placeholder="0" min="1000" step="1000" required style="font-size: 1.2rem;">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small">LỜI NHẮN</label>
+                    <textarea name="message" class="form-control bg-light border-0" rows="3" placeholder="Ví dụ: Tiền cafe..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill shadow-sm">
+                    Xác nhận chuyển
+                </button>
+                <a href="/Wallet" class="btn btn-link text-decoration-none w-100 mt-2 text-muted">Hủy bỏ</a>
+            </form>
+        </div>
+    </div>
+</div>
