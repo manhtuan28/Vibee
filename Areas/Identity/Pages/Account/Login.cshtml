@@ -219,7 +219,7 @@
 
                     <div class="divider"></div>
 
-                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="btn-create">Tạo tài khoản mới</a>
+                    <a asp-page="./Register" class="btn-create">Tạo tài khoản mới</a>
                 </form>
             </div>
 
@@ -232,6 +232,15 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            if (window.history.replaceState) {
+                var cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+            }
+        });
+    </script>
 
 </body>
 </html>
