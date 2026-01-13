@@ -24,6 +24,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders()
 .AddDefaultUI();
 
+builder.Services.AddScoped<Vibee.Services.LayoutService>();
 builder.Services.AddScoped<Vibee.Services.FileService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();

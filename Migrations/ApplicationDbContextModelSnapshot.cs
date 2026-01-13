@@ -618,6 +618,32 @@ namespace Vibee.Migrations
                     b.ToTable("StoryViews");
                 });
 
+            modelBuilder.Entity("Vibee.Models.SystemSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SystemSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Key = "AppVersion",
+                            Description = "Phiên bản ứng dụng hiển thị ở footer",
+                            Value = "Beta 1.0"
+                        });
+                });
+
             modelBuilder.Entity("Vibee.Models.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
