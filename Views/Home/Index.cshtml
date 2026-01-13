@@ -3,13 +3,49 @@
     ViewData["Title"] = "Newsfeed";
 }
 
-
 <link rel="stylesheet" href="~/css/home.css">
 <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
 <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
+<style>
+    @@media (max-width: 991.98px) {
+        .feed-wrapper {
+            padding-top: 10px !important;
+        }
+
+        .fb-card {
+            border-radius: 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .create-post-actions .btn-action span {
+            display: none;
+        }
+
+        .create-post-actions .btn-action i {
+            font-size: 1.4rem !important;
+            margin-right: 0 !important;
+        }
+
+        .create-post-actions .btn-action {
+            padding: 8px 0;
+        }
+        .post-footer-actions .btn-action {
+            font-size: 0.85rem;
+            gap: 4px;
+        }
+
+        .stories-container {
+            padding: 10px 8px;
+        }
+    }
+</style>
+
 <div class="container-fluid fb-main-container">
-    <div class="row g-0 justify-content-between">
+    <div class="row g-0 justify-content-center">
         <div class="col-xl-3 col-lg-3 d-none d-lg-block">
             <div class="sidebar-sticky custom-scrollbar sidebar-left">
                 <a href="/Profile/@(Model.CurrentUser?.UrlHandle ?? Model.CurrentUser?.Id)" class="left-menu-item mb-2">
@@ -25,7 +61,7 @@
             </div>
         </div>
 
-        <div class="col-xl-6 col-lg-6 col-12">
+        <div class="col-xl-6 col-lg-8 col-md-10 col-12">
 
             <div class="stories-container" id="stories-tray">
                 <div class="story-card create-story-card" onclick="document.getElementById('inp-story-file').click()">
@@ -39,7 +75,6 @@
             </div>
 
             <div id="story-viewer" class="d-none">
-
                 <div class="story-controls-top">
                     <div id="btn-delete-story" class="story-btn-circle story-btn-delete d-none" onclick="deleteCurrentStory()" title="Xóa tin này">
                         <i class="bi bi-trash-fill"></i>
@@ -57,7 +92,6 @@
 
                 <div class="story-content-wrapper">
                     <div id="flying-reaction-container" style="position:absolute; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index: 50;"></div>
-
                     <div class="story-progress-bar" id="story-progress-container"></div>
 
                     <div class="story-header">
@@ -104,12 +138,12 @@
                         <h6 class="mb-0 fw-bold">Người xem</h6>
                         <i class="bi bi-x-lg cursor-pointer" onclick="toggleViewerList()"></i>
                     </div>
-                    <div class="viewer-list-body" id="viewer-list-content">
-                    </div>
+                    <div class="viewer-list-body" id="viewer-list-content"></div>
                 </div>
             </div>
 
             <div class="feed-wrapper">
+
                 <div class="fb-card p-3">
                     <div class="d-flex align-items-center mb-3">
                         <a href="/Profile/@(Model.CurrentUser?.UrlHandle ?? Model.CurrentUser?.Id)">
@@ -120,10 +154,16 @@
                         </div>
                     </div>
                     <hr class="my-2 opacity-15">
-                    <div class="d-flex justify-content-between">
-                        <button class="btn-action" onclick="openPostModal()"><i class="bi bi-camera-video-fill text-danger" style="font-size:1.5rem"></i> Live video</button>
-                        <button class="btn-action" onclick="openPostModal()"><i class="bi bi-images text-success" style="font-size:1.5rem"></i> Ảnh/Video</button>
-                        <button class="btn-action" onclick="openPostModal('feeling')"><i class="bi bi-emoji-smile-fill text-warning" style="font-size:1.5rem"></i> Cảm xúc</button>
+                    <div class="d-flex justify-content-between create-post-actions">
+                        <button class="btn-action" onclick="openPostModal()">
+                            <i class="bi bi-camera-video-fill text-danger me-2" style="font-size:1.5rem"></i><span>Live video</span>
+                        </button>
+                        <button class="btn-action" onclick="openPostModal()">
+                            <i class="bi bi-images text-success me-2" style="font-size:1.5rem"></i><span>Ảnh/Video</span>
+                        </button>
+                        <button class="btn-action" onclick="openPostModal('feeling')">
+                            <i class="bi bi-emoji-smile-fill text-warning me-2" style="font-size:1.5rem"></i><span>Cảm xúc</span>
+                        </button>
                     </div>
                 </div>
 
@@ -314,7 +354,7 @@
                                 </div>
                             </div>
 
-                            <div class="post-actions">
+                            <div class="post-actions post-footer-actions">
                                 <div class="reaction-wrapper">
                                     <div class="reaction-box">
                                         <div class="emoji-btn" onclick="doReact(@post.Id, 'Like')" title="Thích">👍</div>
@@ -344,8 +384,8 @@
                                         <i class="bi @iconClass" style="font-size: 1.2rem;"></i> <span>@labelText</span>
                                     </button>
                                 </div>
-                                <button class="btn-action" onclick="toggleComment(@post.Id)"><i class="bi bi-chat-text" style="font-size: 1.2rem;"></i> Bình luận</button>
-                                <button class="btn-action" onclick="sharePost(@post.Id)"><i class="bi bi-share" style="font-size: 1.2rem;"></i> Chia sẻ</button>
+                                <button class="btn-action" onclick="toggleComment(@post.Id)"><i class="bi bi-chat-text" style="font-size: 1.2rem;"></i> <span>Bình luận</span></button>
+                                <button class="btn-action" onclick="sharePost(@post.Id)"><i class="bi bi-share" style="font-size: 1.2rem;"></i> <span>Chia sẻ</span></button>
                             </div>
 
                             <div id="comment-box-@post.Id" class="mt-2 d-none px-3 pb-3">

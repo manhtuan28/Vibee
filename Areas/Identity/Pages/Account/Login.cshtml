@@ -25,7 +25,7 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            padding-bottom: 50px;
+            padding-bottom: 20px;
         }
 
         .main-container {
@@ -40,7 +40,8 @@
         }
 
         .left-col {
-            width: 500px;
+            width: 58%;
+            max-width: 500px;
             padding-right: 32px;
             margin-bottom: 80px;
         }
@@ -63,7 +64,8 @@
         }
 
         .right-col {
-            width: 396px;
+            width: 42%;
+            max-width: 396px;
         }
 
         .login-card {
@@ -163,7 +165,7 @@
                     text-decoration: underline;
                 }
 
-        @@media (max-width: 900px) {
+        @@media (max-width: 992px) {
             .main-container {
                 flex-direction: column;
                 text-align: center;
@@ -171,9 +173,10 @@
             }
 
             .left-col {
-                width: auto;
+                width: 100%;
+                max-width: 400px;
                 padding-right: 0;
-                margin-bottom: 40px;
+                margin-bottom: 30px;
                 text-align: center;
             }
 
@@ -182,8 +185,29 @@
             }
 
             .vibee-slogan {
+                font-size: 20px;
+                line-height: 28px;
+            }
+
+            .right-col {
+                width: 100%;
+                max-width: 400px;
+                padding: 0 15px;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .vibee-logo {
+                font-size: 50px;
+            }
+
+            .vibee-slogan {
                 font-size: 18px;
-                width: auto;
+                line-height: 24px;
+            }
+
+            .main-container {
+                padding-top: 10px;
             }
         }
     </style>

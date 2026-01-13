@@ -90,6 +90,79 @@
     .hover-underline:hover {
         text-decoration: underline !important;
     }
+
+    .profile-nav-container {
+        width: 100%;
+        border-top: 1px solid #ced0d4;
+        margin-top: 1rem;
+        padding-top: 4px;
+    }
+
+    .profile-nav-links {
+        display: flex;
+        gap: 4px;
+        font-weight: bold;
+        color: #65676b;
+    }
+
+    @@media (max-width: 991.98px) {
+        .cover-container {
+            height: 250px;
+            border-radius: 0;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .cover-container {
+            height: 180px;
+        }
+
+        .profile-info-wrap {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 15px 15px;
+            margin-top: -60px;
+        }
+
+        .avatar-view {
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
+
+        .avatar-img {
+            width: 140px;
+            height: 140px;
+            border: 4px solid #fff;
+        }
+
+        .user-details {
+            width: 100%;
+            margin-top: 0;
+            margin-bottom: 15px;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 1.6rem;
+        }
+
+        .action-buttons {
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .profile-nav-links {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+            .profile-nav-links::-webkit-scrollbar {
+                display: none;
+            }
+    }
 </style>
 
 <div class="profile-header-wrapper">
@@ -101,63 +174,66 @@
         @if (Model.IsOwner)
         {
             <input type="file" id="coverInput" hidden accept="image/*" onchange="uploadCover()">
-            <button class="btn btn-light fw-bold position-absolute bottom-0 end-0 m-4 d-none d-md-block" onclick="document.getElementById('coverInput').click()">
-                <i class="bi bi-camera-fill me-2"></i> Thêm ảnh bìa
+            <button class="btn btn-light fw-bold position-absolute bottom-0 end-0 m-2 m-md-4" onclick="document.getElementById('coverInput').click()">
+                <i class="bi bi-camera-fill me-md-2"></i> <span class="d-none d-md-inline">Thêm ảnh bìa</span>
             </button>
         }
     </div>
 
     <div class="profile-info-wrap">
-        <div class="d-flex align-items-end flex-wrap w-100">
-            <div class="avatar-view">
-                <img id="avatarImageDisplay" src="@(Model.User.AvatarUrl ?? "/images/default-avatar.png")" class="avatar-img">
-                @if (Model.IsOwner)
-                {
-                    <input type="file" id="avatarInput" hidden accept="image/*" onchange="uploadAvatar()">
-                    <div class="position-absolute bottom-0 end-0 bg-light border rounded-circle d-flex align-items-center justify-content-center cursor-pointer"
-                         style="width:36px;height:36px;margin:10px 5px;" onclick="document.getElementById('avatarInput').click()">
-                        <i class="bi bi-camera-fill text-dark"></i>
-                    </div>
-                }
-            </div>
-
-            <div class="user-details">
-                <h1 class="user-name">
-                    @Model.User.FullName
-                    @if (Model.User.IsVerified)
+        <div class="d-flex align-items-end flex-wrap w-100 justify-content-center justify-content-md-between">
+            <div class="d-flex align-items-end flex-wrap justify-content-center justify-content-md-start flex-grow-1">
+                <div class="avatar-view">
+                    <img id="avatarImageDisplay" src="@(Model.User.AvatarUrl ?? "/images/default-avatar.png")" class="avatar-img">
+                    @if (Model.IsOwner)
                     {
-                        <i class="bi bi-patch-check-fill text-primary fs-4 ms-1" title="Đã xác minh"></i>
+                        <input type="file" id="avatarInput" hidden accept="image/*" onchange="uploadAvatar()">
+                        <div class="position-absolute bottom-0 end-0 bg-light border rounded-circle d-flex align-items-center justify-content-center cursor-pointer"
+                             style="width:36px;height:36px;margin:10px 5px;"
+                             onclick="document.getElementById('avatarInput').click()">
+                            <i class="bi bi-camera-fill text-dark"></i>
+                        </div>
                     }
-                </h1>
-                <div class="user-stats">
-                    <span class="cursor-pointer hover-underline" onclick="location.href='/Profile/Friends/@Model.User.Id'">@Model.FriendCount bạn bè</span> •
-                    <span>@Model.PhotoCount người theo dõi</span>
                 </div>
 
-                @if (Model.Friends != null && Model.Friends.Any())
-                {
-                    <div class="d-flex mt-2">
-                        @{
-                            var index = 0;
-                        }
-                        @foreach (var friend in Model.Friends)
+                <div class="user-details text-center text-md-start">
+                    <h1 class="user-name">
+                        @Model.User.FullName
+                        @if (Model.User.IsVerified)
                         {
-                            <a href="/Profile/@(friend.UrlHandle ?? friend.Id)" title="@friend.FullName">
-                                <img src="@(friend.AvatarUrl ?? "/images/default-avatar.png")"
-                                     class="rounded-circle border border-2 border-white bg-white"
-                                     style="width: 32px; height: 32px; object-fit: cover; @(index > 0 ? "margin-left: -8px;" : "")">
-                            </a>
-                            index++;
+                            <i class="bi bi-patch-check-fill text-primary fs-4 ms-1" title="Đã xác minh"></i>
                         }
+                    </h1>
+                    <div class="user-stats justify-content-center justify-content-md-start d-flex gap-1">
+                        <span class="cursor-pointer hover-underline" onclick="location.href='/Profile/Friends/@Model.User.Id'">@Model.FriendCount bạn bè</span> •
+                        <span>@Model.PhotoCount người theo dõi</span>
                     </div>
-                }
+
+                    @if (Model.Friends != null && Model.Friends.Any())
+                    {
+                        <div class="d-flex mt-2 justify-content-center justify-content-md-start">
+                            @{
+                                var index = 0;
+                            }
+                            @foreach (var friend in Model.Friends)
+                            {
+                                <a href="/Profile/@(friend.UrlHandle ?? friend.Id)" title="@friend.FullName">
+                                    <img src="@(friend.AvatarUrl ?? "/images/default-avatar.png")"
+                                         class="rounded-circle border border-2 border-white bg-white"
+                                         style="width: 32px; height: 32px; object-fit: cover; @(index > 0 ? "margin-left: -8px;" : "")">
+                                </a>
+                                index++;
+                            }
+                        </div>
+                    }
+                </div>
             </div>
 
             <div class="action-buttons">
                 @if (Model.FriendshipStatus == "Self")
                 {
-                    <button class="btn btn-primary fw-bold"><i class="bi bi-plus-lg me-1"></i> Thêm vào tin</button>
-                    <a href="/Profile/Edit" class="btn btn-light bg-secondary-subtle fw-bold"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa</a>
+                    <button class="btn btn-primary fw-bold"><i class="bi bi-plus-lg me-1"></i> <span class="d-none d-sm-inline">Thêm vào tin</span><span class="d-inline d-sm-none">Tin</span></button>
+                    <a href="/Profile/Edit" class="btn btn-light bg-secondary-subtle fw-bold"><i class="bi bi-pencil-fill me-1"></i> <span class="d-none d-sm-inline">Chỉnh sửa</span><span class="d-inline d-sm-none">Sửa</span></a>
                 }
                 else if (Model.FriendshipStatus == "Friends")
                 {
@@ -201,11 +277,10 @@
             </div>
         </div>
 
-        <div class="w-100 border-top pt-1 mt-3">
-            <div class="d-flex gap-1 fw-bold text-secondary">
+        <div class="profile-nav-container">
+            <div class="profile-nav-links">
                 @{
                     string action = ViewContext.RouteData.Values["Action"]?.ToString();
-
                     string profileLink = Model.User.UrlHandle ?? Model.User.Id;
                 }
 
@@ -228,6 +303,9 @@
                    class="text-decoration-none p-3 cursor-pointer rounded @(action == "Photos" ? "text-primary border-bottom border-3 border-primary" : "text-secondary hover-bg-gray")">
                     Ảnh
                 </a>
+
+                <a href="#" class="text-decoration-none p-3 cursor-pointer rounded text-secondary hover-bg-gray">Video</a>
+                <a href="#" class="text-decoration-none p-3 cursor-pointer rounded text-secondary hover-bg-gray">Check-in</a>
             </div>
         </div>
     </div>

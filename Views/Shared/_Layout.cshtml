@@ -8,7 +8,7 @@
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>@ViewData["Title"] - Vibee Social</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -37,7 +37,7 @@
         .navbar-vibee {
             background-color: #ffffff;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            height: 60px;
+            min-height: 60px;
             padding: 0 16px;
         }
 
@@ -115,6 +115,7 @@
             font-size: 1.2rem;
             transition: 0.2s;
             text-decoration: none;
+            flex-shrink: 0;
         }
 
             .btn-circle:hover {
@@ -145,6 +146,92 @@
         .transition-btn:active {
             transform: scale(0.95);
         }
+
+        @@media (max-width: 991.98px) {
+            .navbar-vibee {
+                padding: 10px;
+            }
+
+            .nav-center-item {
+                width: 100%;
+                justify-content: flex-start;
+                padding-left: 20px;
+                height: 50px;
+                margin-bottom: 5px;
+            }
+
+                .nav-center-item i {
+                    margin-right: 15px;
+                }
+
+                .nav-center-item.active::after {
+                    width: 4px;
+                    height: 100%;
+                    top: 0;
+                    left: 0;
+                    bottom: auto;
+                    border-radius: 0 3px 3px 0;
+                }
+
+            .btn-admin-access {
+                display: none !important;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .brand-logo {
+                font-size: 24px;
+            }
+            .chat-box {
+                width: 100% !important;
+                height: 100% !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                border-radius: 0 !important;
+                z-index: 2000 !important;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chat-body {
+                flex-grow: 1;
+            }
+
+            #chat-container {
+                right: 0 !important;
+                bottom: 0 !important;
+                margin-right: 0 !important;
+                width: 100%;
+                pointer-events: none;
+            }
+
+            .right-icons-area {
+                gap: 8px !important;
+                margin-right: 10px;
+            }
+
+            .btn-circle {
+                width: 36px;
+                height: 36px;
+                font-size: 1.1rem;
+            }
+            .noti-dropdown-menu {
+                position: fixed !important;
+                top: 65px !important;
+                left: 10px !important;
+                right: 10px !important;
+                width: auto !important;
+                margin: 0 !important;
+                transform: none !important;
+                max-height: 75vh;
+                overflow-y: auto;
+                border-radius: 12px !important;
+                box-shadow: 0 10px 50px rgba(0,0,0,0.3) !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -153,47 +240,57 @@
         <nav class="navbar navbar-expand-lg navbar-vibee fixed-top">
             <div class="container-fluid px-0">
 
-                <div class="d-flex align-items-center gap-3" style="min-width: 300px;">
+                <div class="d-flex align-items-center gap-2 gap-md-3" style="min-width: fit-content;">
                     <a class="navbar-brand brand-logo me-0" href="/">
                         <i class="bi bi-messenger me-1"></i>Vibee
                     </a>
-                    <form class="d-none d-md-flex ms-3" action="/Home/Search" method="get" style="width: 400px;">
-                        <div class="input-group rounded-pill bg-light border-0 px-2 py-1">
+                    <form class="d-none d-md-flex ms-2" action="/Home/Search" method="get" style="width: 300px;">
+                        <div class="input-group rounded-pill bg-light border-0 px-2 py-1 w-100">
                             <span class="input-group-text bg-transparent border-0"><i class="bi bi-search text-muted"></i></span>
-                            <input class="form-control bg-transparent border-0 shadow-none" type="search" name="query" placeholder="Tìm kiếm trên Vibee" aria-label="Search">
+                            <input class="form-control bg-transparent border-0 shadow-none" type="search" name="query" placeholder="Tìm kiếm" aria-label="Search">
                         </div>
                     </form>
                 </div>
 
-                <div class="collapse navbar-collapse justify-content-center" id="navbarCenter">
-                    <ul class="navbar-nav mb-2 mb-lg-0">
+                <div class="collapse navbar-collapse justify-content-center order-3 order-lg-2" id="navbarCenter">
+                    <ul class="navbar-nav mb-2 mb-lg-0 w-100 justify-content-center">
                         <li class="nav-item mx-1">
                             <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"
                                asp-controller="Home" asp-action="Index" title="Bảng tin">
                                 <i class="bi bi-house-door-fill"></i>
+                                <span class="d-lg-none fw-bold ms-2">Trang chủ</span>
                             </a>
                         </li>
                         <li class="nav-item mx-1">
                             <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Friends" ? "active" : "")"
-                               asp-controller="Friends" asp-action="Index" title="Bảng tin">
-                                <i b-ro4cbi3m9j="" class="bi bi-people-fill"></i>
+                               asp-controller="Friends" asp-action="Index" title="Bạn bè">
+                                <i class="bi bi-people-fill"></i>
+                                <span class="d-lg-none fw-bold ms-2">Bạn bè</span>
                             </a>
                         </li>
                         <li class="nav-item mx-1">
                             <a class="nav-center-item" href="#" title="Video">
                                 <i class="bi bi-play-btn-fill"></i>
+                                <span class="d-lg-none fw-bold ms-2">Video</span>
                             </a>
                         </li>
                         <li class="nav-item mx-1">
                             <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Wallet" ? "active" : "")"
-                               asp-controller="Wallet" asp-action="Index" title="Bảng tin">
-                                <i b-ro4cbi3m9j="" class="bi bi-wallet2"></i>
+                               asp-controller="Wallet" asp-action="Index" title="Ví tiền">
+                                <i class="bi bi-wallet2"></i>
+                                <span class="d-lg-none fw-bold ms-2">Ví tiền</span>
+                            </a>
+                        </li>
+                        <li class="nav-item d-md-none mt-2 border-top pt-2">
+                            <a class="nav-center-item" href="/Home/Search">
+                                <i class="bi bi-search"></i>
+                                <span class="fw-bold ms-2">Tìm kiếm</span>
                             </a>
                         </li>
                     </ul>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-end gap-2" style="min-width: 300px;">
+                <div class="d-flex align-items-center justify-content-end order-2 order-lg-3 ms-auto right-icons-area">
 
                     @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                     {
@@ -203,17 +300,15 @@
                         </a>
                     }
 
-                    <div class="d-none d-md-flex gap-2 align-items-center">
-                        <a href="#" class="btn-circle" title="Menu">
+                    <div class="d-flex gap-2 align-items-center">
+                        <a href="#" class="btn-circle d-none d-md-flex" title="Menu">
                             <i class="bi bi-grid-3x3-gap-fill"></i>
                         </a>
 
                         <a href="/Chat" class="btn-circle position-relative" title="Tin nhắn" id="btn-msg-nav">
                             <i class="bi bi-chat-dots-fill"></i>
-
                             <span id="msg-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem; border: 2px solid #fff;">
                                 0
-                                <span class="visually-hidden">unread messages</span>
                             </span>
                         </a>
 
@@ -225,11 +320,11 @@
                                 <span id="noti-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">0</span>
                             </a>
 
-                            <div class="dropdown-menu dropdown-menu-end noti-dropdown-menu" aria-labelledby="notiDropdownBtn">
+                            <div class="dropdown-menu dropdown-menu-end noti-dropdown-menu shadow-lg border-0" aria-labelledby="notiDropdownBtn">
                                 <div class="noti-header">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h4 class="fw-bold mb-0">Thông báo</h4>
-                                        <button class="btn btn-sm btn-link text-decoration-none" onclick="markAllRead()" style="font-size: 0.85rem;">Đánh dấu tất cả đã đọc</button>
+                                        <button class="btn btn-sm btn-link text-decoration-none" onclick="markAllRead()" style="font-size: 0.85rem;">Đánh dấu đã đọc</button>
                                     </div>
                                     <div class="noti-tabs d-flex gap-2">
                                         <button class="btn-tab active" onclick="switchTab('all')">Tất cả</button>
@@ -242,22 +337,22 @@
                                 </div>
 
                                 <div class="p-2 border-top text-center d-none" id="noti-footer">
-                                    <button class="btn btn-light w-100 fw-bold text-primary" onclick="loadMoreNotis()">Xem các thông báo trước đó</button>
+                                    <button class="btn btn-light w-100 fw-bold text-primary" onclick="loadMoreNotis()">Xem cũ hơn</button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <button class="navbar-toggler ms-2 border-0 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCenter">
+                        <span class="btn-circle bg-transparent">
+                            <i class="bi bi-list fs-1 text-primary"></i>
+                        </span>
+                    </button>
+
+                    <div class="d-none d-md-block ms-2">
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
-            </div>
-
-            <div class="ms-2">
-                <partial name="_LoginPartial" />
-            </div>
-
-            <button class="navbar-toggler ms-2 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCenter">
-                <i class="bi bi-list fs-1 text-primary"></i>
-            </button>
-            </div>
             </div>
         </nav>
     </header>
@@ -268,8 +363,7 @@
         </main>
     </div>
 
-
-    <div id="chat-container" class="fixed-bottom end-0 mb-0 me-4 d-flex align-items-end gap-2" style="z-index: 1050; pointer-events: none;">
+    <div id="chat-container" class="fixed-bottom end-0 mb-0 me-0 me-md-4 d-flex align-items-end gap-2" style="z-index: 1050; pointer-events: none;">
     </div>
 
     <template id="chat-box-template">
@@ -330,10 +424,8 @@
     </div>
 
     <script src="~/js/signalr.min.js"></script>
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
@@ -344,33 +436,31 @@
             .configureLogging(signalR.LogLevel.None)
             .build();
 
-        window.connection.start()
-            .catch(err => console.error("❌ ChatHub Error: ", err));
+        window.connection.start().catch(err => console.error("❌ ChatHub Error: ", err));
 
         window.connection.on("IncomingCall", function (callerId, callerName, callerAvatar) {
+            window.incomingCallerId = callerId;
+            window.incomingCallerName = callerName || "Người dùng Vibee";
+            window.incomingCallerAvatar = callerAvatar || "/images/default-avatar.png";
 
-                window.incomingCallerId = callerId;
-                window.incomingCallerName = callerName || "Người dùng Vibee";
-                window.incomingCallerAvatar = callerAvatar || "/images/default-avatar.png";
+            var nameEl = document.getElementById('global-caller-name');
+            var avatarEl = document.getElementById('global-caller-avatar');
 
-                var nameEl = document.getElementById('global-caller-name');
-                var avatarEl = document.getElementById('global-caller-avatar');
+            if (nameEl) nameEl.innerText = window.incomingCallerName;
+            if (avatarEl) avatarEl.src = window.incomingCallerAvatar;
 
-                if (nameEl) nameEl.innerText = window.incomingCallerName;
-                if (avatarEl) avatarEl.src = window.incomingCallerAvatar;
+            var audio = document.getElementById('ringtone');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => {});
+            }
 
-                var audio = document.getElementById('ringtone');
-                if (audio) {
-                    audio.currentTime = 0;
-                    audio.play().catch(e => {});
-                }
-
-                var modalEl = document.getElementById('incomingCallModal');
-                if(modalEl) {
-                    var m = new bootstrap.Modal(modalEl);
-                    m.show();
-                }
-            });
+            var modalEl = document.getElementById('incomingCallModal');
+            if(modalEl) {
+                var m = new bootstrap.Modal(modalEl);
+                m.show();
+            }
+        });
 
         window.connection.on("CallEnded", function () {
             closeGlobalCallModal();
@@ -391,19 +481,18 @@
         }
 
         function globalAcceptCall() {
-                    closeGlobalCallModal();
+            closeGlobalCallModal();
+            var uid = window.incomingCallerId;
+            var name = encodeURIComponent(window.incomingCallerName || "Người dùng");
+            var avatar = encodeURIComponent(window.incomingCallerAvatar || "/images/default-avatar.png");
 
-                    var uid = window.incomingCallerId;
-                    var name = encodeURIComponent(window.incomingCallerName || "Người dùng");
-                    var avatar = encodeURIComponent(window.incomingCallerAvatar || "/images/default-avatar.png");
-
-                    if (window.location.pathname.toLowerCase().includes("/chat")) {
-                        if(typeof acceptIncomingCall === 'function') acceptIncomingCall();
-                        else window.location.href = `/Chat?userId=${uid}&autoAccept=true&name=${name}&avatar=${avatar}`;
-                    } else {
-                        window.location.href = `/Chat?userId=${uid}&autoAccept=true&name=${name}&avatar=${avatar}`;
-                    }
-                }
+            if (window.location.pathname.toLowerCase().includes("/chat")) {
+                if(typeof acceptIncomingCall === 'function') acceptIncomingCall();
+                else window.location.href = `/Chat?userId=${uid}&autoAccept=true&name=${name}&avatar=${avatar}`;
+            } else {
+                window.location.href = `/Chat?userId=${uid}&autoAccept=true&name=${name}&avatar=${avatar}`;
+            }
+        }
 
         let notiConfig = { filter: 'all', skip: 0, take: 5, isLoading: false };
         $(document).ready(function () {
@@ -463,7 +552,6 @@
         function markAllRead() { $.post('/Notification/MarkAllRead', function(res) { if(res.success) { $('.noti-item').removeClass('unread').addClass('read'); $('.noti-item .noti-time').removeClass('text-primary fw-bold').addClass('text-muted'); $('.noti-dot').remove(); updateBadge(0); } }); }
         function handleClickNoti(e, id, link) { e.preventDefault(); $.post('/Notification/MarkRead', { id: id }, function () { window.location.href = link; }); }
         function updateBadge(count) { let b = $('#noti-badge'); if (count > 0) b.text(count).removeClass('d-none'); else b.addClass('d-none'); }
-
     </script>
 
     <script src="~/js/chat.js" asp-append-version="true"></script>

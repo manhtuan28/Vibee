@@ -7,28 +7,13 @@
     .messenger-container {
         display: flex;
         height: calc(100vh - 70px);
+        height: calc(100dvh - 70px);
         background: #fff;
         margin-top: -16px;
         font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
         overflow: hidden;
+        position: relative;
     }
-
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #bcc0c4;
-        border-radius: 10px;
-    }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a0a0a0;
-        }
 
     .chat-sidebar {
         width: 350px;
@@ -36,6 +21,8 @@
         display: flex;
         flex-direction: column;
         background: #fff;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
     }
 
     .chat-search-box {
@@ -86,20 +73,38 @@
         margin-left: auto;
     }
 
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #bcc0c4;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0;
+        }
+
     .chat-main {
         flex: 1;
         display: flex;
         flex-direction: column;
         position: relative;
         background-color: #fff;
+        transition: transform 0.3s ease;
     }
 
     .chat-main-header {
-        height: 80px;
+        height: 60px;
         border-bottom: 1px solid #f0f2f5;
         display: flex;
         align-items: center;
-        padding: 0 20px;
+        padding: 0 15px;
         background: #fff;
         z-index: 10;
         box-shadow: 0 1px 2px rgba(0,0,0,0.02);
@@ -108,19 +113,26 @@
     .chat-main-body {
         flex: 1;
         overflow-y: auto;
-        padding: 20px;
+        padding: 15px;
         display: flex;
         flex-direction: column;
         gap: 4px;
     }
 
+    .chat-main-footer {
+        padding: 10px 12px;
+        background: #fff;
+        border-top: 1px solid #f0f2f5;
+    }
+
     .msg-row {
-        display: flex;  
+        display: flex;
         margin-bottom: 4px;
         align-items: flex-end;
         position: relative;
         animation: fadeIn 0.2s ease-out;
     }
+
     @@keyframes fadeIn {
         from {
             opacity: 0;
@@ -138,42 +150,33 @@
     }
 
     .msg-content-wrapper {
-        max-width: 70%;
+        max-width: 75%;
         display: flex;
         flex-direction: column;
         position: relative;
     }
 
     .msg-bubble {
-        padding: 10px 14px;
+        padding: 8px 14px;
         border-radius: 18px;
         font-size: 0.95rem;
         line-height: 1.4;
         word-wrap: break-word;
         position: relative;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        box-shadow: 0 1px 1px rgba(0,0,0,0.05);
     }
 
     .chat-image {
-        max-width: 250px;
+        max-width: 100%;
         max-height: 300px;
-        width: auto;
-        height: auto;
         border-radius: 12px;
         cursor: pointer;
-        transition: transform 0.2s;
         object-fit: cover;
     }
 
-        .chat-image:hover {
-            transform: scale(1.02);
-        }
-
     .chat-video {
-        max-width: 280px;
+        max-width: 100%;
         max-height: 300px;
-        width: auto;
-        height: auto;
         border-radius: 12px;
     }
 
@@ -198,51 +201,28 @@
         }
 
     .reply-quote {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         border-left: 3px solid;
-        padding: 8px 12px;
-        margin-bottom: 6px;
+        padding: 6px 10px;
+        margin-bottom: 4px;
         border-radius: 8px;
         cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        transition: background 0.2s;
-        position: relative;
+        background: rgba(0,0,0,0.05);
     }
-
-        .reply-quote:hover {
-            opacity: 0.9;
-        }
 
     .msg-mine .reply-quote {
         border-left-color: #0084ff;
-        background-color: #f0f2f5;
-        color: #65676b;
+        background: rgba(255,255,255,0.2);
+        color: #e4e6eb;
     }
-        .msg-mine .reply-quote strong {
-            color: #050505;
-            font-weight: 600;
-        }
 
-        .msg-mine .reply-quote i {
-            color: #0084ff;
+        .msg-mine .reply-quote strong {
+            color: #fff;
         }
 
     .msg-theirs .reply-quote {
         border-left-color: #65676b;
-        background-color: #f0f2f5;
         color: #65676b;
-    }
-
-        .msg-theirs .reply-quote strong {
-            color: #050505;
-            font-weight: 600;
-        }
-
-    .msg-theirs .reply-quote {
-        border-color: #0084ff;
-        background: rgba(0,0,0,0.05);
-        color: #444;
     }
 
         .msg-theirs .reply-quote strong {
@@ -252,11 +232,10 @@
     .reply-preview-bar {
         display: none;
         background: #fff;
-        padding: 10px 16px;
+        padding: 8px 16px;
         border-top: 1px solid #f0f2f5;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         z-index: 5;
     }
 
@@ -282,16 +261,6 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-        .action-btn:hover {
-            background: #f0f2f5;
-            color: #0084ff;
-        }
-
-    .chat-main-footer {
-        padding: 12px 16px;
-        background: #fff;
-    }
-
     .chat-input-area {
         background: #f0f2f5;
         border-radius: 20px;
@@ -300,24 +269,72 @@
         padding: 4px 12px;
     }
 
+    @@media (max-width: 768px) {
+        .messenger-container {
+            height: calc(100dvh - 60px);
+            margin-top: 0;
+        }
+
+        .chat-sidebar {
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+
+        .chat-main {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 20;
+            transform: translateX(100%);
+        }
+            .chat-main.mobile-active {
+                transform: translateX(0);
+            }
+        #chat-welcome {
+            display: none !important;
+        }
+        #chat-interface {
+            display: flex !important;
+            height: 100%;
+        }
+        .chat-main-header {
+            padding: 0 10px;
+        }
+
+        .back-btn-mobile {
+            display: block !important;
+        }
+    }
+
+    .back-btn-mobile {
+        display: none;
+        margin-right: 10px;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
     .seen-avatar {
         width: 14px;
         height: 14px;
         border-radius: 50%;
         align-self: flex-end;
-        margin-bottom: 2px;
         margin-left: 4px;
         object-fit: cover;
-        border: 1px solid #fff;
     }
 
     .msg-deleted {
         font-style: italic;
         color: #888;
-        border: 1px solid #eee;
         background: #fff !important;
         box-shadow: none;
-        color: #888 !important;
+        border: 1px solid #eee;
     }
 
     #video-call-modal {
@@ -338,57 +355,18 @@
         border: none;
         background: #3a3b3c;
         color: white;
-        transition: 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-
-        .btn-control:hover {
-            background: #4e4f50;
-        }
 
     .btn-end-call {
         background: #ff3b30 !important;
     }
 
-        .btn-end-call:hover {
-            background: #d63026 !important;
-        }
-
-    .msg-call {
-        background: transparent !important;
-        border: 1px solid #e4e6eb;
-        color: #050505 !important;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 15px !important;
-    }
-
-    .msg-mine .msg-call {
-        border-color: rgba(255,255,255,0.3);
-        color: white !important;
-    }
-
-    .call-icon-box {
-        width: 32px;
-        height: 32px;
-        background: #e4e6eb;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .msg-mine .call-icon-box {
-        background: rgba(255,255,255,0.2);
-    }
-
     .msg-uploading {
         position: relative;
         opacity: 0.7;
-        transition: opacity 0.3s;
     }
 
     .upload-overlay {
@@ -402,14 +380,13 @@
         align-items: center;
         justify-content: center;
         border-radius: 12px;
-        z-index: 2;
     }
 
     .upload-progress-circle {
-        width: 40px;
-        height: 40px;
-        border: 4px solid rgba(255,255,255,0.3);
-        border-top: 4px solid #fff;
+        width: 30px;
+        height: 30px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top: 3px solid #fff;
         border-radius: 50%;
         animation: spin 1s linear infinite;
     }
@@ -439,7 +416,7 @@
         </div>
     </div>
 
-    <div class="chat-main">
+    <div class="chat-main" id="chat-main-container">
         <div id="chat-welcome" class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
             <div class="bg-light rounded-circle p-4 mb-3">
                 <i class="bi bi-chat-dots-fill text-primary" style="font-size: 4rem;"></i>
@@ -449,25 +426,28 @@
 
         <div id="chat-interface" class="d-none h-100 flex-column">
             <div class="chat-main-header">
-                <img id="header-avatar" src="" class="rounded-circle me-3 border" width="50" height="50" style="object-fit:cover;">
-                <div class="d-flex flex-column justify-content-center">
-                    <span id="header-name" class="fw-bold text-dark lh-1" style="font-size: 1.05rem;"></span>
-                    <span id="header-status" class="small text-muted mt-1" style="font-size: 0.8rem;">Đang hoạt động</span>
+                <i class="bi bi-arrow-left text-dark back-btn-mobile" onclick="closeMobileChat()"></i>
+
+                <img id="header-avatar" src="" class="rounded-circle me-3 border" width="40" height="40" style="object-fit:cover;">
+                <div class="d-flex flex-column justify-content-center flex-grow-1" style="overflow:hidden;">
+                    <span id="header-name" class="fw-bold text-dark text-truncate" style="font-size: 1rem;"></span>
+                    <span id="header-status" class="small text-muted" style="font-size: 0.75rem; line-height: 1;">Đang hoạt động</span>
                 </div>
-                <div class="ms-auto d-flex align-items-center gap-2">
-                    <button class="btn btn-circle text-primary"><i class="bi bi-info-circle-fill fs-4"></i></button>
-                    <button class="btn btn-circle text-primary" onclick="startCall()" title="Gọi video">
-                        <i class="bi bi-camera-video-fill fs-4"></i>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-circle text-primary border-0 p-2" onclick="startCall()" title="Gọi video">
+                        <i class="bi bi-camera-video-fill fs-5"></i>
                     </button>
+                    <button class="btn btn-circle text-primary border-0 p-2"><i class="bi bi-info-circle-fill fs-5"></i></button>
                 </div>
             </div>
 
             <div id="main-chat-body" class="chat-main-body custom-scrollbar"></div>
 
             <div id="reply-bar" class="reply-preview-bar">
-                <div class="d-flex flex-column overflow-hidden">
+                <div class="d-flex flex-column overflow-hidden me-2">
                     <span class="small fw-bold text-primary mb-1">Đang trả lời:</span>
-                    <div id="reply-content" class="text-truncate small text-muted" style="max-width: 400px;"></div>
+                    <div id="reply-content" class="text-truncate small text-muted"></div>
                 </div>
                 <button class="btn-close small" onclick="cancelReply()"></button>
             </div>
@@ -475,13 +455,13 @@
             <div class="chat-main-footer">
                 <div class="d-flex align-items-end gap-2">
                     <input type="file" id="chat-file-input" hidden accept="image/*,video/*" onchange="uploadFile(this)">
-                    <button class="btn btn-link text-primary p-0 mb-1" onclick="document.getElementById('chat-file-input').click()" title="Gửi ảnh/video">
+                    <button class="btn btn-link text-primary p-0 mb-1" onclick="document.getElementById('chat-file-input').click()">
                         <i class="bi bi-image fs-4"></i>
                     </button>
 
                     <div class="flex-grow-1 chat-input-area">
-                        <input type="text" id="main-chat-input" class="form-control border-0 bg-transparent shadow-none" placeholder="Aa..." style="font-size: 0.95rem;">
-                        <button class="btn btn-link text-primary p-0 border-0" style="text-decoration:none;">
+                        <input type="text" id="main-chat-input" class="form-control border-0 bg-transparent shadow-none" placeholder="Nhập tin nhắn..." style="font-size: 0.95rem;">
+                        <button class="btn btn-link text-primary p-0 border-0">
                             <i class="bi bi-emoji-smile fs-5"></i>
                         </button>
                     </div>
@@ -497,28 +477,23 @@
 
 <div id="video-call-modal" class="d-none" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; flex-direction:column; background: #202020;">
     <video id="remote-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
-    <div class="position-absolute" style="bottom: 20px; right: 20px; width: 160px; height: 240px; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);">
+
+    <div class="position-absolute" style="bottom: 120px; right: 20px; width: 100px; height: 150px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2); z-index: 10000;">
         <video id="local-video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
     </div>
-    <div class="position-absolute top-0 start-0 m-4 text-white d-flex align-items-center gap-3">
-        <img id="video-avatar" src="/images/default-avatar.png" class="rounded-circle border border-2 border-white" width="60" height="60" style="object-fit: cover">
+
+    <div class="position-absolute top-0 start-0 m-4 text-white d-flex align-items-center gap-3" style="z-index: 10000;">
+        <img id="video-avatar" src="/images/default-avatar.png" class="rounded-circle border border-2 border-white" width="50" height="50" style="object-fit: cover">
         <div>
-            <h5 id="video-name" class="mb-0 fw-bold">...</h5>
+            <h5 id="video-name" class="mb-0 fw-bold fs-6">...</h5>
             <div id="call-timer" class="small opacity-75">Đang kết nối...</div>
         </div>
     </div>
-    <div class="position-absolute bottom-0 start-50 translate-middle-x mb-5 video-controls d-flex gap-4">
-        <button id="btn-mute" class="btn-control" onclick="toggleMute()">
-            <i class="bi bi-mic-fill fs-5"></i>
-        </button>
 
-        <button id="btn-cam" class="btn-control" onclick="toggleCam()">
-            <i class="bi bi-camera-video-fill fs-5"></i>
-        </button>
-
-        <button class="btn-control btn-end-call" onclick="endCall()">
-            <i class="bi bi-telephone-x-fill fs-5"></i>
-        </button>
+    <div class="position-absolute bottom-0 start-50 translate-middle-x mb-4 video-controls d-flex gap-3" style="z-index: 10000;">
+        <button id="btn-mute" class="btn-control" onclick="toggleMute()"><i class="bi bi-mic-fill fs-5"></i></button>
+        <button id="btn-cam" class="btn-control" onclick="toggleCam()"><i class="bi bi-camera-video-fill fs-5"></i></button>
+        <button class="btn-control btn-end-call" onclick="endCall()"><i class="bi bi-telephone-x-fill fs-5"></i></button>
     </div>
 </div>
 
@@ -528,10 +503,41 @@
 
     <script>
         moment.locale('vi');
-
         const myId = '@currentUser.Id';
-
         window.currentReceiverId = null;
+
+        function closeMobileChat() {
+            document.getElementById('chat-main-container').classList.remove('mobile-active');
+            document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+            window.currentReceiverId = null;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                if (typeof window.loadFullChat === 'function') {
+                    const originalLoadFullChat = window.loadFullChat;
+
+                    window.loadFullChat = function(userId, fullName, avatar) {
+                        originalLoadFullChat(userId, fullName, avatar);
+
+                        const chatMain = document.getElementById('chat-main-container');
+                        chatMain.classList.add('mobile-active');
+
+                        document.getElementById('header-name').innerText = fullName;
+                        const headerAvt = document.getElementById('header-avatar');
+                        if(headerAvt) headerAvt.src = avatar;
+                    };
+                }
+            }, 100);
+        });
+
+        window.onpopstate = function(event) {
+            const chatMain = document.getElementById('chat-main-container');
+            if (chatMain && chatMain.classList.contains('mobile-active')) {
+                closeMobileChat();
+                history.pushState(null, null, window.location.href);
+            }
+        };
     </script>
 
     @if (ViewBag.TargetUser != null)
