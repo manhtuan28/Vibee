@@ -308,7 +308,7 @@
                         <a href="/Chat" class="btn-circle position-relative" title="Tin nhắn" id="btn-msg-nav">
                             <i class="bi bi-chat-dots-fill"></i>
                             <span id="msg-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem; border: 2px solid #fff;">
-                                0
+                                0FVis
                             </span>
                         </a>
 
@@ -556,13 +556,27 @@
 
     <script src="~/js/chat.js" asp-append-version="true"></script>
 
-    <span id="version">Version Beta 1.0</span>
+    @inject Vibee.Services.LayoutService layoutService
+
+    <div id="app-version">
+        Version @layoutService.GetAppVersion()
+    </div>
+
     <style>
-        #version {
-            color: slategrey;
-            display: flex;
-            justify-content: right;
-            margin: 10px;
+        #app-version {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            z-index: 9999;
+
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            user-select: none;
         }
     </style>
 

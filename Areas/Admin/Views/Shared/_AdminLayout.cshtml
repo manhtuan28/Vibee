@@ -221,6 +221,11 @@
                     <span class="ms-2">Quản lý Ví tiền</span>
                 </a>
 
+                <a asp-area="Admin" asp-controller="Settings" asp-action="Index"
+                   class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")">
+                    <i class="bi bi-gear-wide-connected"></i>
+                    <span class="ms-2">Quản lý Phiên Bản</span>
+                </a>
                 <div class="menu-header">Mạng xã hội</div>
 
                 <a asp-area="Admin" asp-controller="Posts" asp-action="Index"

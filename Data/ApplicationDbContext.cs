@@ -23,6 +23,7 @@ namespace Vibee.Data
         public DbSet<Story> Stories { get; set; }
         public DbSet<StoryReaction> StoryReactions { get; set; }
         public DbSet<StoryView> StoryViews { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -87,6 +88,10 @@ namespace Vibee.Data
                 .WithMany()
                 .HasForeignKey(m => m.ReceiverId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SystemSetting>().HasData(
+            new SystemSetting { Key = "AppVersion", Value = "Beta 1.0", Description = "Phiên bản ứng dụng hiển thị ở footer" }
+        );
         }
     }
 }

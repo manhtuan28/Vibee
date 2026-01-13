@@ -1,0 +1,26 @@
+﻿@model Vibee.Models.SystemSetting
+@{
+    ViewData["Title"] = "Cấu hình hệ thống";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-gear-fill me-2"></i>Cấu hình hệ thống</h5>
+    </div>
+    <div class="card-body">
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-success">@TempData["Message"]</div>
+        }
+
+        <form asp-action="UpdateVersion" method="post">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Phiên bản ứng dụng (Version)</label>
+                <input type="text" name="versionValue" class="form-control" value="@Model?.Value" placeholder="Ví dụ: Beta 1.2" required>
+                <div class="form-text">Giá trị này sẽ hiển thị ở chân trang của toàn bộ website.</div>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Lưu thay đổi</button>
+        </form>
+    </div>
+</div>
