@@ -1,0 +1,402 @@
+﻿@model Vibee.Areas.Admin.Controllers.WalletAdminViewModel
+@{
+    ViewData["Title"] = "Quản lý Ví & Giao dịch";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .admin-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: 0.3s;
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .table-modern th {
+        background: #fafafa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #6c757d;
+        padding: 16px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .table-modern td {
+        padding: 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: none;
+        transition: 0.2s;
+        background: #f8f9fa;
+        color: #6c757d;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-action.delete:hover {
+            background: #fee2e2;
+            color: #dc3545;
+        }
+
+    /* Badge tùy chỉnh cho loại giao dịch */
+    .badge-trans {
+        padding: 6px 10px;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.75rem;
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 fade-in">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">Quản lý Ví tiền</h4>
+        <p class="text-muted small mb-0">Giám sát dòng tiền và điều chỉnh số dư thành viên.</p>
+    </div>
+</div>
+
+<div class="row mb-4 fade-in">
+    <div class="col-md-6 mb-3 mb-md-0">
+        <div class="stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                <i class="bi bi-safe2-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Tổng số dư toàn hệ thống</div>
+                <div class="fs-4 fw-bold text-dark">@Model.TotalSystemBalance.ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Tổng tiền đã nạp vào</div>
+                <div class="fs-4 fw-bold text-dark">@Model.TotalDeposit.ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-3">
+    <div class="d-flex gap-2 align-items-center w-100 w-md-auto">
+        <h5 class="fw-bold text-dark m-0 me-2">Lịch sử giao dịch</h5>
+
+        <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-bold d-flex align-items-center" onclick="openAdjustModal()">
+            <i class="bi bi-bank2 me-2"></i> Điều chỉnh số dư
+        </button>
+    </div>
+
+    <div class="btn-group shadow-sm w-100 w-md-auto">
+        <a href="?type=all" class="btn btn-sm @(Model.CurrentType == "all" ? "btn-dark" : "btn-white border")">Tất cả</a>
+        <a href="?type=deposit" class="btn btn-sm @(Model.CurrentType == "deposit" ? "btn-dark" : "btn-white border")">Nạp tiền</a>
+        <a href="?type=transfer" class="btn btn-sm @(Model.CurrentType == "transfer" ? "btn-dark" : "btn-white border")">Chuyển khoản</a>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Mã GD</th>
+                    <th style="width: 200px;">Loại & Nội dung</th>
+                    <th>Đối tượng (Người dùng)</th>
+                    <th class="text-end">Số tiền</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th>Thời gian</th>
+                    <th class="text-end" style="width: 80px;">Xóa</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Transactions.Any())
+                {
+                    foreach (var item in Model.Transactions)
+                    {
+                        var isDeposit = item.Type == Vibee.Models.TransactionType.Deposit;
+                        var statusClass = item.Status == Vibee.Models.TransactionStatus.Completed ? "success" :
+                        (item.Status == Vibee.Models.TransactionStatus.Pending ? "warning" : "danger");
+                        var statusText = item.Status == Vibee.Models.TransactionStatus.Completed ? "Thành công" :
+                        (item.Status == Vibee.Models.TransactionStatus.Pending ? "Đang chờ" : "Thất bại");
+
+                        var isSystem = item.Message.StartsWith("SYSTEM:");
+
+                        <tr id="row_@item.Id" class="fade-in">
+                            <td class="text-muted small font-monospace">
+                                #@item.Id.ToString().Substring(0, 8)
+                            </td>
+
+                            <td>
+                                @if (isSystem)
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill mb-1">Hệ thống</span>
+                                    <div class="small fw-bold text-dark">@item.Message.Replace("SYSTEM:", "").Trim()</div>
+                                }
+                                else if (isDeposit)
+                                {
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill mb-1">Nạp tiền</span>
+                                    <div class="small text-muted text-truncate" style="max-width: 180px;">@item.Message</div>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill mb-1">Chuyển tiền</span>
+                                    <div class="small text-muted text-truncate" style="max-width: 180px;">@item.Message</div>
+                                }
+                            </td>
+
+                            <td>
+                                @if (isDeposit || isSystem)
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <img src="@(item.ReceiverWallet?.User?.AvatarUrl ?? "/images/default-avatar.png")" class="rounded-circle me-2 border" width="32" height="32" style="object-fit:cover;">
+                                        <div>
+                                            <div class="fw-bold small text-dark">@item.ReceiverWallet?.User?.FullName</div>
+                                            <div class="text-muted" style="font-size: 0.75rem">@item.ReceiverWallet?.User?.Email</div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex flex-column gap-1" style="font-size: 0.85rem;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-arrow-right-short text-danger me-1 fs-5"></i>
+                                            <span class="text-muted me-1">Từ:</span>
+                                            <strong>@(item.SenderWallet?.User?.FullName ?? "Unknown")</strong>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-arrow-left-short text-success me-1 fs-5"></i>
+                                            <span class="text-muted me-1">Đến:</span>
+                                            <strong>@(item.ReceiverWallet?.User?.FullName ?? "Unknown")</strong>
+                                        </div>
+                                    </div>
+                                }
+                            </td>
+
+                            <td class="text-end">
+                                <span class="fw-bold @(isDeposit || isSystem ? "text-success" : "text-dark")">
+                                    @(isDeposit || isSystem ? "+" : "")@item.Amount.ToString("N0") đ
+                                </span>
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge bg-@statusClass bg-opacity-10 text-@statusClass rounded-pill px-3 py-2 fw-normal">
+                                    @statusText
+                                </span>
+                            </td>
+
+                            <td class="text-muted small">
+                                <div>@item.CreatedAt.ToString("HH:mm")</div>
+                                <div>@item.CreatedAt.ToString("dd/MM/yyyy")</div>
+                            </td>
+
+                            <td class="text-end">
+                                <button class="btn-action delete" onclick="deleteTrans('@item.Id')" title="Xóa lịch sử">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-muted mb-2"><i class="bi bi-inbox fs-1"></i></div>
+                            <div>Chưa có giao dịch nào phù hợp.</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center">
+            <nav>
+                <ul class="pagination mb-0 gap-1">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link rounded-circle border-0 shadow-sm @(i == Model.CurrentPage ? "bg-primary text-white" : "text-dark bg-light")"
+                               style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"
+                               href="?page=@i&type=@Model.CurrentType">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="adjustModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-bank2 text-primary"></i> Điều chỉnh số dư
+                    </span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-light border small text-muted mb-3">
+                    <i class="bi bi-info-circle me-1"></i> Hành động này sẽ được ghi lại trong lịch sử giao dịch của hệ thống.
+                </div>
+
+                <form id="adjustForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Email người dùng</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="userEmail" class="form-control border-start-0 ps-0" placeholder="nhap@email.com" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">Loại tác động</label>
+                            <select name="type" class="form-select bg-light border-0">
+                                <option value="add">➕ Cộng tiền (Nạp/Thưởng)</option>
+                                <option value="minus">➖ Trừ tiền (Phạt/Thu hồi)</option>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">Số tiền (VNĐ)</label>
+                            <input type="number" name="amount" class="form-control fw-bold text-primary" placeholder="50000" min="1000" step="1000" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Nội dung / Lý do</label>
+                        <textarea name="note" class="form-control" rows="2" placeholder="VD: Nạp tiền mặt tại quầy, Thưởng sự kiện..." required></textarea>
+                    </div>
+
+                    <button type="button" onclick="submitAdjust()" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
+                        Xác nhận giao dịch
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openAdjustModal() {
+            document.getElementById('adjustForm').reset();
+            new bootstrap.Modal(document.getElementById('adjustModal')).show();
+        }
+
+        function submitAdjust() {
+            const form = document.getElementById('adjustForm');
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+
+            const fd = new FormData(form);
+            const btn = document.querySelector('#adjustForm button');
+            const originalText = btn.innerText;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
+
+            $.ajax({
+                url: '/Admin/Wallets/AdjustBalance',
+                type: 'POST',
+                data: Object.fromEntries(fd),
+                success: function (res) {
+                    if (res.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('adjustModal')).hide();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Giao dịch thành công',
+                            text: res.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Thất bại', res.message, 'error');
+                        btn.disabled = false; btn.innerText = originalText;
+                    }
+                },
+                error: function () {
+                    Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
+                    btn.disabled = false; btn.innerText = originalText;
+                }
+            });
+        }
+
+        function deleteTrans(id) {
+            Swal.fire({
+                title: 'Xóa giao dịch này?',
+                text: "Dữ liệu sẽ bị xóa khỏi lịch sử hiển thị. Số dư ví người dùng sẽ KHÔNG thay đổi.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa vĩnh viễn',
+                cancelButtonText: 'Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.showLoading();
+                    $.post('/Admin/Wallets/DeleteTransaction', { id: id }, function (res) {
+                        Swal.close();
+                        if (res.success) {
+                            $(`#row_${id}`).fadeOut(300, function() { $(this).remove(); });
+
+                            const Toast = Swal.mixin({
+                                toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true
+                            });
+                            Toast.fire({ icon: 'success', title: res.message });
+                        } else {
+                            Swal.fire('Lỗi', res.message, 'error');
+                        }
+                    }).fail(function() {
+                        Swal.fire('Lỗi', 'Mất kết nối server', 'error');
+                    });
+                }
+            });
+        }
+    </script>
+}
