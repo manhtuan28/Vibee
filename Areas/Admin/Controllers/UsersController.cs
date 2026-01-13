@@ -178,6 +178,18 @@ namespace Vibee.Areas.Admin.Controllers
                 if (await _userManager.IsInRoleAsync(user, "Admin"))
                     return Json(new { success = false, message = "Không thể xóa Admin hệ thống." });
 
+
+                var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == id);
+
+                if (wallet != null)
+                {
+                    var transactions = _context.Transactions
+                        .Where(t => t.SenderWalletId == wallet.Id || t.ReceiverWalletId == wallet.Id);
+
+                    _context.Transactions.RemoveRange(transactions);
+
+                    _context.Wallets.Remove(wallet);
+                }
                 var stories = _context.Stories.Where(s => s.UserId == id);
                 _context.Stories.RemoveRange(stories);
                 var storyReactions = _context.StoryReactions.Where(r => r.UserId == id);
@@ -191,11 +203,15 @@ namespace Vibee.Areas.Admin.Controllers
                 _context.Comments.RemoveRange(comments);
                 var likes = _context.Likes.Where(l => l.UserId == id);
                 _context.Likes.RemoveRange(likes);
+                var friendships = _context.Friendships.Where(f => f.SenderId == id || f.ReceiverId == id);
+                _context.Friendships.RemoveRange(friendships);
+                var messages = _context.Messages.Where(m => m.SenderId == id || m.ReceiverId == id);
+                _context.Messages.RemoveRange(messages);
 
                 await _context.SaveChangesAsync();
 
                 var result = await _userManager.DeleteAsync(user);
-                if (!result.Succeeded) throw new Exception("Lỗi xóa Identity.");
+                if (!result.Succeeded) throw new Exception("Lỗi xóa Identity: " + string.Join(", ", result.Errors.Select(e => e.Description)));
 
                 await transaction.CommitAsync();
                 return Json(new { success = true, message = "Đã xóa user và toàn bộ dữ liệu liên quan!" });
