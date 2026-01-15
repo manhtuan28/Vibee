@@ -23,6 +23,8 @@ namespace Vibee.Areas.Admin.Controllers
         {
             var blocks = _context.IpBlocks.OrderByDescending(b => b.BlockedAt).ToList();
 
+            ViewBag.IsSystemActive = GetSetting("Spam_System_Active", "1") == "1";
+
             ViewBag.RegLimit = GetSetting("Spam_Register_Limit", "3");
             ViewBag.RegBlockTime = GetSetting("Spam_Register_BlockTime", "30");
 
@@ -30,6 +32,14 @@ namespace Vibee.Areas.Admin.Controllers
             ViewBag.PostBlockTime = GetSetting("Spam_Post_BlockTime", "10");
 
             return View(blocks);
+        }
+
+        [HttpPost]
+        public IActionResult ToggleSystem(bool isActive)
+        {
+            SaveSetting("Spam_System_Active", isActive ? "1" : "0");
+            TempData["Message"] = isActive ? "Đã BẬT hệ thống chống Spam!" : "Đã TẮT hệ thống chống Spam (Cảnh báo rủi ro!)";
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -58,11 +68,23 @@ namespace Vibee.Areas.Admin.Controllers
             var s = _context.SystemSettings.FirstOrDefault(x => x.Key == key);
             return s?.Value ?? def;
         }
+
         private void SaveSetting(string key, string val)
         {
             var s = _context.SystemSettings.FirstOrDefault(x => x.Key == key);
-            if (s == null) _context.SystemSettings.Add(new SystemSetting { Key = key, Value = val });
-            else s.Value = val;
+            if (s == null)
+            {
+                _context.SystemSettings.Add(new SystemSetting
+                {
+                    Key = key,
+                    Value = val,
+                    Description = "Cấu hình tự động"
+                });
+            }
+            else
+            {
+                s.Value = val;
+            }
             _context.SaveChanges();
         }
     }

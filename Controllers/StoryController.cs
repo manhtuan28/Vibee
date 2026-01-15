@@ -12,11 +12,13 @@ namespace Vibee.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly SpamProtectionService _spamService;
 
-        public StoryController(ApplicationDbContext context, IWebHostEnvironment env)
+        public StoryController(ApplicationDbContext context, IWebHostEnvironment env, SpamProtectionService spamService)
         {
             _context = context;
             _env = env;
+            _spamService = spamService;
         }
 
         [HttpGet]
@@ -24,6 +26,12 @@ namespace Vibee.Controllers
         {
             var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var now = DateTime.UtcNow;
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            if (_spamService.IsBlocked(ip, "Post", out double waitTime))
+            {
+                return Json(new { success = false, message = $"Bạn đăng quá nhanh. Vui lòng đợi {waitTime} phút." });
+            }
 
             var stories = await _context.Stories
                 .Include(s => s.User)
@@ -80,6 +88,7 @@ namespace Vibee.Controllers
                 .OrderByDescending(g => g.IsMe)
                 .ToList();
 
+            _spamService.TrackActivity(ip, "Post");
             return Json(new { success = true, data = groupedStories });
         }
 
