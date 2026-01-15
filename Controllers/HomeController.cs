@@ -43,6 +43,7 @@ namespace Vibee.Controllers
 
             var posts = await _context.Posts
                     .Include(p => p.User).Include(p => p.Medias).Include(p => p.Likes).Include(p => p.Comments)
+                    .Where(p => p.User.LockoutEnd == null || p.User.LockoutEnd <= DateTimeOffset.UtcNow)
                     .Include(p => p.SharedPost)
                         .ThenInclude(sp => sp.User)
                     .Include(p => p.SharedPost)

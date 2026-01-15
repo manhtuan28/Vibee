@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Vibee.Data;
+using Vibee.Hubs;
 using Vibee.Models;
 
 namespace Vibee.Areas.Admin.Controllers
@@ -13,12 +15,15 @@ namespace Vibee.Areas.Admin.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public UsersController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public UsersController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, IHubContext<NotificationHub> hubContext)
         {
             _userManager = userManager;
             _context = context;
+            _hubContext = hubContext;
         }
+
         public async Task<IActionResult> Index(string keyword, int page = 1)
         {
             int pageSize = 10;
@@ -160,10 +165,14 @@ namespace Vibee.Areas.Admin.Controllers
             {
                 user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100);
                 isLockedNow = true;
+
+                await _hubContext.Clients.User(user.Id).SendAsync("ForceLogout");
+
+                await _userManager.UpdateSecurityStampAsync(user);
             }
 
             await _context.SaveChangesAsync();
-            return Json(new { success = true, isLocked = isLockedNow, message = isLockedNow ? "Đã khóa tài khoản!" : "Đã mở khóa!" });
+            return Json(new { success = true, isLocked = isLockedNow, message = isLockedNow ? "Đã khóa và đăng xuất tài khoản!" : "Đã mở khóa!" });
         }
 
         [HttpPost]
