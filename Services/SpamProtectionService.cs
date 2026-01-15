@@ -14,6 +14,11 @@ namespace Vibee.Services
             _context = context;
         }
 
+        public bool IsSystemActive()
+        {
+            return GetSettingInt("Spam_System_Active", 1) == 1;
+        }
+
         private int GetSettingInt(string key, int defaultValue)
         {
             var setting = _context.SystemSettings.FirstOrDefault(s => s.Key == key);
@@ -22,6 +27,10 @@ namespace Vibee.Services
 
         public bool IsBlocked(string ip, string type, out double remainingMinutes)
         {
+            remainingMinutes = 0;
+
+            if (!IsSystemActive()) return false;
+
             if (_cache.TryGetValue($"Block_{type}_{ip}", out DateTime unlockTime))
             {
                 if (unlockTime > DateTime.Now)
@@ -32,7 +41,7 @@ namespace Vibee.Services
             }
 
             var dbBlock = _context.IpBlocks
-                .FirstOrDefault(b => b.IpAddress == ip && b.Type == type && b.UnlockTime > DateTime.Now);
+                            .FirstOrDefault(b => b.IpAddress == ip && b.Type == type && b.UnlockTime > DateTime.Now);
 
             if (dbBlock != null)
             {
@@ -41,7 +50,6 @@ namespace Vibee.Services
                 return true;
             }
 
-            remainingMinutes = 0;
             return false;
         }
 
