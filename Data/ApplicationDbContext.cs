@@ -24,6 +24,7 @@ namespace Vibee.Data
         public DbSet<StoryReaction> StoryReactions { get; set; }
         public DbSet<StoryView> StoryViews { get; set; }
         public DbSet<SystemSetting> SystemSettings { get; set; }
+        public DbSet<IpBlock> IpBlocks { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

@@ -32,6 +32,8 @@ builder.Services.AddScoped<Vibee.Services.LayoutService>();
 builder.Services.AddScoped<Vibee.Services.FileService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<Vibee.Services.SpamProtectionService>();
 
 builder.Services.AddSingleton<Vibee.Services.EncryptionService>();
 
@@ -72,6 +74,7 @@ app.MapControllerRoute(
 app.MapHub<Vibee.Hubs.ChatHub>("/chatHub");
 
 app.MapRazorPages();
+
 
 //using (var scope = app.Services.CreateScope())
 //{
