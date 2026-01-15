@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -17,12 +19,14 @@ namespace Vibee.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger, UserManager<ApplicationUser> userManager)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _userManager = userManager;
         }
 
         [BindProperty]
@@ -37,12 +41,14 @@ namespace Vibee.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            [Required(ErrorMessage = "Vui lòng nhập Email hoặc số điện thoại.")]
+            [Required(ErrorMessage = "Vui lòng nhập Email.")]
             [EmailAddress(ErrorMessage = "Định dạng Email không hợp lệ.")]
+            [Display(Name = "Địa chỉ Email")]
             public string Email { get; set; }
 
             [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
             [DataType(DataType.Password)]
+            [Display(Name = "Mật khẩu")]
             public string Password { get; set; }
 
             [Display(Name = "Ghi nhớ đăng nhập?")]
@@ -56,7 +62,7 @@ namespace Vibee.Areas.Identity.Pages.Account
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
 
-            returnUrl = Url.Content("~/");
+            returnUrl ??= Url.Content("~/");
 
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
@@ -67,13 +73,27 @@ namespace Vibee.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            returnUrl = Url.Content("~/");
+            returnUrl ??= Url.Content("~/");
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+                var user = await _userManager.FindByEmailAsync(Input.Email);
+
+                if (user != null)
+                {
+                    if (!await _userManager.IsEmailConfirmedAsync(user))
+                    {
+
+                        if (await _userManager.CheckPasswordAsync(user, Input.Password))
+                        {
+                            ModelState.AddModelError(string.Empty, "Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email để xác thực.");
+                            return Page();
+                        }
+                    }
+                }
+                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
@@ -86,12 +106,12 @@ namespace Vibee.Areas.Identity.Pages.Account
                 }
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("Tài khoản người dùng đã bị khóa do nhập sai quá nhiều lần.");
+                    _logger.LogWarning("Tài khoản người dùng đã bị khóa.");
                     return RedirectToPage("./Lockout");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng.");
+                    ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không chính xác.");
                     return Page();
                 }
             }

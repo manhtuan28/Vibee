@@ -28,13 +28,15 @@ namespace Vibee.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -42,6 +44,7 @@ namespace Vibee.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _roleManager = roleManager;
         }
 
         [BindProperty]
@@ -53,21 +56,23 @@ namespace Vibee.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            [Required(ErrorMessage = "Vui lòng nhập Email.")]
+            [Required(ErrorMessage = "Vui lòng nhập địa chỉ Email.")]
             [EmailAddress(ErrorMessage = "Định dạng Email không hợp lệ.")]
+            [StringLength(50, ErrorMessage = "Email tối đa 50 ký tự để ngăn chặn spam.")]
+            [RegularExpression(@"^[a-zA-Z0-9._%+-]+@gmail\.com$", ErrorMessage = "Hệ thống chỉ chấp nhận tài khoản Gmail (@gmail.com).")]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
             [Required(ErrorMessage = "Vui lòng nhập Họ và tên.")]
+            [StringLength(50, ErrorMessage = "Họ tên phải từ {2} đến {1} ký tự.", MinimumLength = 2)]
             [Display(Name = "Họ và tên")]
-            [StringLength(100, ErrorMessage = "{0} phải dài ít nhất {2} và tối đa {1} ký tự.", MinimumLength = 2)]
             public string FullName { get; set; }
 
-            [Required(ErrorMessage = "Vui lòng chọn Giới tính.")]
+            [Required(ErrorMessage = "Vui lòng chọn giới tính.")]
             [Display(Name = "Giới tính")]
             public string Gender { get; set; }
 
-            [Required(ErrorMessage = "Vui lòng nhập Mật khẩu.")]
+            [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
             [StringLength(100, ErrorMessage = "{0} phải dài ít nhất {2} ký tự.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Mật khẩu")]
@@ -75,7 +80,7 @@ namespace Vibee.Areas.Identity.Pages.Account
 
             [DataType(DataType.Password)]
             [Display(Name = "Xác nhận mật khẩu")]
-            [Compare("Password", ErrorMessage = "Mật khẩu nhập lại không khớp.")]
+            [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp.")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -94,10 +99,11 @@ namespace Vibee.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();
 
-                user.FullName = Input.FullName;
+                user.FullName = Input.FullName.Trim();
                 user.Gender = Input.Gender;
                 user.AvatarUrl = "/images/default-avatar.png";
                 user.JoinDate = DateTime.Now;
+                user.EmailConfirmed = false;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -106,19 +112,36 @@ namespace Vibee.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("Người dùng đã tạo tài khoản mới thành công.");
+                    _logger.LogInformation("Đã tạo tài khoản mới thành công.");
+
+                    if (!await _roleManager.RoleExistsAsync("User"))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole("User"));
+                    }
+                    await _userManager.AddToRoleAsync(user, "User");
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
                         pageHandler: null,
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Xác nhận email của bạn",
-                        $"Vui lòng xác nhận tài khoản Vibee bằng cách <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>bấm vào đây</a>.");
+                    string emailBody = $@"
+                        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
+                            <h2 style='color: #1877f2;'>Chào mừng bạn đến với Vibee!</h2>
+                            <p>Xin chào <strong>{user.FullName}</strong>,</p>
+                            <p>Cảm ơn bạn đã đăng ký tài khoản. Để bắt đầu sử dụng, vui lòng xác thực địa chỉ email của bạn bằng cách nhấn vào nút bên dưới:</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{HtmlEncoder.Default.Encode(callbackUrl)}' style='background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xác thực tài khoản ngay</a>
+                            </div>
+                            <p style='color: #777; font-size: 12px;'>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
+                        </div>";
+
+                    await _emailSender.SendEmailAsync(Input.Email, "Xác thực tài khoản Vibee", emailBody);
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
@@ -126,21 +149,19 @@ namespace Vibee.Areas.Identity.Pages.Account
                     }
                     else
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
                     }
                 }
 
                 foreach (var error in result.Errors)
                 {
-                    var description = error.Description;
-                    if (error.Code == "DuplicateUserName") description = $"Email '{Input.Email}' đã được sử dụng.";
-                    if (error.Code == "PasswordTooShort") description = "Mật khẩu phải dài ít nhất 6 ký tự.";
-                    if (error.Code == "PasswordRequiresNonAlphanumeric") description = "Mật khẩu cần có ít nhất một ký tự đặc biệt.";
-                    if (error.Code == "PasswordRequiresDigit") description = "Mật khẩu cần có ít nhất một chữ số ('0'-'9').";
-                    if (error.Code == "PasswordRequiresUpper") description = "Mật khẩu cần có ít nhất một chữ hoa ('A'-'Z').";
+                    var msg = error.Description;
+                    if (error.Code == "DuplicateUserName" || error.Code == "DuplicateEmail")
+                        msg = $"Email '{Input.Email}' đã được sử dụng bởi tài khoản khác.";
+                    if (error.Code.Contains("Password"))
+                        msg = "Mật khẩu chưa đủ mạnh (cần chữ hoa, chữ thường, số và ký tự đặc biệt).";
 
-                    ModelState.AddModelError(string.Empty, description);
+                    ModelState.AddModelError(string.Empty, msg);
                 }
             }
 
@@ -156,8 +177,7 @@ namespace Vibee.Areas.Identity.Pages.Account
             catch
             {
                 throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
+                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
             }
         }
 

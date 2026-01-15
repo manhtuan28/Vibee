@@ -6,12 +6,12 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Vibee.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Vibee.Models;
 
 namespace Vibee.Areas.Identity.Pages.Account
 {
@@ -44,11 +44,12 @@ namespace Vibee.Areas.Identity.Pages.Account
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return NotFound($"Không tìm thấy người dùng với email '{email}'.");
+                return NotFound($"Không tìm thấy tài khoản với email: '{email}'.");
             }
 
             Email = email;
-            DisplayConfirmAccountLink = true;
+
+            DisplayConfirmAccountLink = false;
 
             if (DisplayConfirmAccountLink)
             {
