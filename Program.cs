@@ -20,8 +20,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = true;
 })
+
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders()
 .AddDefaultUI();
@@ -31,8 +32,16 @@ builder.Services.AddScoped<Vibee.Services.LayoutService>();
 builder.Services.AddScoped<Vibee.Services.FileService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<Vibee.Services.SpamProtectionService>();
 
 builder.Services.AddSingleton<Vibee.Services.EncryptionService>();
+
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.Zero;
+});
 
 var app = builder.Build();
 
@@ -65,6 +74,7 @@ app.MapControllerRoute(
 app.MapHub<Vibee.Hubs.ChatHub>("/chatHub");
 
 app.MapRazorPages();
+
 
 //using (var scope = app.Services.CreateScope())
 //{

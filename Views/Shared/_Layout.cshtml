@@ -547,6 +547,7 @@
                 updateBadge(res.unreadCount);
             });
         }
+
         function switchTab(type) { if(notiConfig.filter === type) return; notiConfig.filter = type; notiConfig.skip = 0; $('.noti-tabs .btn-tab').removeClass('active'); $(`.noti-tabs .btn-tab[onclick="switchTab('${type}')"]`).addClass('active'); $('#noti-list').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>'); $('#noti-footer').addClass('d-none'); loadNotifications(true); }
         function loadMoreNotis() { loadNotifications(false); }
         function markAllRead() { $.post('/Notification/MarkAllRead', function(res) { if(res.success) { $('.noti-item').removeClass('unread').addClass('read'); $('.noti-item .noti-time').removeClass('text-primary fw-bold').addClass('text-muted'); $('.noti-dot').remove(); updateBadge(0); } }); }

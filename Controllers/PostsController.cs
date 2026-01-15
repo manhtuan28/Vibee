@@ -13,11 +13,13 @@ namespace Vibee.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly SpamProtectionService _spamService;
 
-        public PostsController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public PostsController(UserManager<ApplicationUser> userManager, ApplicationDbContext context, SpamProtectionService spamService)
         {
             _userManager = userManager;
             _context = context;
+            _spamService = spamService;
         }
 
         public IActionResult Index()
@@ -29,12 +31,17 @@ namespace Vibee.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost(string content, string locationName, string emotion, int privacyLevel, List<IFormFile> mediaFiles, [FromServices] FileService fileService)
         {
+            var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            if (_spamService.IsBlocked(remoteIp, "Post", out double waitTime))
+            {
+                return Json(new { success = false, message = $"Bạn đang đăng bài quá nhanh. Vui lòng đợi {waitTime} phút nữa để tiếp tục." });
+            }
+
             if (string.IsNullOrWhiteSpace(content) && (mediaFiles == null || !mediaFiles.Any()) && string.IsNullOrEmpty(emotion) && string.IsNullOrEmpty(locationName))
             {
                 return Json(new { success = false, message = "Nội dung không được trống" });
             }
-
-            var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
             var post = new Post
             {
@@ -69,6 +76,8 @@ namespace Vibee.Controllers
 
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
+
+            _spamService.TrackActivity(remoteIp, "Post");
 
             return Json(new { success = true, message = "Đăng bài thành công!" });
         }

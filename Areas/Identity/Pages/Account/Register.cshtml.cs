@@ -29,6 +29,7 @@ namespace Vibee.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly Vibee.Services.SpamProtectionService _spamService;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
@@ -36,7 +37,8 @@ namespace Vibee.Areas.Identity.Pages.Account
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            Vibee.Services.SpamProtectionService spamService)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -45,6 +47,7 @@ namespace Vibee.Areas.Identity.Pages.Account
             _logger = logger;
             _emailSender = emailSender;
             _roleManager = roleManager;
+            _spamService = spamService;
         }
 
         [BindProperty]
@@ -95,6 +98,14 @@ namespace Vibee.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            if (_spamService.IsBlocked(ipAddress, "Register", out double regWaitTime))
+            {
+                ModelState.AddModelError(string.Empty, $"IP của bạn đã tạo quá nhiều tài khoản. Vui lòng quay lại sau {regWaitTime} phút.");
+                return Page();
+            }
+
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
@@ -114,6 +125,8 @@ namespace Vibee.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("Đã tạo tài khoản mới thành công.");
 
+                    _spamService.TrackActivity(ipAddress, "Register");
+
                     if (!await _roleManager.RoleExistsAsync("User"))
                     {
                         await _roleManager.CreateAsync(new IdentityRole("User"));
@@ -131,26 +144,19 @@ namespace Vibee.Areas.Identity.Pages.Account
                         protocol: Request.Scheme);
 
                     string emailBody = $@"
-                        <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
-                            <h2 style='color: #1877f2;'>Chào mừng bạn đến với Vibee!</h2>
-                            <p>Xin chào <strong>{user.FullName}</strong>,</p>
-                            <p>Cảm ơn bạn đã đăng ký tài khoản. Để bắt đầu sử dụng, vui lòng xác thực địa chỉ email của bạn bằng cách nhấn vào nút bên dưới:</p>
-                            <div style='text-align: center; margin: 30px 0;'>
-                                <a href='{HtmlEncoder.Default.Encode(callbackUrl)}' style='background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xác thực tài khoản ngay</a>
-                            </div>
-                            <p style='color: #777; font-size: 12px;'>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
-                        </div>";
+                <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
+                    <h2 style='color: #1877f2;'>Chào mừng bạn đến với Vibee!</h2>
+                    <p>Xin chào <strong>{user.FullName}</strong>,</p>
+                    <p>Cảm ơn bạn đã đăng ký tài khoản. Để bắt đầu sử dụng, vui lòng xác thực địa chỉ email của bạn bằng cách nhấn vào nút bên dưới:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <a href='{HtmlEncoder.Default.Encode(callbackUrl)}' style='background-color: #1877f2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xác thực tài khoản ngay</a>
+                    </div>
+                    <p style='color: #777; font-size: 12px;'>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
+                </div>";
 
                     await _emailSender.SendEmailAsync(Input.Email, "Xác thực tài khoản Vibee", emailBody);
 
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
-                    }
-                    else
-                    {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
-                    }
+                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
                 }
 
                 foreach (var error in result.Errors)
