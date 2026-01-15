@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.EntityFrameworkCore;
 using Vibee.Data;
 using Vibee.Models;
-using Microsoft.AspNetCore.Identity;
+using Vibee.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders()
 .AddDefaultUI();
 
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<Vibee.Services.LayoutService>();
 builder.Services.AddScoped<Vibee.Services.FileService>();
 builder.Services.AddControllersWithViews();

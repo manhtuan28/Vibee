@@ -1,7 +1,7 @@
 ﻿@page
 @model RegisterConfirmationModel
 @{
-    ViewData["Title"] = "Xác nhận đăng ký";
+    ViewData["Title"] = "Xác thực tài khoản";
     Layout = null;
 }
 
@@ -10,14 +10,15 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kích hoạt tài khoản | Vibee</title>
+    <title>@ViewData["Title"] - Vibee</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
 
     <style>
         body {
             background-color: #f0f2f5;
-            font-family: Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
             color: #1c1e21;
             margin: 0;
             display: flex;
@@ -25,56 +26,29 @@
             min-height: 100vh;
         }
 
-        .fb-header {
+        .vibee-header {
             background-color: #ffffff;
             height: 60px;
-            box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
-            padding: 0 20px;
+            justify-content: space-between;
+            padding: 0 24px;
             position: fixed;
             top: 0;
             width: 100%;
             z-index: 100;
         }
 
-        .header-content {
-            width: 100%;
-            max-width: 980px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
         .header-logo {
-            color: #1877f2;
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 800;
             text-decoration: none;
-            letter-spacing: -1px;
-            line-height: 1;
+            background: -webkit-linear-gradient(45deg, #1877f2, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
         }
-
-            .header-logo:hover {
-                color: #1877f2;
-            }
-
-        .btn-header-login {
-            background-color: #e4e6eb;
-            color: #050505;
-            font-weight: 600;
-            font-size: 15px;
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: 0.2s;
-        }
-
-            .btn-header-login:hover {
-                background-color: #d8dadf;
-                color: #050505;
-            }
 
         .content-wrapper {
             display: flex;
@@ -82,33 +56,32 @@
             justify-content: center;
             flex-grow: 1;
             padding-top: 60px;
+            padding-bottom: 40px;
         }
 
-        .confirmation-card {
+        .confirm-card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
-            width: 500px;
-            overflow: hidden;
-            text-align: center;
-        }
-
-        .card-body {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
             padding: 40px 30px;
+            text-align: center;
+            margin: 20px;
         }
 
-        .icon-wrapper {
-            width: 80px;
-            height: 80px;
+        .mail-icon-box {
+            width: 90px;
+            height: 90px;
             background-color: #e7f3ff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 24px;
         }
 
-            .icon-wrapper i {
+            .mail-icon-box i {
                 font-size: 40px;
                 color: #1877f2;
             }
@@ -116,109 +89,94 @@
         .card-title {
             font-size: 24px;
             font-weight: 700;
-            margin-bottom: 10px;
-            color: #1c1e21;
+            margin-bottom: 12px;
+            color: #050505;
         }
 
-        .card-text {
-            font-size: 17px;
-            color: #606770;
-            line-height: 1.5;
-            margin-bottom: 30px;
+        .card-desc {
+            font-size: 16px;
+            color: #65676b;
+            line-height: 1.6;
+            margin-bottom: 32px;
         }
 
-        .dev-mode-box {
-            background-color: #e9f7ef;
-            border: 1px dashed #28a745;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .dev-mode-text {
-            font-size: 14px;
-            color: #155724;
-            margin-bottom: 10px;
+        .email-highlight {
             font-weight: 600;
+            color: #1877f2;
         }
 
-        .btn-confirm-link {
-            background-color: #42b72a;
-            color: white;
-            font-weight: 700;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
+        .btn-back-login {
             display: inline-block;
-            transition: 0.2s;
-        }
-
-            .btn-confirm-link:hover {
-                background-color: #36a420;
-                color: white;
-            }
-
-        .btn-primary-fb {
             background-color: #1877f2;
             color: white;
             font-weight: 600;
-            padding: 0 30px;
-            height: 40px;
-            line-height: 40px;
+            padding: 0 32px;
+            height: 44px;
+            line-height: 44px;
             border-radius: 6px;
-            border: none;
-            font-size: 15px;
-            transition: 0.2s;
-            display: inline-block;
             text-decoration: none;
+            transition: all 0.2s;
+            font-size: 16px;
+            width: 100%;
         }
 
-            .btn-primary-fb:hover {
+            .btn-back-login:hover {
                 background-color: #166fe5;
                 color: white;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(24, 119, 242, 0.2);
             }
+
+        .spam-note {
+            margin-top: 24px;
+            font-size: 13px;
+            color: #8a8d91;
+            border-top: 1px solid #ebedf0;
+            padding-top: 16px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="fb-header">
-        <div class="header-content">
-            <a href="/Identity/Account/Login" class="header-logo">vibee</a>
-            <a href="/Identity/Account/Login" class="btn-header-login">Đăng nhập</a>
-        </div>
+    <div class="vibee-header">
+        <a href="/" class="header-logo">vibee</a>
     </div>
 
     <div class="content-wrapper">
-        <div class="confirmation-card">
-            <div class="card-body">
-                <div class="icon-wrapper">
-                    <i class="bi bi-person-check-fill"></i>
-                </div>
+        <div class="confirm-card">
 
-                <h3 class="card-title">Kích hoạt tài khoản</h3>
-
-                @if (@Model.DisplayConfirmAccountLink)
-                {
-                    <div class="dev-mode-box">
-                        <p class="dev-mode-text">
-                            <i class="bi bi-code-slash me-1"></i> DEV MODE: Hệ thống chưa cấu hình gửi Email thật.
-                        </p>
-                        <a id="confirm-link" href="@Model.EmailConfirmationUrl" class="btn-confirm-link">
-                            Bấm vào đây để kích hoạt ngay
-                        </a>
-                    </div>
-                    <p class="small text-muted">Trong môi trường thực tế (Production), người dùng sẽ nhận được email chứa liên kết này.</p>
-                }
-                else
-                {
-                    <p class="card-text">
-                        Tài khoản của bạn đã được tạo thành công!
-                        <br>
-                        Vui lòng kiểm tra email <strong>@Model.Email</strong> để kích hoạt tài khoản trước khi đăng nhập.
-                    </p>
-                    <a href="/Identity/Account/Login" class="btn-primary-fb">Quay lại đăng nhập</a>
-                }
+            <div class="mail-icon-box">
+                <i class="bi bi-envelope-paper-heart-fill"></i>
             </div>
+
+            <h1 class="card-title">Kiểm tra hộp thư của bạn</h1>
+
+            @if (Model.DisplayConfirmAccountLink)
+            {
+                <p class="card-desc">
+                    Hệ thống đang chạy chế độ Debug.
+                    <a href="@Model.EmailConfirmationUrl" class="text-danger fw-bold">Nhấn vào đây để kích hoạt ngay</a>.
+                </p>
+            }
+            else
+            {
+                <p class="card-desc">
+                    Chúng tôi đã gửi một liên kết xác thực đến: <br>
+                    <span class="email-highlight">@Model.Email</span>
+                    <br><br>
+                    Vui lòng nhấn vào liên kết trong email để hoàn tất quá trình đăng ký tài khoản Vibee.
+                </p>
+            }
+
+            <a href="/Identity/Account/Login" class="btn-back-login">
+                Quay lại trang Đăng nhập
+            </a>
+
+            <div class="spam-note">
+                <i class="bi bi-info-circle me-1"></i>
+                Không nhận được email? Hãy kiểm tra thư mục <strong>Spam</strong> hoặc <strong>Quảng cáo</strong>.
+            </div>
+
         </div>
     </div>
 
