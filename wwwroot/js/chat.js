@@ -1,20 +1,38 @@
 ﻿"use strict";
 
-const rtcConfig = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-    ]
-};
-
+let dynamicRtcConfig = null;
 let localStream;
 let peerConnection;
 let isCaller = false;
 let callStartTime = null;
 let callTimerInterval = null;
 let replyingToId = null;
+let iceCandidateQueue = [];
 
 var connection = window.connection;
+
+async function getIceServers() {
+    if (dynamicRtcConfig) return dynamicRtcConfig;
+
+    try {
+        const response = await fetch('/Chat/GetIceServers');
+        const data = await response.json();
+        if (data.success) {
+            //console.log("Đã lấy được TURN Server từ Twilio!");
+            dynamicRtcConfig = { iceServers: data.iceServers };
+            return dynamicRtcConfig;
+        }
+    } catch (e) {
+        //console.error("Lỗi lấy ICE Servers:", e);
+    }
+
+    return {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    };
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     if (document.getElementById('chat-sidebar-list')) {
@@ -139,11 +157,14 @@ if (connection) {
     connection.on("CallAccepted", async function (receiverId) {
         updateCallStatus("Đang thiết lập...");
         createPeerConnection(receiverId);
+
+        await createPeerConnection(receiverId);
+
         try {
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
             connection.invoke("SendSignal", receiverId, JSON.stringify({ type: "offer", sdp: offer }));
-        } catch (e) { console.error(e); }
+        } catch (e) {}
     });
 
     connection.on("CallRejected", function () {
@@ -159,20 +180,37 @@ if (connection) {
         let targetId = isCaller ? (window.currentChattingUserId || window.currentReceiverId) : window.incomingCallerId;
         if (!targetId) targetId = senderId;
 
-        if (!peerConnection) createPeerConnection(targetId);
+        if (!peerConnection) await createPeerConnection(targetId);
 
         try {
             if (signal.type === "offer") {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+
+                while (iceCandidateQueue.length > 0) {
+                    let c = iceCandidateQueue.shift();
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(c));
+                }
+
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
                 connection.invoke("SendSignal", senderId, JSON.stringify({ type: "answer", sdp: answer }));
+
             } else if (signal.type === "answer") {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+
+                while (iceCandidateQueue.length > 0) {
+                    let c = iceCandidateQueue.shift();
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(c));
+                }
+
             } else if (signal.type === "candidate" && signal.candidate) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
+                if (peerConnection.remoteDescription) {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
+                } else {
+                    iceCandidateQueue.push(signal.candidate);
+                }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {}
     });
 }
 
@@ -343,7 +381,7 @@ function sendMainChat() {
 
     const replyIdInt = replyingToId ? parseInt(replyingToId) : null;
     connection.invoke("SendMessage", window.currentReceiverId, msg, "Text", replyIdInt)
-        .catch(err => console.error(err));
+        //.catch(err => console.error(err));
 
     input.value = '';
     input.focus();
@@ -414,7 +452,7 @@ function uploadFile(input) {
                         cancelReply();
                     })
                     .catch(err => {
-                        console.error(err);
+                        //console.error(err);
                         alert("Lỗi gửi tin nhắn SignalR");
                     });
             } else {
@@ -550,24 +588,45 @@ async function startLocalVideo() {
         const m = document.getElementById('video-call-modal');
         if (m) { m.classList.remove('d-none'); m.classList.add('d-flex'); }
     } catch (e) {
-        console.error(e);
+        //console.error(e);
         alert("Không thể truy cập Camera. Vui lòng kiểm tra quyền hoặc kết nối HTTPS.");
         endCall(false);
     }
 }
 
-function createPeerConnection(targetUserId) {
-    peerConnection = new RTCPeerConnection(rtcConfig);
-    if (localStream) localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+async function createPeerConnection(targetUserId) {
+    iceCandidateQueue = [];
+
+    const config = await getIceServers();
+
+    peerConnection = new RTCPeerConnection(config);
+
+    if (localStream) {
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    }
+
     peerConnection.ontrack = e => {
         const rv = document.getElementById('remote-video');
-        if (rv && rv.srcObject !== e.streams[0]) { rv.srcObject = e.streams[0]; startTimer(); }
+        if (rv && rv.srcObject !== e.streams[0]) {
+            rv.srcObject = e.streams[0];
+            rv.onloadedmetadata = () => { rv.play(); };
+            startTimer();
+        }
     };
+
     peerConnection.onicecandidate = e => {
-        if (e.candidate) connection.invoke("SendSignal", targetUserId, JSON.stringify({ type: "candidate", candidate: e.candidate }));
+        if (e.candidate) {
+            connection.invoke("SendSignal", targetUserId, JSON.stringify({ type: "candidate", candidate: e.candidate }));
+        }
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+        console.log("Connection State:", peerConnection.connectionState);
+        if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+            updateCallStatus("Mất kết nối...");
+        }
     };
 }
-
 function closeConnection() {
     if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
     if (peerConnection) { peerConnection.close(); peerConnection = null; }

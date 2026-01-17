@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Vibee.Data;
 using Vibee.Models;
 using Vibee.Services;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace Vibee.Controllers
 {
@@ -127,6 +129,26 @@ namespace Vibee.Controllers
                 return Json(new { success = true, url = path, type = type });
             }
             catch { return Json(new { success = false }); }
+        }
+
+        [HttpGet]
+        public IActionResult GetIceServers()
+        {
+            const string accountSid = "ACa59b0bf8046725c046890e874554597f";
+            const string authToken = "86cbc69481e963f7fde29f62354cc490";
+
+            try
+            {
+                TwilioClient.Init(accountSid, authToken);
+
+                var token = TokenResource.Create();
+
+                return Json(new { success = true, iceServers = token.IceServers });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }
