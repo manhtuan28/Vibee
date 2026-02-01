@@ -1,0 +1,413 @@
+﻿@{
+    ViewData["Title"] = "Trung tâm trợ giúp";
+}
+
+<style>
+    :root {
+        --vibee-primary: #1877f2;
+        --vibee-primary-light: #e7f3ff;
+        --text-dark: #050505;
+        --text-gray: #65676b;
+    }
+
+    body {
+        background-color: #f0f2f5;
+    }
+
+    .help-hero {
+        background: linear-gradient(135deg, #1877f2 0%, #0062cc 100%);
+        padding: 60px 20px 80px;
+        border-bottom-left-radius: 30px;
+        border-bottom-right-radius: 30px;
+        color: white;
+        text-align: center;
+        position: relative;
+        margin-bottom: 40px;
+    }
+
+        .help-hero h1 {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+    .search-wrapper {
+        max-width: 600px;
+        margin: -60px auto 40px;
+        padding: 0 15px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .search-input-group {
+        background: white;
+        border-radius: 50px;
+        padding: 5px 20px;
+        box-shadow: 0 10px 25px rgba(24, 119, 242, 0.15);
+        display: flex;
+        align-items: center;
+        height: 60px;
+        border: 2px solid transparent;
+        transition: all 0.3s;
+    }
+
+        .search-input-group:focus-within {
+            border-color: var(--vibee-primary);
+            box-shadow: 0 10px 30px rgba(24, 119, 242, 0.25);
+        }
+
+        .search-input-group i {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+        }
+
+        .search-input-group input {
+            border: none;
+            outline: none;
+            width: 100%;
+            margin-left: 15px;
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+
+    .category-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px 15px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid rgba(0,0,0,0.03);
+        height: 100%;
+        cursor: pointer;
+    }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border-color: var(--vibee-primary-light);
+        }
+
+    .cat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 28px;
+    }
+
+    .bg-blue {
+        background: #e7f3ff;
+        color: #1877f2;
+    }
+
+    .bg-green {
+        background: #e6fffa;
+        color: #00b894;
+    }
+
+    .bg-purple {
+        background: #f3e5f5;
+        color: #9c27b0;
+    }
+
+    .bg-orange {
+        background: #fff3e0;
+        color: #ff9800;
+    }
+
+    .cat-title {
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+    }
+
+    .cat-desc {
+        font-size: 0.85rem;
+        color: var(--text-gray);
+    }
+
+    .faq-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+
+    .accordion-item {
+        border: 1px solid #f0f2f5;
+        border-radius: 12px !important;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+
+    .accordion-button {
+        font-weight: 600;
+        color: var(--text-dark);
+        background: white;
+        box-shadow: none !important;
+        padding: 15px 20px;
+    }
+
+        .accordion-button:not(.collapsed) {
+            color: var(--vibee-primary);
+            background-color: var(--vibee-primary-light);
+        }
+
+    .accordion-body {
+        font-size: 0.95rem;
+        color: #444;
+        line-height: 1.6;
+        padding: 20px;
+        background-color: #fafafa;
+    }
+
+    .contact-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px 20px;
+        text-align: center;
+        margin-top: 50px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    }
+
+    @@media (max-width: 768px) {
+        .help-hero {
+            padding-bottom: 70px;
+            border-radius: 0 0 25px 25px;
+        }
+
+            .help-hero h1 {
+                font-size: 1.8rem;
+            }
+
+        .search-wrapper {
+            margin-top: -50px;
+        }
+
+        .category-card {
+            padding: 20px 10px;
+        }
+
+        .cat-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+        }
+
+        .cat-title {
+            font-size: 1rem;
+        }
+
+        .accordion-button {
+            font-size: 0.95rem;
+            padding: 12px 15px;
+        }
+    }
+</style>
+
+<div class="help-hero">
+    <div class="container animate__animated animate__fadeIn">
+        <h1>Xin chào, Vibee giúp gì được bạn?</h1>
+        <p class="opacity-75">Tìm kiếm câu trả lời nhanh chóng và dễ dàng</p>
+    </div>
+</div>
+
+<div class="search-wrapper animate__animated animate__fadeInUp">
+    <div class="search-input-group">
+        <i class="bi bi-search"></i>
+        <input type="text" id="searchInput" placeholder="Nhập từ khóa (vd: mật khẩu, khóa nick...)">
+    </div>
+</div>
+
+<div class="container pb-5">
+
+    <div class="row g-3 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="category-card" onclick="filterFAQ('account')">
+                <div class="cat-icon bg-blue"><i class="bi bi-person-fill"></i></div>
+                <div class="cat-title">Tài khoản</div>
+                <div class="cat-desc d-none d-md-block">Đăng nhập, bảo mật</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="category-card" onclick="filterFAQ('chat')">
+                <div class="cat-icon bg-green"><i class="bi bi-chat-dots-fill"></i></div>
+                <div class="cat-title">Tin nhắn</div>
+                <div class="cat-desc d-none d-md-block">Chat, Video Call</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="category-card" onclick="filterFAQ('privacy')">
+                <div class="cat-icon bg-purple"><i class="bi bi-shield-check"></i></div>
+                <div class="cat-title">Riêng tư</div>
+                <div class="cat-desc d-none d-md-block">Ai xem bài viết?</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="category-card" onclick="filterFAQ('error')">
+                <div class="cat-icon bg-orange"><i class="bi bi-bug-fill"></i></div>
+                <div class="cat-title">Báo lỗi</div>
+                <div class="cat-desc d-none d-md-block">Lỗi kỹ thuật</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary rounded-pill me-2" style="width: 4px; height: 25px;"></div>
+                <h4 class="fw-bold m-0">Câu hỏi thường gặp</h4>
+            </div>
+
+            <div class="faq-section">
+                <div class="accordion accordion-flush" id="faqAccordion">
+
+                    <div class="accordion-item faq-item" data-category="account error">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Tại sao tài khoản của tôi bị khóa?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Tài khoản có thể bị khóa tạm thời hoặc vĩnh viễn do:
+                                <ul class="mb-0 mt-2">
+                                    <li>Spam đăng ký nhiều tài khoản cùng lúc.</li>
+                                    <li>Đăng bài viết vi phạm tiêu chuẩn cộng đồng.</li>
+                                    <li>Đăng nhập sai mật khẩu quá nhiều lần.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item faq-item" data-category="chat error">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Lỗi màn hình đen khi gọi Video?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <p class="mb-2"><strong>Cách khắc phục:</strong></p>
+                                <ol class="mb-0">
+                                    <li>Kiểm tra quyền truy cập Camera/Micro trên trình duyệt.</li>
+                                    <li>Đảm bảo bạn đang sử dụng kết nối mạng ổn định (Ưu tiên Wifi).</li>
+                                    <li>Nếu dùng 4G, Vibee sẽ tự động chuyển sang chế độ tiết kiệm dữ liệu có thể gây trễ hình.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item faq-item" data-category="account">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Tôi quên mật khẩu đăng nhập?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Tại màn hình đăng nhập, hãy bấm vào <strong>"Quên mật khẩu?"</strong>. Hệ thống sẽ gửi một liên kết đặt lại mật khẩu vào Email đăng ký của bạn.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item faq-item" data-category="privacy">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Làm sao để ẩn bài viết với người lạ?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Khi đăng bài, bạn có thể chọn chế độ hiển thị:
+                                <ul class="mb-0 mt-2">
+                                    <li><strong>Công khai:</strong> Mọi người đều thấy.</li>
+                                    <li><strong>Bạn bè:</strong> Chỉ bạn bè mới thấy.</li>
+                                    <li><strong>Chỉ mình tôi:</strong> Lưu trữ cá nhân.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item faq-item" data-category="account">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                Tôi không nhận được Email xác thực?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Vui lòng kiểm tra mục <strong>Spam (Thư rác)</strong> hoặc <strong>Quảng cáo</strong> trong hộp thư của bạn. <br>
+                                Nếu vẫn không thấy, bạn có thể yêu cầu gửi lại email xác thực từ trang đăng nhập.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="contact-card">
+        <h4 class="fw-bold mb-2">Vẫn chưa tìm thấy câu trả lời?</h4>
+        <p class="text-muted mb-4">Đừng lo, đội ngũ hỗ trợ Vibee luôn ở đây.</p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a href="mailto:support@vibee.com" class="btn btn-primary rounded-pill px-4 py-2 fw-bold">
+                <i class="bi bi-envelope-fill me-2"></i>Gửi Email
+            </a>
+            <a href="#" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold">
+                <i class="bi bi-messenger me-2"></i>Chat Admin
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterFAQ(category) {
+            const items = document.querySelectorAll('.faq-item');
+
+            document.querySelectorAll('.category-card').forEach(c => c.style.borderColor = 'rgba(0,0,0,0.03)');
+            event.currentTarget.style.borderColor = '#1877f2';
+
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category.includes(category)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            const faqSection = document.querySelector('.faq-section');
+            const offset = 100;
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = faqSection.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const value = this.value.toLowerCase();
+            const items = document.querySelectorAll('.faq-item');
+            let hasResult = false;
+
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(value)) {
+                    item.style.display = 'block';
+                    hasResult = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+}

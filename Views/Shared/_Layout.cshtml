@@ -256,14 +256,14 @@
                     <ul class="navbar-nav mb-2 mb-lg-0 w-100 justify-content-center">
                         <li class="nav-item mx-1">
                             <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"
-                               asp-controller="Home" asp-action="Index" title="Bảng tin">
+                               asp-area="" asp-controller="Home" asp-action="Index" title="Bảng tin">
                                 <i class="bi bi-house-door-fill"></i>
                                 <span class="d-lg-none fw-bold ms-2">Trang chủ</span>
                             </a>
                         </li>
                         <li class="nav-item mx-1">
                             <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Friends" ? "active" : "")"
-                               asp-controller="Friends" asp-action="Index" title="Bạn bè">
+                               asp-area="" asp-controller="Friends" asp-action="Index" title="Bạn bè">
                                 <i class="bi bi-people-fill"></i>
                                 <span class="d-lg-none fw-bold ms-2">Bạn bè</span>
                             </a>
@@ -276,9 +276,16 @@
                         </li>
                         <li class="nav-item mx-1">
                             <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Wallet" ? "active" : "")"
-                               asp-controller="Wallet" asp-action="Index" title="Ví tiền">
+                               asp-area="" asp-controller="Wallet" asp-action="Index" title="Ví tiền">
                                 <i class="bi bi-wallet2"></i>
                                 <span class="d-lg-none fw-bold ms-2">Ví tiền</span>
+                            </a>
+                        </li>
+                        <li class="nav-item mx-1">
+                            <a class="nav-center-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ManagerHome" ? "active" : "")"
+                               asp-area="Identity" asp-page="/Account/Manage/Index" title="Cài đặt & quyền riêng tư">
+                                <i class="bi bi-gear-fill fs-5 text-dark"></i>
+                                <span class="d-lg-none fw-bold ms-2">Cài đặt & Quyền riêng tư</span>
                             </a>
                         </li>
                         <li class="nav-item d-md-none mt-2 border-top pt-2">
@@ -287,6 +294,7 @@
                                 <span class="fw-bold ms-2">Tìm kiếm</span>
                             </a>
                         </li>
+
                     </ul>
                 </div>
 
