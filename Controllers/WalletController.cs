@@ -18,12 +18,14 @@ namespace Vibee.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IConfiguration _configuration;
 
-        public WalletController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public WalletController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
+            _configuration = configuration;
         }
         public async Task<IActionResult> Index()
         {
@@ -224,7 +226,7 @@ namespace Vibee.Controllers
                         vnpay.AddResponseData(key, value.ToString());
                 }
 
-                string vnp_HashSecret = Environment.GetEnvironmentVariable("VNPAY_HASH_SECRET") ?? string.Empty;
+                string vnp_HashSecret = _configuration["VnPay:HashSecret"] ?? string.Empty;
 
                 if (vnpay.ValidateSignature(query["vnp_SecureHash"], vnp_HashSecret) && query["vnp_ResponseCode"] == "00")
                 {
@@ -286,9 +288,9 @@ namespace Vibee.Controllers
 
         private string GetVnPayUrl(decimal amount, string orderId)
         {
-            string vnp_TmnCode = Environment.GetEnvironmentVariable("VNPAY_TMN_CODE") ?? string.Empty;
-            string vnp_HashSecret = Environment.GetEnvironmentVariable("VNPAY_HASH_SECRET") ?? string.Empty;
-            string vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+            string vnp_TmnCode = _configuration["VnPay:TmnCode"] ?? string.Empty;
+            string vnp_HashSecret = _configuration["VnPay:HashSecret"] ?? string.Empty;
+            string vnp_Url = _configuration["VnPay:BaseUrl"] ?? "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
             string vnp_Returnurl = Url.Action("PaymentCallback", "Wallet", null, Request.Scheme);
 
             string vnp_IpAddr = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
@@ -316,7 +318,7 @@ namespace Vibee.Controllers
 
         private async Task<MomoCreatePaymentResponseModel> GetMomoUrl(decimal amount, string orderId)
         {
-            var options = new MomoOptionModel();
+            var options = _configuration.GetSection("Momo").Get<MomoOptionModel>() ?? new MomoOptionModel();
 
             string endpoint = options.MomoApiUrl;
             string redirectUrl = Url.Action("PaymentCallback", "Wallet", null, Request.Scheme);
